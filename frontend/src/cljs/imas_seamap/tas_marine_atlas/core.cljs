@@ -25,7 +25,9 @@
             [imas-seamap.subs.features]  ;; Phase 2: Feature flag subscriptions
             [imas-seamap.subs.branding]  ;; Phase 2: Branding subscriptions
             [imas-seamap.tas-marine-atlas.subs :as tmasubs]
-            [imas-seamap.tas-marine-atlas.views :refer [layout-app]]
+            [imas-seamap.tas-marine-atlas.views] ; registers the data-in-region drawer
+            [imas-seamap.config.deployments :as deployments]
+            [imas-seamap.views :refer [layout-app]] ; Phase 4: the shared, config-driven layout
             [imas-seamap.config :as config]
             [imas-seamap.components :as components]))
 
@@ -316,10 +318,15 @@
        standard-interceptors
        handler))))
 
+(def deployment-id :tas-marine-atlas)
+
 (defn mount-root []
   (re-frame/clear-subscription-cache!)
   (Blueprint/FocusStyleManager.onlyShowFocusOnTabs)
-  (js/document.body.classList.add "tas-marine-atlas")
+  ;; SCSS selects on body classes. Call .add per class: DOM methods need their
+  ;; `this`, so they can't be passed through `apply`.
+  (doseq [c (.split (:css-class (deployments/get-deployment deployment-id)) " ")]
+    (.add (.-classList js/document.body) c))
   (.render
    @root
    (r/as-element [hotkeys-provider
@@ -342,6 +349,6 @@
 
 (defn ^:export init [api-url-base media-url-base wordpress-url-base img-url-base]
   (register-handlers! config-handlers)
-  (re-frame/dispatch-sync [:boot api-url-base media-url-base wordpress-url-base img-url-base])
+  (re-frame/dispatch-sync [:boot api-url-base media-url-base wordpress-url-base img-url-base (deployments/get-deployment deployment-id)])
   (dev-setup)
   (mount-root))

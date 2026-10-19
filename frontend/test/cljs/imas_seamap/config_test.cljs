@@ -146,6 +146,9 @@
         (doseq [[slot v] {:footer footer :floating-pills floating-pills :map-overlays map-overlays}]
           (is (vector? v) (str slot " should be a vector"))
           (is (every? keyword? v) (str slot " entries should be registry keywords")))
+        (is (every? #(or (keyword? %) (and (map? %) (keyword? (:id %)))) (:hotkeys (:layout config)))
+            "hotkey entries are ids or {:id ... :label ...} maps")
+        (is (every? map? (:helper-overlay (:layout config))) "helper-overlay entries are maps")
         (is (map? controls) "controls are keyed by Leaflet corner")
         (is (every? #{:top-left :top-right} (keys controls)))
         (letfn [(control-entry? [e] (or (keyword? e) (and (vector? e) (every? control-entry? e))))]
@@ -251,7 +254,7 @@
 
     (testing "Australia has different region-control label"
       (setup-deployment-config :seamap-australia)
-      (is (= "Select region"
+      (is (= "Select Habitat Data"
              @(re-frame/subscribe [:branding/label :region-control]))))
 
     (testing "Layer info label differs between deployments"

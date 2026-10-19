@@ -40,8 +40,8 @@
                   :content     :welcome/seamap-australia
                   :button-text "Get Started!"
                   :footer      :welcome-footer/seamap-australia}
-    :labels      {:region-control    "Select region"
-                  :transect-control  "Draw transect (habitat data) or take a measurement"
+    :labels      {:region-control    "Select Habitat Data"
+                  :transect-control  "Transect/Measure"
                   :layer-info        "Layer info / Download data"}
     :links       {:main-site "https://seamapaustralia.org"}}
 
@@ -62,10 +62,12 @@
                   :feature/data-providers
                   :feature/data-download
                   :feature/settings
+                  :feature/viewport-only
                   :feature/pinned-legends
                   :feature/layer-preview}
 
-   ;; Layout configuration (Phase 4: Unified layout)
+   ;; Layout configuration (Phase 4: Unified layout). Hotkeys and helper overlay
+   ;; use the shared defaults.
    :layout      {:left-drawer    {:tabs [:catalogue :active-layers :featured-maps]}
                  :right-drawer   {:story-map          :featured-map/drawer
                                   :state-of-knowledge :sok/panel
@@ -134,7 +136,7 @@
                   :height 86}
     :url         "https://tasmarineatlas.org"
     :title       "Tasmania's Marine Atlas"
-    :welcome     {:title       "Welcome to Tasmania's Marine Atlas."
+    :welcome     {:title       [:<> "Welcome to" [:br] "Tasmania's Marine Atlas."]
                   :content     :welcome/tas-marine-atlas
                   :button-text "Explore the Atlas"}
     :labels      {:region-control   "Find Data in Region"
@@ -163,18 +165,54 @@
                   :feature/pinned-legends}
 
    ;; Layout configuration (Phase 4: Unified layout)
-   :layout      {:left-drawer    {:tabs [:catalogue :active-layers :featured-maps]}
+   :layout      {:left-drawer    {:tabs          [:catalogue :active-layers :featured-maps]
+                                  :close-button? false} ; the menu control toggles the drawer
                  :right-drawer   {:story-map      :featured-map/drawer
                                   :data-in-region :data-in-region/panel
                                   :dynamic-pill   :dynamic-pill/drawer}
                  :footer         []  ; No plot component for TMA
-                 :floating-pills [:pill/dynamic :pill/side-by-side-views]
+                 ;; No dynamic pills: TMA fetches them but has never defined any, and lacks
+                 ;; the :ui/open-pill handlers the interactive pill needs. Add :pill/dynamic
+                 ;; and those handlers together if a pill is ever configured for TMA.
+                 :floating-pills [:pill/side-by-side-views]
                  :map-overlays   [:overlay/pinned-legends]
-                 :controls       {:top-left  [:control/menu :control/settings :control/zoom
+                 :controls       {:top-left  [:control/menu :control/settings :control/zoom-basic
                                               [:control/print :control/omnisearch :control/transect
                                                :control/data-in-region :control/share :control/reset]
                                               [:control/shortcuts :control/help]]
-                                  :top-right [:control/layers]}}
+                                  :top-right [:control/layers]}
+                 ;; No transect plot, so no "Toggle Transect Panel"; measure/region relabelled
+                 :hotkeys        [:zoom-in :zoom-out :pan-up :pan-down :pan-left :pan-right
+                                  :drawer
+                                  {:id :transect :label "Start/Clear Measure"}
+                                  {:id :region   :label "Start/Clear Find Data in Region"}
+                                  :cancel :search :reset :share :help]
+                 ;; TODO: Separate helper overlay for TasMarineAtlas?
+                 :helper-overlay [{:selector       ".SelectionListItem:first-child .layer-card .layer-header"
+                                   :helperPosition "bottom"
+                                   :helperText     "Toggle layer visibility, view info and metadata, show legend, adjust transparency, choose from download options (habitat data)"
+                                   :padding        0}
+                                  {:id "state-of-knowledge-pill"
+                                   :helperText "Select a management region to view summaries of the current state of research knowledge for the area"}
+                                  {:selector       ".leaflet-control-layers-toggle"
+                                   :helperText     "Select from available basemaps"
+                                   :helperPosition "left"}
+                                  {:id "menu-button" :helperText "Expand/Collapse data menu"}
+                                  {:id "zoom-in-control" :helperText "Zoom in"}
+                                  {:id "zoom-out-control" :helperText "Zoom out"}
+                                  {:id "layer-search" :helperText "Freetext search for a specific layer by name or keywords"}
+                                  {:id "print-control" :helperText "Export current map view as an image"}
+                                  {:id "omnisearch-control" :helperText "Search all available layers in catalogue"}
+                                  {:id "transect-control" :helperText "Take a measurement"}
+                                  {:id "select-control" :helperText "Search for data in region"}
+                                  {:id "share-control" :helperText "Create a shareable URL for current map view"}
+                                  {:id "reset-control" :helperText "Reset the application back to its initial state"}
+                                  {:id "shortcuts-control" :helperText "View keyboard shortcuts"}
+                                  {:id "overlay-control" :helperText "You are here!"}
+                                  {:selector       ".bp3-tab-panel.catalogue>.bp3-tabs>.bp3-tab-list"
+                                   :helperText     "Filter layers by category or responsible organisation"
+                                   :helperPosition "bottom"
+                                   :padding        0}]}
 
    ;; Feature-specific state initialization
    :initial-state
@@ -205,8 +243,7 @@
     :title       "Seamap Antarctica"
     :welcome     {:title   "Welcome to Seamap Antarctica."
                   :content :welcome/seamap-antarctica}
-    :labels      {:region-control   "Select region"
-                  :transect-control "Take a measurement"
+    :labels      {:transect-control "Transect/Measure"
                   :layer-info       "Layer info"}}
 
    ;; Map configuration - Antarctic polar projection
@@ -224,6 +261,7 @@
                   :feature/floating-pills
                   :feature/transect-control
                   :feature/settings
+                  :feature/viewport-only
                   :feature/pinned-legends
                   :feature/layer-preview}
 
@@ -296,8 +334,8 @@
     :url         "https://futuresofseafood.com.au"
     :title       "Futures of Seafood"
     :welcome     nil ; the FoS boot flow never opens the welcome dialogue
-    :labels      {:region-control   "Select region"
-                  :transect-control "Draw transect (habitat data) or take a measurement"
+    :labels      {:region-control   "Select Habitat Data"
+                  :transect-control "Transect/Measure"
                   :layer-info       "Layer info"}}
 
    ;; Color overrides (FoS has custom color scheme)
@@ -317,6 +355,7 @@
                   :feature/time-dimension
                   :feature/floating-pills
                   :feature/settings
+                  :feature/viewport-only
                   :feature/region-select
                   :feature/pinned-legends
                   :feature/layer-preview}
@@ -507,6 +546,7 @@
     :feature/data-providers      ; data-providers listing (site configuration)
     :feature/data-download       ; download options in layer info
     :feature/settings            ; settings button and overlay
+    :feature/viewport-only       ; "viewport layers only" catalogue filter toggle in settings
     :feature/pinned-legends      ; pinned legends panels over the map
     :feature/layer-preview       ; hover preview image for catalogue layers
     :feature/side-by-side-maps   ; two synchronised maps with a divider (NHAT)

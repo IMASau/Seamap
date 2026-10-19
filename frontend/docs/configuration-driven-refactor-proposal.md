@@ -56,7 +56,7 @@ Two details the original proposal missed:
 | Plot Component (transect) | ✓ | ✗ | ✗ | ✓ | ✗ | ✗ |
 | Transect Control | ✓ | ✓ ("Measure") | ✓ ("Take a measurement") | ✓ | ✗ | ✗ |
 | Region select control | ✓ | ✓ (data-in-region variant) | ✗ | ✓ | ✓ ("Select Area of Interest") | ✗ |
-| Settings button | ✓ | ✓ (config says ✗) | ✓ | ✓ | ✗ | ✗ |
+| Settings button | ✓ | ✓ (no viewport-only toggle) | ✓ | ✓ | ✗ | ✗ |
 | Autosave toggle in control bar | ✗ | ✗ | ✗ | ✗ | ✓ | ✗ |
 | Print, share, shortcuts, help controls | ✓ | ✓ | ✓ | ✓ | ✓ | ✗ |
 | Omnisearch | ✓ | ✓ | ✓ | ✓ | ✓ (hazard layers only) | ✓ |
@@ -66,7 +66,7 @@ Two details the original proposal missed:
 | Drawer footer banner | ✗ | ✗ | ✗ | ✗ | ✓ | ✗ |
 | Side-by-side compare maps | ✗ | ✗ | ✗ | ✗ | ✓ | ✗ |
 | Time dimension (Leaflet time slider) | ✗ | ✗ | ✗ | ✓ | ✓ (+ timeline controls) | ✗ |
-| Hotkey set | full | full | full | full | full + numpad zoom | zoom, pan, search, reset |
+| Hotkey set | full | full minus transect panel; measure/region relabelled | full | full | full + numpad zoom | zoom, pan, search, reset |
 | Custom CRS | ✗ | ✗ | ✓ (EPSG:3031) | ✗ | ✗ | ✗ |
 | Map max bounds | ✗ | ✗ | ✗ | ✗ | ✓ | ✗ |
 | Data Providers | ✓ | ✗ | ✗ | ✗ | ✗ | ✗ |
@@ -311,7 +311,8 @@ Usage in components (no more `tma?` parameter):
 | Map overlays | `:layout :map-overlays` | Implemented | Components over the map that are not Leaflet controls: `:overlay/pinned-legends`; NHAT's hazard legend and no-data warning to come. |
 | Controls | `:layout :controls` | Implemented (`controls-slot`) | Keyed by Leaflet corner; a nested vector is a `control-block`. Each control is its own registered component. |
 | Omnisearch | `:layout :omnisearch` | Proposed | Optional `:layers-sub` restricting the searchable layers (NHAT searches hazard layers only). |
-| Hotkeys | `:layout :hotkeys` | Proposed | Which hotkey groups are active. The kiosk omits the drawer, help, share, and region keys; NHAT adds numpad zoom. |
+| Hotkeys | `:layout :hotkeys` | Implemented (`build-hotkeys`) | Ordered hotkey ids from `hotkey-definitions`, or `{:id :label}` maps to relabel one; nil means the Seamap Australia set. NHAT's numpad zoom and bare `=` are not yet definitions. |
+| Helper overlay | `:layout :helper-overlay` | Implemented | Optional full list of help-overlay annotations; nil means the Seamap Australia list. A stop-gap: the proposal's intent is for each control to carry its own help text, with per-deployment wording coming from labels. |
 
 ```clojure
 ;; src/cljs/imas_seamap/views/layout.cljs
@@ -580,7 +581,7 @@ Still hard-coded despite having a subscription: the welcome dialogue (title, bod
 
 1. ~~Finish the Seamap Australia layout: left drawer tabs, controls, right drawer, floating pills, and map overlays all from `:layout`.~~ Done 2026-10-19. Remaining for Australia: `:omnisearch` and `:hotkeys` slots, the drawer `:footer`, and the catalogue sub-tab config (all needed first by NHAT or the kiosk).
 2. Add the kiosk config and migrate the kiosk next. It is the smallest deployment and exercises the two drawer modes the Australia layout does not: `:tabs nil` and `:collapsible? false`. Decide whether `tmag-kiosk.html` stays separate or becomes an Ansible variant of `index.html`.
-3. ~~Migrate Futures of Seafood~~ (done 2026-10-19: FoS boots with its config, mounts the shared `layout-app` and shared `map-component`, and its `views.cljs` and `map/views.cljs` are deleted; the welcome dialogue is now config-driven and the Leaflet time slider sits in the shared map behind `:feature/time-dimension`), then TMA, then Antarctica. Antarctica needs `:min-zoom`/`:max-zoom` from config; TMA needs the data-in-region control slot, a "Measure" transect label, and its own welcome button text.
+3. ~~Migrate Futures of Seafood~~ (done 2026-10-19: FoS boots with its config, mounts the shared `layout-app` and shared `map-component`, and its `views.cljs` and `map/views.cljs` are deleted; the welcome dialogue is now config-driven and the Leaflet time slider sits in the shared map behind `:feature/time-dimension`), ~~then TMA~~ (done 2026-10-19: TMA boots with its config on the shared layout; its `views.cljs` keeps only the data-in-region drawer, registered as `:data-in-region/panel`; the shared layout gained `:close-button?` on the drawer, a `:control/zoom-basic` variant, a feature-gated viewport-only toggle, and config-driven hotkeys and helper text), then Antarctica, which needs `:min-zoom`/`:max-zoom` from config and whose own `map-component` is otherwise the shared one with a different CRS.
 4. Move the side-by-side-views floating pill, currently copied into three `views.cljs` files, into the shared pill slot.
 5. **NHAT: consume config only.** Give NHAT a config so branding, features, and labels work, and register its bespoke components in the registry, but keep its own `layout-app` and `map-component` until Phase 4b is done. Moving NHAT onto the unified layout before the handler and boot extension points exist would mean re-creating its overrides inside core.
 
@@ -667,7 +668,7 @@ test/cljs/imas_seamap/
 ## Files to Eventually Remove
 
 After full migration:
-- `tas_marine_atlas/core.cljs`, `tas_marine_atlas/views.cljs`, `tas_marine_atlas/db.cljs`, most of `tas_marine_atlas/events.cljs`
+- `tas_marine_atlas/core.cljs`, `tas_marine_atlas/db.cljs`, most of `tas_marine_atlas/events.cljs` (`views.cljs` reduced to the data-in-region drawer 2026-10-19)
 - `seamap_antarctica/core.cljs`, `seamap_antarctica/views.cljs`, `seamap_antarctica/db.cljs`, `seamap_antarctica/events.cljs`, `seamap_antarctica/map/views.cljs` (after Phase 6)
 - `futuresofseafood/core.cljs`, `futuresofseafood/events.cljs` (`views.cljs` and `map/views.cljs` removed 2026-10-19)
 - `tmag_kiosk/core.cljs`, `tmag_kiosk/views.cljs`, `tmag_kiosk/events.cljs`, `tmag_kiosk/map/views.cljs`

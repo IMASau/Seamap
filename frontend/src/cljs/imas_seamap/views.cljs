@@ -418,7 +418,8 @@
     :on-close   #(re-frame/dispatch [:ui/settings-overlay false])}
    [:div.bp3-dialog-body
     [autosave-application-state-toggle]
-    [viewport-only-toggle]
+    (when @(re-frame/subscribe [:feature/enabled? :feature/viewport-only])
+      [viewport-only-toggle])
     [pinned-legends-toggle]]])
 
 (defn- metadata-record [_props]
@@ -646,13 +647,17 @@
     :id       "print-control"
     :icon     "media"}])
 
-(defn transect-control []
+(defn transect-control
+  "Idle tooltip comes from [:branding :labels :transect-control] (\"Transect/Measure\"
+   on Seamap, \"Measure\" on TMA, which has no habitat transects)."
+  []
   (let [{:keys [drawing? query]} @(re-frame/subscribe [:transect/info])
+        idle-label (or @(re-frame/subscribe [:branding/label :transect-control]) "Transect/Measure")
         [tooltip icon dispatch]
         (cond
           drawing? ["Cancel Measurement" "undo"   :transect.draw/disable]
           query    ["Clear Measurement"  "eraser" :transect.draw/clear]
-          :else    ["Transect/Measure"   "edit"   :transect.draw/enable])]
+          :else    [idle-label           "edit"   :transect.draw/enable])]
     [control-block-child
      {:on-click #(re-frame/dispatch [dispatch])
       :tooltip  tooltip
@@ -717,21 +722,30 @@
     :id       "settings-button"
     :icon     "cog"}])
 
-(defn zoom-control []
+(defn zoom-control
+  "Zoom in/out buttons, with the current zoom level between them unless
+   `:show-level?` is false."
+  [& [{:keys [show-level?] :or {show-level? true}}]]
   (let [{:keys [zoom]} @(re-frame/subscribe [:map/props])]
     [control-block
-   [control-block-child
-    {:on-click #(-> "leaflet-control-zoom-in" js/document.getElementsByClassName first .click)
-     :id       "zoom-in-control"
-     :icon     "plus"}]
-   [b/tooltip
-    {:content "Zoom Level"
-     :position b/RIGHT}
-    [:div.zoom-level zoom]]
-   [control-block-child
-    {:on-click #(-> "leaflet-control-zoom-out" js/document.getElementsByClassName first .click)
-     :id       "zoom-out-control"
-     :icon     "minus"}]]))
+     [control-block-child
+      {:on-click #(-> "leaflet-control-zoom-in" js/document.getElementsByClassName first .click)
+       :id       "zoom-in-control"
+       :icon     "plus"}]
+     (when show-level?
+       [b/tooltip
+        {:content "Zoom Level"
+         :position b/RIGHT}
+        [:div.zoom-level zoom]])
+     [control-block-child
+      {:on-click #(-> "leaflet-control-zoom-out" js/document.getElementsByClassName first .click)
+       :id       "zoom-out-control"
+       :icon     "minus"}]]))
+
+(defn zoom-basic-control
+  "Zoom buttons without the level readout (TMA)."
+  []
+  [zoom-control {:show-level? false}])
 
 
 (defn omnisearch-control []
@@ -1075,8 +1089,10 @@
   "Left drawer, configured by the deployment's [:layout :left-drawer]:
    - :tabs          ordered tab entries (see `resolve-tab`); nil for a single panel
    - :component     the single panel to show when there are no tabs
-   - :collapsible?  default true; false keeps the drawer open with no close button"
-  [{:keys [tabs component collapsible?] :or {collapsible? true}}]
+   - :collapsible?  default true; false keeps the drawer open with no close button
+   - :close-button? default true; false hides the chevron in the header (TMA), the
+                    menu control still toggles the drawer"
+  [{:keys [tabs component collapsible? close-button?] :or {collapsible? true close-button? true}}]
   (let [open? (or (not collapsible?) @(re-frame/subscribe [:left-drawer/open?]))
         tab   @(re-frame/subscribe [:left-drawer/tab])
         logo @(re-frame/subscribe [:branding/logo])
@@ -1088,7 +1104,7 @@
        [:div
         [:a {:href brand-url}
          [:img {:src (:src logo) :alt (:alt logo)}]]]
-       (when collapsible?
+       (when (and collapsible? close-button?)
          [b/button
           {:icon     "double-chevron-left"
            :minimal  true
@@ -1282,59 +1298,80 @@
        [map-legends {:legends legends}]
        [map-legends {:legends side-by-side-legends :position :right}]])))
 
+(def hotkey-definitions
+  "Keyboard shortcuts by id. A deployment lists the ids it wants under
+   [:layout :hotkeys], optionally as {:id ... :label ...} to relabel one."
+  {:zoom-in   {:label "Zoom In"                   :combo "plus"      :event [:map/zoom-in]}
+   :zoom-out  {:label "Zoom Out"                  :combo "-"         :event [:map/zoom-out]}
+   :pan-up    {:label "Pan Up"                    :combo "up"        :event [:map/pan-direction :up]}
+   :pan-down  {:label "Pan Down"                  :combo "down"      :event [:map/pan-direction :down]}
+   :pan-left  {:label "Pan Left"                  :combo "left"      :event [:map/pan-direction :left]}
+   :pan-right {:label "Pan Right"                 :combo "right"     :event [:map/pan-direction :right]}
+   :plot      {:label "Toggle Transect Panel"     :combo "p"         :event [:transect.plot/toggle-visibility]}
+   :drawer    {:label "Toggle Left Drawer"        :combo "a"         :event [:left-drawer/toggle]}
+   :transect  {:label "Start/Clear Transect"      :combo "t"         :event [:transect.draw/toggle]}
+   :region    {:label "Start/Clear Region Select" :combo "r"         :event [:map.layer.selection/toggle]}
+   :cancel    {:label "Cancel"                    :combo "esc"       :event [:ui.drawing/cancel]}
+   :search    {:label "Layer Power Search"        :combo "s"         :event [:layers-search-omnibar/toggle]}
+   :reset     {:label "Reset"                     :combo "shift + r" :event [:re-boot]}
+   :share     {:label "Create Shareable URL"      :combo "c"         :event [:create-save-state]}
+   :help      {:label "Show Help Overlay"         :combo "h"         :event [:help-layer/toggle]}})
+
+(def default-hotkeys
+  "Seamap Australia's shortcut set, used when a deployment's layout has no :hotkeys."
+  [:zoom-in :zoom-out :pan-up :pan-down :pan-left :pan-right
+   :plot :drawer :transect :region :cancel :search :reset :share :help])
+
+(defn build-hotkeys
+  "Blueprint hotkey configs for the given entries (ids or {:id :label} maps).
+   See note on `use-hotkeys' for rationale invoking `clj->js' here."
+  [entries]
+  (clj->js
+   (for [entry entries
+         :let [{:keys [id label]} (if (map? entry) entry {:id entry})
+               {:keys [combo event] default-label :label} (get hotkey-definitions id)]]
+     (do
+       (when-not combo (js/console.error "Unknown hotkey id" (str id)))
+       {:label     (or label default-label)
+        :combo     combo
+        :global    true
+        :group     "Keyboard Shortcuts"
+        :onKeyDown #(re-frame/dispatch event)}))))
+
 (def hotkeys-combos
-  (let [keydown-wrapper
-        (fn [m keydown-v]
-          (assoc m :global    true
-                 :group "Keyboard Shortcuts"
-                 :onKeyDown #(re-frame/dispatch keydown-v)))]
-    ;; See note on `use-hotkeys' for rationale invoking `clj->js' here:
-    (clj->js
-     [(keydown-wrapper
-       {:label "Zoom In"                :combo "plus"}
-       [:map/zoom-in])
-      (keydown-wrapper
-       {:label "Zoom Out"               :combo "-"}
-       [:map/zoom-out])
-      (keydown-wrapper
-       {:label "Pan Up"                 :combo "up"}
-       [:map/pan-direction :up])
-      (keydown-wrapper
-       {:label "Pan Down"               :combo "down"}
-       [:map/pan-direction :down])
-      (keydown-wrapper
-       {:label "Pan Left"               :combo "left"}
-       [:map/pan-direction :left])
-      (keydown-wrapper
-       {:label "Pan Right"              :combo "right"}
-       [:map/pan-direction :right])
-      (keydown-wrapper
-       {:label "Toggle Transect Panel"  :combo "p"}
-       [:transect.plot/toggle-visibility])
-      (keydown-wrapper
-       {:label "Toggle Left Drawer"     :combo "a"}
-       [:left-drawer/toggle])
-      (keydown-wrapper
-       {:label "Start/Clear Transect"   :combo "t"}
-       [:transect.draw/toggle])
-      (keydown-wrapper
-       {:label "Start/Clear Region Select" :combo "r"}
-       [:map.layer.selection/toggle])
-      (keydown-wrapper
-       {:label "Cancel"                 :combo "esc"}
-       [:ui.drawing/cancel])
-      (keydown-wrapper
-       {:label "Layer Power Search"     :combo "s"}
-       [:layers-search-omnibar/toggle])
-      (keydown-wrapper
-       {:label "Reset"                  :combo "shift + r"}
-       [:re-boot])
-      (keydown-wrapper
-       {:label "Create Shareable URL"   :combo "c"}
-       [:create-save-state])
-      (keydown-wrapper
-       {:label "Show Help Overlay"      :combo "h"}
-       [:help-layer/toggle])])))
+  "Seamap Australia's hotkeys, for deployments still on their own layout."
+  (build-hotkeys default-hotkeys))
+
+(def default-helper-overlay
+  "Help-overlay annotations for Seamap Australia, used when a deployment's layout
+   has no :helper-overlay. Entries whose element is not on the page are skipped."
+  ;; TODO: Update helper-overlay for new Seamap version (or remove?)
+  [{:selector       ".SelectionListItem:first-child .layer-card .layer-header"
+    :helperPosition "bottom"
+    :helperText     "Toggle layer visibility, view info and metadata, show legend, adjust transparency, choose from download options (habitat data)"
+    :padding        0}
+   {:id "state-of-knowledge-pill"
+    :helperText "Select a management region to view summaries of the current state of research knowledge for the area"}
+   {:selector       ".leaflet-control-layers-toggle"
+    :helperText     "Select from available basemaps"
+    :helperPosition "left"}
+   {:id "layer-search" :helperText "Freetext search for a specific layer by name or keywords"}
+   {:id "settings-button" :helperText "Select from user-configurable settings"}
+   {:id "print-control" :helperText "Export current map view as an image"}
+   {:id "omnisearch-control" :helperText "Search all available layers in catalogue"}
+   {:id "transect-control" :helperText "Draw a transect (habitat data) or take a measurement"}
+   {:id "select-control" :helperText "Select a region for download (habitat data)"}
+   {:id "share-control" :helperText "Create a shareable URL for current map view"}
+   {:id "reset-control" :helperText "Reset the application back to its initial state"}
+   {:id "shortcuts-control" :helperText "View keyboard shortcuts"}
+   {:id "overlay-control" :helperText "You are here!"}
+   {:selector       ".bp3-tab-panel.catalogue>.bp3-tabs>.bp3-tab-list"
+    :helperText     "Filter layers by category or responsible organisation"
+    :helperPosition "bottom"
+    :padding        0}
+   {:id "plot-footer"
+    :helperText "Draw a transect to show a depth profile of habitat data"
+    :helperPosition "top"}])
 
 (defn layers-control
   "Leaflet layer selection control component.
@@ -1378,7 +1415,11 @@
   (into [:<>] (map (fn [k] [(components-registry/resolve-component k)]) component-keys)))
 
 (defn layout-app []
-  (let [hot-keys (use-memo (fn [] hotkeys-combos))
+  (let [layout             @(re-frame/subscribe [:layout/config])
+        hotkey-config      (:hotkeys layout)
+        ;; Memoised on the config value: a fresh hotkeys array every render would
+        ;; make Blueprint's useHotkeys re-register and re-render in a loop.
+        hot-keys           (use-memo (fn [] (build-hotkeys (or hotkey-config default-hotkeys))) #js [hotkey-config])
         ;; We don't need the results of this, just need to ensure it's called!
         _ #_{:keys [handle-keydown handle-keyup]} (use-hotkeys hot-keys)
         is-printing?       @(re-frame/subscribe [:map.print/is-printing?])
@@ -1389,7 +1430,6 @@
 
         ;; Configuration-driven layout (Phase 4)
         css-class          @(re-frame/subscribe [:branding/css-class])
-        layout             @(re-frame/subscribe [:layout/config])
         has-settings?      @(re-frame/subscribe [:feature/enabled? :feature/settings])
         has-layer-preview? @(re-frame/subscribe [:feature/enabled? :feature/layer-preview])]
     [:div#main-wrapper
@@ -1404,34 +1444,7 @@
       [render-slot (:footer layout)]
       [render-slot (:map-overlays layout)]]
      
-     ;; TODO: Update helper-overlay for new Seamap version (or remove?)
-     [helper-overlay
-      {:selector       ".SelectionListItem:first-child .layer-card .layer-header"
-       :helperPosition "bottom"
-       :helperText     "Toggle layer visibility, view info and metadata, show legend, adjust transparency, choose from download options (habitat data)"
-       :padding        0}
-      {:id "state-of-knowledge-pill"
-       :helperText "Select a management region to view summaries of the current state of research knowledge for the area"}
-      {:selector       ".leaflet-control-layers-toggle"
-       :helperText     "Select from available basemaps"
-       :helperPosition "left"}
-      {:id "layer-search" :helperText "Freetext search for a specific layer by name or keywords"}
-      {:id "settings-button" :helperText "Select from user-configurable settings"}
-      {:id "print-control" :helperText "Export current map view as an image"}
-      {:id "omnisearch-control" :helperText "Search all available layers in catalogue"}
-      {:id "transect-control" :helperText "Draw a transect (habitat data) or take a measurement"}
-      {:id "select-control" :helperText "Select a region for download (habitat data)"}
-      {:id "share-control" :helperText "Create a shareable URL for current map view"}
-      {:id "reset-control" :helperText "Reset the application back to its initial state"}
-      {:id "shortcuts-control" :helperText "View keyboard shortcuts"}
-      {:id "overlay-control" :helperText "You are here!"}
-      {:selector       ".bp3-tab-panel.catalogue>.bp3-tabs>.bp3-tab-list"
-       :helperText     "Filter layers by category or responsible organisation"
-       :helperPosition "bottom"
-       :padding        0}
-      {:id "plot-footer"
-       :helperText "Draw a transect to show a depth profile of habitat data"
-       :helperPosition "top"}]
+     (into [helper-overlay] (or (:helper-overlay layout) default-helper-overlay))
      [welcome-dialogue]
      [outage-message-dialogue]
      (when has-settings?
@@ -1484,6 +1497,7 @@
   :control/menu             menu-button
   :control/settings         settings-button
   :control/zoom             zoom-control
+  :control/zoom-basic       zoom-basic-control
   :control/print            print-control
   :control/omnisearch       omnisearch-control
   :control/transect         transect-control
