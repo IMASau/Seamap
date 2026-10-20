@@ -110,6 +110,8 @@ memory), `imas_seamap.tmag_kiosk.tile_cache.stats()`.
 
 ## Testing
 
+The scripts in `frontend/tools/kiosk-bench/` do all of the following (see its README).
+
 - **Judge performance in the release build only** (`yarn release-local`, then
   `tmag-kiosk-release.html`; see DOCKER.md). The dev build is several times slower and its
   spec checks add pauses.
@@ -133,8 +135,8 @@ memory), `imas_seamap.tmag_kiosk.tile_cache.stats()`.
 
 **Last measured** (2026-10-20, laptop Intel UHD, 8 stories): cold warm-up 80–165 s (about
 16,000 tiles); 48 flights with 0 missed frames, worst frame interval 18.0 ms, worst draw
-10.1 ms, tap to first moving frame 18–39 ms; decoded tiles 1.3 GB at home, peak 1.8 GB in a
-story.
+10.1 ms, tap to first moving frame 18–39 ms; decoded tiles 1.3 GB at home, peak about 1.9 GB
+in a story.
 
 ## Open items
 
@@ -164,7 +166,7 @@ Items marked *(needs a person)* need a decision, access or hardware.
 - [ ] Find out the kiosk PC's exact CPU/GPU. Flights need a GPU: on CPU alone no 4K animation
       reaches 60 fps, while a weak Intel UHD holds 60 fps drawing two full-screen tile layers.
 - [ ] Verify memory and timings on the kiosk hardware: long runs, large videos, decoded tiles
-      (about 160 MB per story, plus up to 0.5 GB in a story), the tile cache's 1 GB budget.
+      (about 160 MB per story, plus up to 0.6 GB in a story), the tile cache's 1 GB budget.
 - [ ] Turn off Edge's kiosk idle reset on the kiosk PC.
 - [ ] Enable CORS on the kiosk WordPress uploads (needed to fetch media into Blobs).
 - [ ] IMAS GeoServer's caching headers vary by layer (some WMS layers send `no-store`, others
