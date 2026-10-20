@@ -513,11 +513,12 @@
             [:img.metadata-img {:src license-img}])
           [:a {:href license-link :target "_blank"} license-name]])
        
-       [:a
-        {:href     metadata_url
-         :target   "_blank"
-         :on-click #(re-frame/dispatch [:map.layer/metadata-click {:link metadata_url :layer layer}])}
-        "Click here for the full metadata record."]
+       (when (seq metadata_url)
+         [:a
+          {:href     metadata_url
+           :target   "_blank"
+           :on-click #(re-frame/dispatch [:map.layer/metadata-click {:link metadata_url :layer layer}])}
+          "Click here for the full metadata record."])
        
        (when (= category :habitat)
          [:p.download-instructions

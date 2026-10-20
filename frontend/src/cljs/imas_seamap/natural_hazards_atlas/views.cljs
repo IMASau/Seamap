@@ -33,10 +33,11 @@
         [:div.bp3-dialog-footer
          [:div
           [:input
-           {:type     "checkbox"
-            :name     "dont-show-this-again"
-            :on-click #(reset! dont-show-again? (.. % -target -checked))
-            :checked  @dont-show-again?}]
+           {:type      "checkbox"
+            :id        "dont-show-this-again"
+            :name      "dont-show-this-again"
+            :on-change #(reset! dont-show-again? (.. % -target -checked))
+            :checked   @dont-show-again?}]
           [:label {:for "dont-show-this-again"} "Don't show this again"]]
          [b/button
           {:text       "Get Started"
