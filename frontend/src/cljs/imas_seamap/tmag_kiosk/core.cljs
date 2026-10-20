@@ -11,9 +11,12 @@
             [day8.re-frame.http-fx]
             ["@blueprintjs/core" :as Blueprint]
             [imas-seamap.analytics :refer [analytics-for]]
-            [imas-seamap.blueprint :refer [hotkeys-provider]]
             [imas-seamap.events :as events]
             [imas-seamap.tmag-kiosk.events :as tkevents]
+            [imas-seamap.tmag-kiosk.flight :as flight]
+            [imas-seamap.tmag-kiosk.idle :as idle]
+            [imas-seamap.tmag-kiosk.tile-cache :as tile-cache]
+            [imas-seamap.tmag-kiosk.subs :as tksubs]
             [imas-seamap.fx]
             [imas-seamap.interceptors :refer [debug-excluding]]
             [imas-seamap.map.events :as mevents]
@@ -24,8 +27,7 @@
             [imas-seamap.protocols]
             [imas-seamap.subs :as subs]
             [imas-seamap.tmag-kiosk.views :as views]
-            [imas-seamap.config :as config]
-            [imas-seamap.components :as components]))
+            [imas-seamap.config :as config]))
 
 
 (def config-handlers
@@ -40,7 +42,7 @@
     :map/categories-map                   msubs/categories-map
     :map.layers/filter                    msubs/map-layers-filter
     :map.layers/others-filter             msubs/map-other-layers-filter
-    :map.layers/lookup                    msubs/map-layer-lookup
+    :map.layers/lookup                    [:<- [:dbsubs.map/layers] msubs/map-layer-lookup]
     :map.layer/info                       subs/map-layer-info
     :map.layer/legend                     msubs/layer-legends
     :map.layer/displayed-layers-lookup    [:<- [::msubs/enhanced-rich-layers]
@@ -52,6 +54,18 @@
     :sok/boundary-layer-filter            (fn [] #(identity nil)) ; no-op hack. State of knowledge is unused in the TMAG kiosk, but the sub is required by catalogue-layers component in map views
     :sm/featured-maps                     smsubs/featured-maps
     :sm/featured-map                      smsubs/featured-map
+    :kiosk/stories                        tksubs/stories
+    :kiosk/story                          tksubs/story
+    :kiosk/step-index                     tksubs/step-index
+    :kiosk/attract?                       tksubs/attract?
+    :kiosk/media                          tksubs/media
+    :kiosk/media-index                    tksubs/media-index
+    :kiosk/media-markers                  tksubs/media-markers
+    :kiosk/layer-names                    [:<- [:dbsubs.map/active-layers]
+                                           tksubs/layer-names]
+    :kiosk/layers-loading?                [:<- [:dbsubs.map/active-layers]
+                                           :<- [:dbsubs/layer-state-loading]
+                                           tksubs/layers-loading?]
     :sorting/info                         subs/sorting-info
     :download/info                        subs/download-info
     :transect/info                        subs/transect-info
@@ -132,7 +146,7 @@
     :transect.plot/mouseout               events/transect-onmouseout
     :transect.plot/toggle-visibility      events/transect-visibility-toggle
     :map.feature/show                     mevents/show-popup
-    :map/clicked                          [mevents/map-click-dispatcher]
+    :map/clicked                          (fn [db _] db) ; default Leaflet interaction only: no feature info on tap
     :map/feature-info-dispatcher          [mevents/feature-info-dispatcher]
     :map/get-feature-info                 [mevents/get-feature-info]
     :map/get-feature-info-map-server-step-2 [mevents/get-feature-info-map-server-step-2] ; MapServer layers need to make an additional request to determine if they are a group layer
@@ -189,7 +203,7 @@
     :map/update-rich-layers               mevents/update-rich-layers
     :map/update-region-reports            mevents/update-region-reports
     :map/update-preview-layer             mevents/update-preview-layer
-    :map/initialise-display               [mevents/show-initial-layers]
+    :map/initialise-display               [tkevents/show-initial-layers]
     :map/join-keyed-layers                mevents/join-keyed-layers
     :map/join-rich-layers                 mevents/join-rich-layers
     :map/pan-to-layer                     [mevents/zoom-to-layer]
@@ -198,7 +212,7 @@
     :map.print/error                      [mevents/map-print-error]
     :map/pan-direction                    [mevents/map-pan-direction]
     :map/update-leaflet-map               mevents/update-leaflet-map
-    :map/update-map-view                  mevents/update-map-view
+    :map/update-map-view                  tkevents/update-map-view
     :map/view-updated                     [mevents/map-view-updated]
     :map/popup-closed                     [mevents/destroy-popup]
     :map/toggle-ignore-click              mevents/toggle-ignore-click
@@ -208,7 +222,25 @@
     :sm/update-featured-maps              smevents/update-featured-maps
     :sm/featured-map                      [smevents/featured-map]
     :sm.featured-map/open                 [smevents/featured-map-open]
-    :ui/show-loading                      events/loading-screen
+    :kiosk/idle                           [tkevents/go-idle]
+    :kiosk.attract/exit                   [tkevents/attract-exit]
+    :kiosk/warm-up                        [tkevents/warm-up]
+    :kiosk.tour/start                     [tkevents/tour-start]
+    :kiosk.tour/next                      [tkevents/tour-next]
+    :kiosk.tour/visited                   [tkevents/tour-visited]
+    :kiosk.stories/load                   [tkevents/load-stories]
+    :kiosk.stories/loaded                 [tkevents/stories-loaded]
+    :kiosk.stories/load-failed            [tkevents/stories-load-failed]
+    :kiosk.story/open                     [tkevents/open-story]
+    :kiosk.step/go                        [tkevents/go-to-step]
+    :kiosk.step/apply-view                [tkevents/apply-step-view]
+    :kiosk.step/apply-layers              [tkevents/apply-step-layers]
+    :kiosk/start-again                    [tkevents/start-again]
+    :kiosk.media/select                   tkevents/select-media
+    :kiosk.save-state/fetch               [tkevents/fetch-save-state]
+    :kiosk.save-state/loaded              [tkevents/save-state-loaded]
+    :kiosk.save-state/load-failed         [tkevents/save-state-load-failed]
+    :ui/show-loading                     events/loading-screen
     :ui/hide-loading                      events/application-loaded
     :ui.catalogue/select-tab              [events/catalogue-select-tab]
     :ui.catalogue/toggle-node             [events/catalogue-toggle-node]
@@ -310,14 +342,7 @@
   (js/document.body.classList.add "seamap" "tmag-kiosk")
   (.render
    @root
-   (r/as-element [hotkeys-provider
-                  {:renderDialog
-                   (fn [state context-actions]
-                     (r/as-element
-                      [components/hotkeys-render-dialog
-                       {:state           (js->clj state :keywordize-keys true)
-                        :context-actions (js->clj context-actions :keywordize-keys true)}]))}
-                  [:f> views/layout-app]])))
+   (r/as-element [views/layout-app])))
 
 (defn dev-setup []
   (when config/debug?
@@ -328,8 +353,25 @@
 (defn ^:export show-db []
   @re-frame.db/app-db)
 
+(defn ^:export warm-up-status
+  "How far the warm-up has got, for checking from the console:
+  `imas_seamap.tmag_kiosk.core.warm_up_status()`."
+  []
+  (let [{:keys [stories save-states tour toured prefetched attract?]} (:kiosk @re-frame.db/app-db)]
+    (clj->js {:stories     (count stories)
+              :steps       (count (distinct (keep :shortcode (mapcat :steps stories))))
+              :saveStates  (count save-states)
+              :prefetched  (count prefetched)
+              :toured      (count toured)
+              :touring     (count tour)
+              :attract     (boolean attract?)
+              :tiles       (tile-cache/stats)})))
+
 (defn ^:export init [api-url-base media-url-base wordpress-url-base img-url-base]
+  ;; Before anything creates a tile layer.
+  (tile-cache/install!)
   (register-handlers! config-handlers)
   (re-frame/dispatch-sync [:boot api-url-base media-url-base wordpress-url-base img-url-base])
+  (idle/start!)
   (dev-setup)
   (mount-root))

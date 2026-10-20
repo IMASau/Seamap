@@ -1,0 +1,429 @@
+// TMAG kiosk (imas-seamap.tmag-kiosk) layout, after the seamap-kiosk prototype
+// (kiosk_vertical_slice). The table is a 43" 4K touch screen run at 3840x2160,
+// devicePixelRatio 1. Sizes are in design units, `u()`: the layout was
+// composed on a 1920x1080 canvas, so a unit is 2px on the table (about
+// 0.5 mm), and smaller in a smaller window, which gets the same layout scaled
+// down for review (plus the compact adjustments at the end).
+//
+// The map is the ground and the kiosk's content is in fixed cards over it: the
+// story card in the right-hand column, the story list bottom-right, and Start
+// again bottom-left. The map keeps Leaflet's default controls and styling.
+// Cards stay clear of the bottom 4.5%, the table's bezel strip, where forearms
+// rest.
+
+// A length of `$n` design units (see above).
+@function u($n) {
+    @return calc(#{$n} * var(--kiosk-u));
+}
+
+.tmag-kiosk {
+    // 1px of the 1920x1080 design, scaled to fit the window: 2px on the table.
+    --kiosk-u: min(100vw / 1920, 100vh / 1080);
+    --kiosk-ink: #102c38;
+    --kiosk-muted: #52717d;
+    --kiosk-purple: #6d267f;
+    --kiosk-purple-dark: #50145f;
+    --kiosk-paper: #fffefa;
+    --kiosk-gold: #fbbf24;
+    // One gutter everywhere: between cards, and between a card and the edge.
+    --kiosk-gutter: #{u(20)};
+    --kiosk-bezel-h: 4.5%;
+    // Hardware review: 210 mm of the 952 mm active width (~424px at 1920).
+    --kiosk-story-card-w: 22.058824vw;
+    // The map left clear beside the story card.
+    --kiosk-evidence-w: calc(100vw - var(--kiosk-story-card-w) - 3 * var(--kiosk-gutter));
+
+    color: var(--kiosk-ink);
+    -webkit-user-select: none;
+    user-select: none;
+
+    .kiosk-player {
+        position: relative;
+        overflow: hidden;
+
+        // :where() keeps this reset below the per-button rules that follow.
+        :where(button) { font: inherit; color: inherit; }
+        button:focus-visible { outline: u(5) solid var(--kiosk-gold); outline-offset: u(3); }
+    }
+
+    // Seamap hides Leaflet's top-left corner for its own controls (app.scss);
+    // the kiosk uses Leaflet's default zoom control there instead.
+    .leaflet-control-container .leaflet-top.leaflet-left { display: block; }
+
+    // Leaflet's controls as Leaflet draws them, at the layout's scale (its px
+    // sizes would be half size on the table).
+    .leaflet-top .leaflet-control { margin-top: u(10); }
+    .leaflet-left .leaflet-control { margin-left: u(10); }
+    .leaflet-touch .leaflet-bar { border-width: u(2); border-radius: u(4); }
+    .leaflet-touch .leaflet-bar a {
+        width: u(30);
+        height: u(30);
+        line-height: u(30);
+        font-size: u(22);
+    }
+    .leaflet-touch .leaflet-bar a:first-child { border-top-left-radius: u(2); border-top-right-radius: u(2); }
+    .leaflet-touch .leaflet-bar a:last-child { border-bottom-left-radius: u(2); border-bottom-right-radius: u(2); }
+    .leaflet-container .leaflet-control-attribution { padding: 0 u(5); font-size: u(12); }
+
+    // Full-bleed, and its own stacking context, so Leaflet's panes and
+    // controls (z-index up to 1000) stay under the cards.
+    #content-wrapper {
+        position: absolute;
+        inset: 0;
+        isolation: isolate;
+    }
+
+    .eyebrow {
+        color: var(--kiosk-purple);
+        font-size: u(20);
+        font-weight: 800;
+        letter-spacing: .08em;
+        text-transform: uppercase;
+    }
+
+    // Shared card framing.
+    .browse-card, .story-card {
+        position: absolute;
+        z-index: 20;
+        right: var(--kiosk-gutter);
+        bottom: calc(var(--kiosk-bezel-h) + var(--kiosk-gutter));
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        border: u(2) solid rgba(25, 68, 82, .22);
+        border-radius: u(22);
+        background: rgba(255, 254, 250, .97);
+        box-shadow: 0 u(20) u(60) rgba(19, 54, 67, .3);
+    }
+
+    // ── Browse: no story open ───────────────────────────────────────────────
+    .browse-card {
+        width: min(u(500), 42vw);
+        max-height: 70%;
+        padding: u(24) u(24) u(20);
+        border-radius: u(20);
+
+        h1 { margin: u(5) 0 u(14); font-size: u(34); line-height: 1.1; }
+    }
+    .browse-story-list { min-height: 0; overflow: auto; overscroll-behavior: contain; }
+    .browse-loading {
+        display: flex;
+        align-items: center;
+        gap: u(12);
+        margin: 0;
+        color: var(--kiosk-muted);
+        font-size: u(18);
+    }
+    .browse-story {
+        display: flex;
+        align-items: center;
+        gap: u(14);
+        width: 100%;
+        min-height: u(82);
+        margin-bottom: u(12);
+        padding: u(10) u(12);
+        border: u(2) solid rgba(25, 68, 82, .14);
+        border-radius: u(14);
+        background: rgba(16, 44, 56, .045);
+        text-align: left;
+        cursor: pointer;
+
+        &:active { transform: scale(.985); }
+        img, .story-thumb-fallback {
+            width: u(64);
+            height: u(64);
+            flex: 0 0 u(64);
+            border-radius: u(10);
+            object-fit: cover;
+        }
+        .story-thumb-fallback { background: linear-gradient(145deg, #4c9eaa, #153d50); }
+    }
+    .browse-story-copy {
+        min-width: 0;
+
+        b, span, small { display: block; }
+        b { margin-bottom: u(3); font-size: u(20); line-height: 1.18; }
+        span {
+            overflow: hidden;
+            color: var(--kiosk-muted);
+            font-size: u(14);
+            line-height: 1.3;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        small { margin-top: u(5); color: var(--kiosk-purple); font-size: u(13); font-weight: 800; }
+    }
+
+    // ── Story: the reading column ───────────────────────────────────────────
+    .story-card {
+        top: var(--kiosk-gutter);
+        width: var(--kiosk-story-card-w);
+        padding: u(30) u(24) u(26);
+
+        // The top quarter of the screen holds the story's title, repeated on
+        // every reveal, with no controls up there.
+        > .eyebrow {
+            flex: 0 0 calc(25vh - var(--kiosk-gutter) - u(32));
+            min-height: u(130);
+            margin: u(-30) u(-24) 0;
+            padding: u(22) u(24);
+            border-bottom: u(1) solid rgba(25, 68, 82, .14);
+            background:
+                radial-gradient(ellipse at 100% 0%, rgba(109, 38, 127, .12), transparent 65%),
+                repeating-radial-gradient(ellipse at 110% 0%, transparent 0 u(26), rgba(50, 125, 141, .09) u(27) u(28), transparent u(29) u(49)),
+                linear-gradient(160deg, #f6faf8, #e1eff0);
+            font-size: u(23);
+            line-height: 1.25;
+            letter-spacing: .025em;
+            overflow-wrap: anywhere;
+        }
+        h1 { margin: u(18) 0 0; font-size: u(28); line-height: 1.16; letter-spacing: -.02em; }
+        > .layer-key, > .step-number, > .progress-dots, > .story-actions { flex-shrink: 0; }
+    }
+    // Only the prose scrolls (a fallback for long copy); the key and the
+    // controls stay put.
+    .story-copy {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
+        animation: kiosk-story-copy-in .22s ease-out both;
+    }
+    .narrative {
+        min-height: 0;
+        margin: u(12) 0 u(24);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+
+        p { margin: 0; max-width: 32em; font-size: u(18); line-height: 1.45; letter-spacing: -.01em; }
+        p + p { margin-top: 1.3em; }
+        b, strong { font-weight: 850; }
+        a { color: inherit; pointer-events: none; text-decoration: none; }
+    }
+    @keyframes kiosk-story-copy-in {
+        from { opacity: 0; transform: translateY(u(5)); }
+        to { opacity: 1; transform: none; }
+    }
+
+    .layer-key {
+        display: grid;
+        gap: u(7);
+        margin-bottom: u(18);
+        padding-top: u(18);
+        border-top: u(1) solid rgba(25, 68, 82, .16);
+        overflow: hidden;
+
+        h2 {
+            margin: 0 0 u(3);
+            color: var(--kiosk-muted);
+            font-size: u(13);
+            letter-spacing: .13em;
+            text-transform: uppercase;
+        }
+    }
+    .key-row { color: var(--kiosk-muted); font-size: u(14); line-height: 1.2; }
+
+    .step-number { color: var(--kiosk-muted); font-size: u(13); font-variant-numeric: tabular-nums; }
+    .progress-dots {
+        display: flex;
+        gap: u(7);
+        margin: u(15) 0 u(17);
+
+        span { height: u(6); flex: 1; border-radius: u(4); background: rgba(109, 38, 127, .18); }
+        span.done { background: var(--kiosk-purple); }
+    }
+    .story-actions { display: flex; gap: u(14); justify-content: flex-end; }
+    // Type scales down; touch targets keep kiosk size.
+    .back-button, .next-button {
+        min-width: 0;
+        min-height: u(60);
+        padding: u(8) u(22);
+        border-radius: u(16);
+        font-size: u(18);
+        font-weight: 850;
+        cursor: pointer;
+    }
+    .back-button {
+        border: u(2) solid #9fb5bd;
+        background: white;
+
+        &:disabled { opacity: .35; cursor: default; }
+    }
+    .next-button {
+        flex: 1;
+        border: u(2) solid var(--kiosk-purple-dark);
+        color: white !important;
+        background: var(--kiosk-purple);
+        overflow-wrap: anywhere;
+    }
+
+    // ── Media: the step's photos and videos, in the left column ─────────────
+    // One fixed shape whatever the item (a 4:3 window, a caption strip and a
+    // control row, empty when there's only one item), centred in the column the
+    // bottom-left controls leave, so its buttons stay in easy reach.
+    .media-card {
+        --kiosk-left-controls-h: calc(var(--kiosk-bezel-h) + 2 * var(--kiosk-gutter) + #{u(64)});
+
+        position: absolute;
+        z-index: 20;
+        top: calc((100% - var(--kiosk-left-controls-h)) / 2);
+        left: var(--kiosk-gutter);
+        display: flex;
+        flex-direction: column;
+        width: var(--kiosk-story-card-w);
+        overflow: hidden;
+        color: white;
+        border: u(2) solid rgba(25, 68, 82, .28);
+        border-radius: u(22);
+        background: #081f2a;
+        box-shadow: 0 u(20) u(60) rgba(19, 54, 67, .3);
+        transform: translateY(-50%);
+    }
+    // The card stays for the whole story; its contents fade in at each landing
+    // and each change of item.
+    .media-item, .media-controls > * { animation: kiosk-media-in .3s ease-out both; }
+    @keyframes kiosk-media-in { from { opacity: 0; } to { opacity: 1; } }
+    .media-window {
+        aspect-ratio: 4 / 3;
+        background: #04141c;
+
+        .media-item { width: 100%; height: 100%; }
+        img, video { display: block; width: 100%; height: 100%; object-fit: contain; }
+    }
+    // Long captions scroll in their own strip rather than resizing the card.
+    .media-caption {
+        height: u(96);
+        padding: u(12) u(18);
+        overflow-y: auto;
+        overscroll-behavior: contain;
+        background: rgba(4, 20, 28, .78);
+
+        p { margin: 0 0 u(6); font-size: u(17); line-height: 1.35; }
+    }
+    .media-readings { display: flex; flex-wrap: wrap; gap: u(4) u(20); }
+    .media-reading {
+        display: flex;
+        gap: u(7);
+        align-items: baseline;
+        font-size: u(15);
+
+        span { color: rgba(255, 255, 255, .7); }
+        b { font-variant-numeric: tabular-nums; }
+    }
+    .media-count { font-size: u(17); font-weight: 800; font-variant-numeric: tabular-nums; }
+    .media-controls {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: u(12);
+        height: u(82);
+        padding: 0 u(18);
+    }
+    .media-prev, .media-next {
+        flex: none;
+        width: u(62);
+        height: u(62);
+        border: u(2) solid rgba(255, 255, 255, .5);
+        border-radius: 50%;
+        background: rgba(4, 20, 28, .62);
+        font-size: u(34);
+        line-height: 1;
+        cursor: pointer;
+
+        &:active { transform: scale(.94); }
+    }
+    // Up to 8 dots (`max-media-dots`) fit on one row.
+    .media-dots {
+        display: flex;
+        justify-content: center;
+        gap: u(2);
+
+        // The dot is small; its button is a fair-sized target.
+        button {
+            width: u(26);
+            height: u(44);
+            padding: 0;
+            border: 0;
+            background: radial-gradient(circle, rgba(255, 255, 255, .4) u(5), transparent u(6));
+            cursor: pointer;
+
+            &.on { background: radial-gradient(circle, var(--kiosk-gold) u(6), transparent u(7)); }
+        }
+    }
+
+    // ── Map chrome: bottom-left controls, loading notice ────────────────────
+    .home-button {
+        position: absolute;
+        z-index: 20;
+        left: var(--kiosk-gutter);
+        bottom: calc(var(--kiosk-bezel-h) + var(--kiosk-gutter));
+        border: u(2) solid rgba(28, 69, 82, .25);
+        background: rgba(255, 254, 250, .96);
+        box-shadow: 0 u(8) u(25) rgba(14, 44, 58, .2);
+        font-weight: 800;
+        cursor: pointer;
+        min-height: u(64);
+        padding: 0 u(25);
+        border-radius: u(18);
+        font-size: u(20);
+    }
+    .next-button:active, .home-button:active { transform: scale(.97); }
+
+    .loading-notice {
+        position: absolute;
+        z-index: 25;
+        top: u(36);
+        left: 50%;
+        display: flex;
+        align-items: center;
+        gap: u(13);
+        padding: u(16) u(24);
+        border-radius: u(17);
+        background: rgba(255, 254, 250, .97);
+        box-shadow: 0 u(10) u(30) rgba(16, 44, 56, .25);
+        font-size: u(19);
+        font-weight: 800;
+        transform: translateX(-50%);
+        // Quick loads never flash a notice.
+        animation: kiosk-delayed-show 0s .4s both;
+    }
+    // Centred over the map beside the story card.
+    .story-mode .loading-notice { left: calc(var(--kiosk-gutter) + var(--kiosk-evidence-w) / 2); }
+    @keyframes kiosk-delayed-show {
+        from { visibility: hidden; opacity: 0; }
+        to { visibility: visible; opacity: 1; }
+    }
+    .spinner {
+        width: u(28);
+        height: u(28);
+        flex: none;
+        border: u(4) solid rgba(50, 90, 102, .18);
+        border-top-color: var(--kiosk-purple);
+        border-radius: 50%;
+        animation: kiosk-spin .8s linear infinite;
+    }
+    @keyframes kiosk-spin { to { transform: rotate(360deg); } }
+
+    // An ordinary browser window rather than the table: compact the same layout
+    // for review instead of cropping a fixed 1920x1080 canvas. Use 1920x1080 for
+    // acceptance on the hardware.
+    @media (max-width: 1500px), (max-height: 900px) {
+        --kiosk-story-card-w: max(#{u(350)}, 22.058824vw);
+
+        .home-button { bottom: u(24); }
+        .browse-card { bottom: u(24); max-height: calc(100% - u(48)); }
+        .story-card {
+            bottom: u(24);
+            padding: u(22) u(24) u(24);
+
+            > .eyebrow {
+                flex-basis: calc(25vh - var(--kiosk-gutter) - u(24));
+                min-height: u(100);
+                margin-top: u(-22);
+                padding-top: u(12);
+                font-size: u(20);
+            }
+        }
+        .loading-notice { top: u(20); }
+    }
+}

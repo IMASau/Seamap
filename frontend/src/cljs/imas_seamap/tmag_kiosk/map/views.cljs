@@ -6,32 +6,52 @@
             [imas-seamap.map.utils :refer [map->bounds]]
             [imas-seamap.map.views :as map-views]
             [imas-seamap.interop.leaflet :as leaflet]
-            ["/leaflet-scalefactor/leaflet.scalefactor"]
+            [imas-seamap.tmag-kiosk.events :refer [home-bounds]]
             ["esri-leaflet-renderers"]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
-(defn map-component []
-  (let [{:keys [center zoom bounds]} @(re-frame/subscribe [:map/props])
-        feature-info                 @(re-frame/subscribe [:map.feature/info])]
-    [leaflet/map-container
-     (merge
-      {:id                   "map"
-       :crs                  leaflet/crs-epsg3857
-       :preferCanvas         true
-       :use-fly-to           false
-       :center               center
-       :zoom                 zoom
-       :zoomControl          true
-       :scaleFactor          true
-       :minZoom              2
-       :keyboard             false ; handled externally
-       :close-popup-on-click false ; We'll handle that ourselves
-       :ref                  #(when % (re-frame/dispatch [:map/update-leaflet-map %]))} ; obtain a reference to the leaflet map in re-frame state, so we can call leaflet map methods from anywhere in the app
-      (when (seq bounds) {:bounds (map->bounds bounds)}))
+(defn- design-unit
+  "1px of the kiosk's 1920x1080 design, in CSS px: 2 on the table (see
+  `--kiosk-u` in tmag-kiosk.scss)."
+  []
+  (min (/ js/innerWidth 1920) (/ js/innerHeight 1080)))
 
-     [map-views/basemap-layers]
-     [map-views/catalogue-layers]
+(defn- media-markers
+  "A marker at each of the step's media items; the one in the media card is
+  highlighted, and tapping another shows it there. Markers follow the map, not
+  the story card, so they arrive with the flight (see `:kiosk/media-markers`)."
+  []
+  (let [{:keys [media selected]} @(re-frame/subscribe [:kiosk/media-markers])
+        u (design-unit)]
+    (into [:<>]
+          ;; The selected marker last, so it's drawn on top.
+          (for [[i {:keys [lat lon]}] (sort-by (fn [[i]] (= i selected)) (map-indexed vector media))
+                :when (and (number? lat) (number? lon))
+                :let [selected? (= i selected)]]
+            ^{:key (str i selected?)}
+            [leaflet/circle-marker
+             {:center        [lat lon]
+              :radius        (* u (if selected? 16 11))
+              :pathOptions   {:color       "#ffffff"
+                              :weight      (* u 3)
+                              :fillColor   (if selected? "#fbbf24" "#6d267f")
+                              :fillOpacity 1}
+              :eventHandlers {:click #(re-frame/dispatch [:kiosk.media/select i])}}]))))
 
-     [leaflet/scale-control]
-
-     [map-views/popup feature-info]]))
+(defn map-component
+  "Seamap's layers with Leaflet's default interaction and controls: no Seamap
+  controls, keyboard shortcuts or feature-info popups (the kiosk's
+  `:map/clicked` does nothing). The map starts at the kiosk's home view; after
+  that it's moved with `:map/update-map-view`, as in Seamap."
+  []
+  [leaflet/map-container
+   {:id           "map"
+    :crs          leaflet/crs-epsg3857
+    :preferCanvas true
+    :use-fly-to   false
+    :bounds       (map->bounds home-bounds)
+    :minZoom      2
+    :ref          #(when % (re-frame/dispatch [:map/update-leaflet-map %]))} ; obtain a reference to the leaflet map in re-frame state, so we can call leaflet map methods from anywhere in the app
+   [map-views/basemap-layers]
+   [map-views/catalogue-layers]
+   [media-markers]])
