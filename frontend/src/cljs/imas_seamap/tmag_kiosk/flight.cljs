@@ -702,11 +702,12 @@
   :to}, flights from elsewhere). Flights from `from` leave from wherever the
   visitor leaves the map. They're planned and their tiles decoded in the
   background, now and whenever the map comes to rest; tiles of any other
-  flight are freed."
-  [{:keys [leaflet-map] :as args}]
+  flight are freed. `moving?` means the map is about to move to `from`: they're
+  prepared once it gets there, not from where it is now."
+  [{:keys [leaflet-map moving?] :as args}]
   (watch! leaflet-map)
   (reset! standing (assoc args :map leaflet-map))
-  (when-not @flight
+  (when-not (or @flight moving?)
     (prepare-now!)))
 
 (defn prefetch!

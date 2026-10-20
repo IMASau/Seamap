@@ -144,7 +144,9 @@
                           [:kiosk/warm-up]]
              :local-storage/remove
              {:name :seamap-app-state}}
-      (prepare-flights db) (assoc :kiosk/prepare-flights (prepare-flights db)))))
+      ;; Prepared once the map is home (it may be anywhere: the idle reset
+      ;; and the tour leave it where it was).
+      (prepare-flights db) (assoc :kiosk/prepare-flights (assoc (prepare-flights db) :moving? true)))))
 
 ;;; Idle and attract
 ;;;
