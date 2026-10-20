@@ -8,10 +8,11 @@
 # volume (see docker-compose.yml) so the bind-mounted source doesn't shadow it.
 FROM node:24-bookworm
 
-# JVM for shadow-cljs.
-RUN apt-get update && apt-get install -y --no-install-recommends \
-        default-jre-headless \
-    && rm -rf /var/lib/apt/lists/*
+# JVM for shadow-cljs. Its Closure Compiler needs Java 21+ (CI uses 21), but
+# bookworm's default-jre is 17, so take a JRE from the Temurin image.
+COPY --from=eclipse-temurin:21-jre /opt/java/openjdk /opt/java/openjdk
+ENV JAVA_HOME=/opt/java/openjdk \
+    PATH="/opt/java/openjdk/bin:${PATH}"
 
 WORKDIR /app
 

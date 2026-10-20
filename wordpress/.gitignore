@@ -1,0 +1,7 @@
+# ACF Pro is paid plugin source: fetched by the acf-fetch compose service (or
+# copied from a deployed instance), never committed.
+plugins/advanced-custom-fields-pro/
+
+# Built from style.scss by `yarn build-region-report-css` (in frontend/).
+plugins/region-report/style.css
+plugins/region-report/style.css.map

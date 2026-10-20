@@ -59,6 +59,7 @@ ALLOWED_HOSTS = ['*']
 CORS_ORIGIN_WHITELIST = [
     'http://localhost:3451',
     'http://localhost:3000',
+    'http://localhost:8888',  # WordPress region report pages
 ]
 
 # Path to ogr2ogr (provided by gdal-bin in the Docker image).
