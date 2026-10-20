@@ -440,6 +440,11 @@
                                                            [:map.layer/displayed-layers-lookup]))
         {:keys [active-base-layer]} @(re-frame/subscribe [:map/base-layers])
         boundary-filter             @(re-frame/subscribe [:sok/boundary-layer-filter])]
+    ;; Not used here, but the layers' Leaflet event handlers (`on-tile-load-start`
+    ;; etc) look layers up in it, once per tile. A subscription read outside a
+    ;; render is recomputed on every read, which at thousands of tiles per map
+    ;; move stalled the map for seconds; reading it here keeps it cached.
+    @(re-frame/subscribe [:map.layers/lookup])
     [:<>
      (map-indexed
       (fn [i layer]

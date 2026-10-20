@@ -327,12 +327,16 @@
 (defn map-other-layers-filter [db _]
   (get-in db [:filters :other-layers]))
 
-(defn map-layer-lookup [db _]
+(defn map-layer-lookup
+  "Catalogue layers by [server_url layer_name]. Built from the whole catalogue,
+  so it's expensive: register it on `:dbsubs.map/layers`, so it's only rebuilt
+  when the catalogue changes, not on every app-db change."
+  [layers _]
   (reduce
    (fn [acc {:keys [server_url layer_name] :as layer}]
      (assoc acc [server_url layer_name] layer))
    {}
-   (get-in db [:map :layers])))
+   layers))
 
 ;; TODO: Remove, unused - related to getting boundary and habitat region stats
 #_(defn map-layer-extra-params-fn

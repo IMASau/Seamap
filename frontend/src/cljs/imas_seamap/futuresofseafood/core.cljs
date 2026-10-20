@@ -38,7 +38,7 @@
     :map/categories-map                   msubs/categories-map
     :map.layers/filter                    msubs/map-layers-filter
     :map.layers/others-filter             msubs/map-other-layers-filter
-    :map.layers/lookup                    msubs/map-layer-lookup
+    :map.layers/lookup                    [:<- [:dbsubs.map/layers] msubs/map-layer-lookup]
     ;:map.layers/params                    msubs/map-layer-extra-params-fn
     :map.layer/info                       subs/map-layer-info
     :map.layer/legend                     msubs/layer-legends
