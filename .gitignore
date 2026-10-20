@@ -6,3 +6,4 @@ backlog/
 
 # Docker dev stack secrets (keep .env.example tracked)
 .env
+/frontend/.calva

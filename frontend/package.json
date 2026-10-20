@@ -56,6 +56,7 @@
   },
   "scripts": {
     "watch": "npx shadow-cljs watch dev",
+    "release-local": "npx shadow-cljs release release-local",
     "build-js": "babel src/ui --out-dir src/gen --source-maps inline",
     "watch-js": "babel src/ui --out-dir src/gen --source-maps inline --watch",
     "build-worker": "parcel build src/worker/esri-leaflet-worker.js --dist-dir resources/public/js --no-content-hash",

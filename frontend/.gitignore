@@ -10,6 +10,7 @@ pom.xml.asc
 /.lein-*
 /.nrepl-port
 /resources/public/js
+/resources/public/js-release
 /resources/public/css/style.npm-packaged.css
 resources/public/css/style.npm-packaged.css.map
 resources/public/css/blueprint.css

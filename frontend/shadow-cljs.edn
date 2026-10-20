@@ -47,6 +47,20 @@
                                                     imas-seamap.natural-hazards-atlas.core
                                                     imas-seamap.tmag-kiosk.core]}}}
 
+          ;; The `min` build for local use (eg resources/public/tmag-kiosk-release.html),
+          ;; written next to the dev build without replacing it. Performance
+          ;; should be judged on this, not on `dev`.
+          :release-local {:target           :browser
+                          :closure-defines  {goog.DEBUG false}
+                          :output-dir       "resources/public/js-release/"
+                          :asset-path       "js-release"
+                          :modules          {:app {:entries [imas-seamap.core
+                                                             imas-seamap.futuresofseafood.core
+                                                             imas-seamap.seamap-antarctica.core
+                                                             imas-seamap.tas-marine-atlas.core
+                                                             imas-seamap.natural-hazards-atlas.core
+                                                             imas-seamap.tmag-kiosk.core]}}}
+
           :mindev {:target            :browser
                    :output-dir        "resources/public/js/"
                    :asset-path        "js"
