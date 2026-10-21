@@ -124,13 +124,19 @@
   "Kiosk state to carry through a reset: loaded stories and save states are
   kept (applying any refresh that arrived mid-story); the open story is closed."
   [{:keys [pending-stories] :as kiosk}]
-  (cond-> (dissoc kiosk :story-id :step-index :pending-stories :keep-view? :media-index :landed-step)
+  (cond-> (dissoc kiosk :story-id :step-index :intro? :pending-stories :keep-view? :media-index :landed-step)
     pending-stories (assoc :stories pending-stories)))
 
 (declare prepare-flights)
 
-(defn re-boot [{:keys [db]} _]
-  (let [kiosk (kiosk-reset (:kiosk db))
+(defn re-boot
+  "Resets the map and the kiosk. `landed-home?` (from `start-again`): the story
+  was closed at the tap, so any story open now was opened on the way home, and
+  stays open (its intro card doesn't move the map)."
+  [{:keys [db]} [_ landed-home?]]
+  (let [kiosk (if (and landed-home? (get-in db [:kiosk :story-id]))
+                (:kiosk db)
+                (kiosk-reset (:kiosk db)))
         db (merge-in db/default-db (ajax-loaded-info db))
         startup-layers (get-in db [:map :keyed-layers :startup] [])
         db (-> db
@@ -320,25 +326,31 @@
                     (home-target db)])))
 
 (defn- prepare-flights
-  "The flights to keep ready (see `imas-seamap.tmag-kiosk.flight/prepare!`):
-  in a story, those from its current step; otherwise, those from home into
-  each story. Those into each story are kept ready throughout, as a visitor
-  may return home and choose any of them."
+  "The flights to keep ready (see `imas-seamap.tmag-kiosk.flight/prepare!`).
+  With a step's map showing, those on from it. On a story's intro card, the map
+  still home, just the flight into its first step, decoded while the visitor
+  reads (choosing a story doesn't move the map). At home, none: the tiles on
+  screen only, rather than every story's first flight."
   [db]
   (let [leaflet-map (get-in db [:map :leaflet-map])
         home        (home-target db)
-        firsts      (keep #(first-step-target db %) (get-in db [:kiosk :stories]))
+        {:keys [story-id landed-step]} (:kiosk db)
         step        (some->> (current-shortcode db) (step-target db))]
     (when (and leaflet-map (:basemap home))
-      (if (get-in db [:kiosk :story-id])
+      (cond
+        (and story-id landed-step)
         (when step
           {:leaflet-map leaflet-map
            :from        step
-           :flights     (step-flights db)
-           :also        (mapv #(hash-map :from home :to %) firsts)})
+           :flights     (step-flights db)})
+        story-id
         {:leaflet-map leaflet-map
          :from        home
-         :flights     (vec firsts)}))))
+         :flights     (if-let [first-step (first-step-target db (current-story db))] [first-step] [])}
+        :else
+        {:leaflet-map leaflet-map
+         :from        home
+         :flights     []}))))
 
 (defn load-stories [{:keys [db]} _]
   {:http-xhrio {:method          :get
@@ -355,14 +367,14 @@
      :dispatch       [:kiosk/warm-up]
      :dispatch-later {:ms stories-refresh-ms :dispatch [:kiosk.stories/load]}}))
 
-;;; Warming up. Every story must be ready before a visitor arrives: a tap on a
-;;; story, or on a step, flies on the next frame, and lands on layers that are
+;;; Warming up. Every story must be ready before a visitor arrives: Begin, or a
+;;; tap on a step, flies on the next frame, and lands on layers that are
 ;;; already cached. So, as soon as the stories and the catalogue are in:
 ;;;
 ;;; - every step's save state is fetched;
 ;;; - every flight of every story has its tiles fetched into the tile cache
-;;;   (`:kiosk/prefetch-flights`), and the flights from home into each story
-;;;   are decoded (`prepare-flights`);
+;;;   (`:kiosk/prefetch-flights`); a story's first flight is decoded once its
+;;;   intro card opens (`prepare-flights`);
 ;;; - behind the attract screen, the map visits every step, so its layers'
 ;;;   tiles (and its photos) are cached too (`tour-next`).
 ;;;
@@ -459,13 +471,36 @@
   (js/console.error "Could not load kiosk stories" response)
   {:dispatch-later {:ms stories-refresh-ms :dispatch [:kiosk.stories/load]}})
 
+;; A story opens on its intro card (`:intro?`), with the map left home; Begin
+;; flies to its first step. Meanwhile that flight is prepared.
 (defn open-story [{:keys [db]} [_ story-id]]
-  (let [db         (update db :kiosk assoc :story-id story-id :step-index 0 :media-index 0)
+  (let [db         (update db :kiosk assoc :story-id story-id :step-index 0 :media-index 0 :intro? true)
         uncached   (->> (current-story db) :steps (map :shortcode) distinct
-                        (remove #(get-in db [:kiosk :save-states %])))]
-    {:db         db
-     :dispatch-n (conj (mapv #(vector :kiosk.save-state/fetch %) uncached)
-                       [:kiosk.step/apply-view])}))
+                        (remove #(get-in db [:kiosk :save-states %])))
+        prepare    (prepare-flights db)]
+    (cond-> {:db         db
+             :dispatch-n (mapv #(vector :kiosk.save-state/fetch %) uncached)}
+      prepare (assoc :kiosk/prepare-flights prepare))))
+
+(declare apply-step-view)
+
+(defn begin-flight
+  "Begin's flight to the first step, unless its map is already showing (back on
+  the intro card from it). Separate from `begin-story`, so the flight sets off
+  at the tap while the cards animate (see `views/begin!`)."
+  [{:keys [db] :as cofx} event]
+  (when-not (= 0 (get-in db [:kiosk :landed-step]))
+    (apply-step-view cofx event)))
+
+(defn begin-story
+  "From the intro card to the first step's card (`begin-flight` moves the map)."
+  [db _]
+  (update db :kiosk dissoc :intro?))
+
+(defn show-intro
+  "Back from the first step to the intro card; the map stays put."
+  [db _]
+  (update db :kiosk assoc :intro? true :media-index 0))
 
 (defn go-to-step [{:keys [db]} [_ index]]
   (when (< -1 index (count (:steps (current-story db))))
@@ -511,14 +546,17 @@
         (assoc :kiosk/prepare-flights (prepare-flights db))))))
 
 (defn start-again
-  "Flies home, then resets the kiosk (`re-boot`)."
+  "Closes the story at once, so the story list is back while the map flies
+  home; then resets the map (`re-boot`)."
   [{:keys [db]} _]
-  (if-let [leaflet-map (get-in db [:map :leaflet-map])]
-    {:kiosk/fly {:leaflet-map  leaflet-map
-                 :to           (home-target db)
-                 :from-basemap (get-in db [:map :active-base-layer])
-                 :on-land      [:re-boot]}}
-    {:dispatch [:re-boot]}))
+  (let [db (update db :kiosk kiosk-reset)]
+    (if-let [leaflet-map (get-in db [:map :leaflet-map])]
+      {:db        db
+       :kiosk/fly {:leaflet-map  leaflet-map
+                   :to           (home-target db)
+                   :from-basemap (get-in db [:map :active-base-layer])
+                   :on-land      [:re-boot true]}}
+      {:db db :dispatch [:re-boot]})))
 
 (defn update-map-view
   "Seamap's, except that the view request from applying a step's layers is
@@ -539,6 +577,11 @@
   (if-let [hashstate (:hashstate (first response))]
     (let [db (assoc-in db [:kiosk :save-states shortcode] hashstate)]
       (cond
+        ;; On the intro card, prepare the flight into the story (the map stays
+        ;; home until Begin).
+        (and (= shortcode (current-shortcode db)) (get-in db [:kiosk :intro?]))
+        (cond-> {:db db}
+          (prepare-flights db) (assoc :kiosk/prepare-flights (prepare-flights db)))
         ;; Only move the map if the visitor is still on the step that asked.
         (= shortcode (current-shortcode db))
         {:db db :dispatch [:kiosk.step/apply-view]}

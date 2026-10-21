@@ -62,7 +62,7 @@ Other cases:
 ```sh
 node flights.mjs --page tmag-kiosk-release --pause 0          # taps the instant each flight lands
 node flights.mjs --page tmag-kiosk-release --repeat 5,2,4     # story 5: step 2 <-> 3, four times
-node flights.mjs --page tmag-kiosk-release --pan              # drag the home map, then tap a story
+node flights.mjs --page tmag-kiosk-release --pan              # drag the home map, then open a story and tap Begin
 ```
 
 ## Reading the results

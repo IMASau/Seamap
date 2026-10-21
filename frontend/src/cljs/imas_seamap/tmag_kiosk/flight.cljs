@@ -520,7 +520,7 @@
 ;;; from there are planned, and their tiles decoded, so a tap finds its flight
 ;;; ready. So are the tiles on screen: every flight from there starts with them.
 
-;; What to keep ready, from `prepare!`: {:map :from :flights :also}.
+;; What to keep ready, from `prepare!`: {:map :from :flights}.
 (defonce ^:private standing (atom nil))
 ;; plan key -> plan, for the flights kept ready
 (defonce ^:private plans (js/Map.))
@@ -591,7 +591,7 @@
                              (upload! urls)))))))))
 
 (defn- prepare-now! []
-  (when-let [{^js m :map :keys [from flights also]} @standing]
+  (when-let [{^js m :map :keys [from flights]} @standing]
     (let [gen       (swap! generation inc)
           size      (.getSize m)
           ;; Flights from here leave from wherever the visitor has left the map.
@@ -600,8 +600,7 @@
                       (let [to-view (target-view m to)]
                         {:key  (plan-key size from-view to-view from-basemap (:basemap to))
                          :args [size from-view to-view from-basemap (:basemap to)]}))
-          specs     (concat (for [to flights] (spec here (:basemap from) to))
-                            (for [{:keys [from to]} also] (spec (target-view m from) (:basemap from) to)))
+          specs     (for [to flights] (spec here (:basemap from) to))
           wanted    (set (map :key specs))]
       (reset! background (.-backgroundColor (js/getComputedStyle (.getContainer m))))
       ;; Other flights' tiles are freed once these flights are held, so those
@@ -698,8 +697,7 @@
 
 (defn prepare!
   "Keeps flights ready to fly, from the map's place at rest, `from` (a target
-  as for `fly!`), to each of `flights` (targets), and each of `also` ({:from
-  :to}, flights from elsewhere). Flights from `from` leave from wherever the
+  as for `fly!`), to each of `flights` (targets). They leave from wherever the
   visitor leaves the map. They're planned and their tiles decoded in the
   background, now and whenever the map comes to rest; tiles of any other
   flight are freed. `moving?` means the map is about to move to `from`: they're

@@ -9,7 +9,8 @@
 // Modes:
 //   (none)                      every story: into it, each step, one Back, home
 //   --repeat S,K,R              story S: to step K, then K->K+1 and back R times
-//   --pan                       drag the home map, then tap a story after 0, 400 and 3000 ms
+//   --pan                       drag the home map, then open a story and tap Begin at once,
+//                               after 0, 400 and 3000 ms
 //
 // --pause: ms to wait after each landing before the next tap (from 1000 up, it
 // also waits for decoding to finish, as a visitor reading the step would).
@@ -75,7 +76,15 @@ const drag = async (dx, dy) => {
   await c.send('Input.dispatchMouseEvent', {type: 'mouseReleased', x: x + dx, y: y + dy, button: 'left', clickCount: 1});
 };
 
-const steps = () => c.ev(`document.querySelectorAll('.progress-dots span').length`);
+// A story opens on its intro card without moving the map; Begin flies into it.
+// `read` ms on the intro card first (the flight is prepared meanwhile).
+const begin = async (label, nth, read = pause) => {
+  await c.tap('.browse-story', nth);
+  await sleep(read);
+  await fly(label, '.story-intro .next-button');
+};
+
+const steps = () => c.ev(`+(document.querySelector('.story-progress')?.getAttribute('aria-valuemax') ?? 0)`);
 
 if (await c.ev(`!!document.querySelector('.kiosk-attract button')`)) {
   await c.tap('.kiosk-attract button');
@@ -84,7 +93,7 @@ if (await c.ev(`!!document.querySelector('.kiosk-attract button')`)) {
 
 if (opts.repeat) {
   const [story, from, reps] = String(opts.repeat).split(',').map(Number);
-  await fly(`story ${story}: home->1`, '.browse-story', story - 1);
+  await begin(`story ${story}: home->1`, story - 1);
   for (let k = 1; k < from; k++) await fly(`story ${story}: ${k}->${k + 1}`, '.next-button');
   for (let r = 1; r <= reps; r++) {
     await fly(`story ${story}: ${from}->${from + 1} #${r}`, '.next-button');
@@ -98,13 +107,13 @@ if (opts.repeat) {
       await sleep(3000);
       await drag(-600, 300);
       await sleep(wait);
-      await fly(`pan, tap after ${wait} ms: story ${story}`, '.browse-story', story - 1);
+      await begin(`pan, tap after ${wait} ms: story ${story}`, story - 1, 0);
       await fly(`story ${story}: 1->home`, '.home-button');
     }
 } else {
   const count = Math.min(+(opts.stories ?? Infinity), await c.ev(`document.querySelectorAll('.browse-story').length`));
   for (let i = 1; i <= count; i++) {
-    await fly(`story ${i}: home->1`, '.browse-story', i - 1);
+    await begin(`story ${i}: home->1`, i - 1);
     const n = await steps();
     for (let k = 1; k < n; k++) await fly(`story ${i}: ${k}->${k + 1}`, '.next-button');
     if (n > 1) await fly(`story ${i}: ${n}->${n - 1}`, '.back-button');

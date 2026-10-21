@@ -13,13 +13,17 @@
 (defn step-index [db _]
   (get-in db [:kiosk :step-index]))
 
+(defn intro? [db _]
+  (get-in db [:kiosk :intro?]))
+
 (defn media
   "The current step's media, for the media card: [{:url :lat :lon :caption
   :overlay}]. Only once its flight has landed: the media belongs to the place,
-  and loading it (a video's first frame) mid-flight can cost a frame."
+  and loading it (a video's first frame) mid-flight can cost a frame. None on
+  the story's intro card."
   [db _]
-  (let [{:keys [landed-step step-index]} (:kiosk db)]
-    (when (= landed-step step-index)
+  (let [{:keys [landed-step step-index intro?]} (:kiosk db)]
+    (when (and (= landed-step step-index) (not intro?))
       (get-in (tkevents/current-story db) [:steps step-index :media]))))
 
 (defn media-index [db _]
@@ -28,10 +32,10 @@
 (defn media-markers
   "The map's media markers: those of the step whose map is showing, which
   lags the story card by a flight; `:selected` is the item in the media card,
-  once the map has caught up."
+  once the map has caught up. None on the story's intro card."
   [db _]
-  (let [{:keys [landed-step step-index media-index]} (:kiosk db)]
-    (when landed-step
+  (let [{:keys [landed-step step-index media-index intro?]} (:kiosk db)]
+    (when (and landed-step (not intro?))
       {:media    (get-in (tkevents/current-story db) [:steps landed-step :media])
        :selected (when (= landed-step step-index) (or media-index 0))})))
 

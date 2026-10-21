@@ -4,10 +4,10 @@
 (ns imas-seamap.tmag-kiosk.views
   "The kiosk's layout, after the seamap-kiosk prototype (kiosk_vertical_slice):
   a full-bleed map with the kiosk's content in fixed cards over it. The
-  right-hand column holds the story list, or the open story's card; with a
-  story open, the step's media card is in the left. The map keeps Leaflet's
-  default controls and interaction; only the layout comes from the prototype.
-  Styles: src/ui/css/tmag-kiosk.scss."
+  right-hand column holds the story list, or the open story's card in the same
+  place and size; with a story open, the step's media card is in the left. The
+  map keeps Leaflet's default controls and interaction; only the layout comes
+  from the prototype. Styles: src/ui/css/tmag-kiosk.scss."
   (:require [clojure.string :as string]
             [reagent.core :as r]
             [re-frame.core :as re-frame]
@@ -50,25 +50,83 @@
             (when read-time [:small.read-time read-time " min"])]])
         [:p.browse-loading [:span.spinner] "Loading stories…"])]]))
 
-;;; Story: one open
+;;; Story: one open. It starts on an intro card, in the story card's place.
 
 (defn- home-button []
   [:button.home-button {:aria-label "Start again"
                         :on-click   #(re-frame/dispatch [:kiosk/start-again])}
    [b/icon {:icon "home"}]])
 
+(defn- with-view-transition
+  "Runs `f`, a synchronous change of app-db, as a view transition: the story's
+  picture and title (`view-transition-name`s in tmag-kiosk.scss) move and morph
+  from where they were to where they are after it. Only they animate; the rest
+  of the page, the map included, stays live."
+  [f]
+  (if (.-startViewTransition js/document)
+    (.startViewTransition js/document (fn [] (f) (r/flush)))
+    (f)))
+
+(defn- begin!
+  "Begin: the flight sets off at once, and the intro card turns into the first
+  step's as it goes."
+  []
+  (re-frame/dispatch-sync [:kiosk.story/begin-flight])
+  (with-view-transition #(re-frame/dispatch-sync [:kiosk.story/begin])))
+
+(defn- intro-card
+  "`arriving?`: from the story list, so it fades in over `panel-morph`."
+  [{:keys [arriving?]}]
+  (let [{:keys [title summary image read-time]} @(re-frame/subscribe [:kiosk/story])]
+    [:section.story-card.story-intro {:class (when arriving? "arriving")}
+     (if image
+       [:img.intro-image {:src image :alt ""}]
+       [:div.intro-image.story-thumb-fallback])
+     [:div.intro-copy
+      [:h1 title]
+      [:div.intro-summary [html summary]]
+      (when read-time
+        [:p.intro-read-time "Estimated read time: " read-time (if (= 1 read-time) " minute" " minutes")])]
+     [:div.story-actions
+      [home-button]
+      [:button.next-button {:on-click begin!} "Begin"]]]))
+
+(defn- copy [{step-title :title :keys [content]} class]
+  [:div.story-copy {:class class}
+   (when (seq step-title) [:h1 step-title])
+   [:div.narrative [html content]]])
+
+(defn- step-copy
+  "The step's copy. On to another step, the last one's copy fades out over it
+  and then the new one fades in (opacity only: the flight is under way). The
+  first copy shown, arriving from the intro card, waits for the title's morph
+  to pass over it (`with-view-transition`)."
+  [_index _step]
+  (let [shown   (atom nil)
+        leaving (atom nil)]
+    (fn [index step]
+      (let [first? (nil? @shown)]
+        (when (and @shown (not= (:index @shown) index))
+          (reset! leaving @shown))
+        (when-not (= (:index @shown) index)
+          (reset! shown {:index index :step step :first? first?}))
+        [:div.story-copy-stack
+         (when-let [{i :index s :step} @leaving]
+           ^{:key (str "leaving-" i)} [copy s "leaving"])
+         ^{:key index} [copy step (when (:first? @shown) "after-morph")]]))))
+
 (defn- story-card []
-  (let [{:keys [title steps]} @(re-frame/subscribe [:kiosk/story])
+  (let [{:keys [title image steps]} @(re-frame/subscribe [:kiosk/story])
         index      @(re-frame/subscribe [:kiosk/step-index])
-        last-step? (= index (dec (count steps)))
-        {step-title :title :keys [content]} (get steps index)]
+        last-step? (= index (dec (count steps)))]
     [:section.story-card
-     [:div.eyebrow title]
-     ;; Keyed by step so the copy fades in afresh on each reveal.
-     ^{:key index}
-     [:div.story-copy
-      (when (seq step-title) [:h1 step-title])
-      [:div.narrative [html content]]]
+     ;; The story's picture behind its title, if it has one.
+     (if image
+       [:div.eyebrow.with-image
+        [:img.eyebrow-image {:src image :alt ""}]
+        [:span.eyebrow-title title]]
+       [:div.eyebrow title])
+     [step-copy index (get steps index)]
      ;; One continuous bar, not a segment per step, so it doesn't read as tabs.
      [:div.story-progress
       {:role "progressbar" :aria-valuemin 1 :aria-valuemax (count steps) :aria-valuenow (inc index)}
@@ -78,9 +136,11 @@
      ;; Start again leftmost, with Back between it and Next, the most tapped.
      [:div.story-actions
       [home-button]
+      ;; Back from the first step is back to the intro card.
       [:button.back-button
-       {:disabled (zero? index)
-        :on-click #(re-frame/dispatch [:kiosk.step/go (dec index)])}
+       {:on-click #(if (zero? index)
+                     (with-view-transition (fn [] (re-frame/dispatch-sync [:kiosk.story/intro])))
+                     (re-frame/dispatch [:kiosk.step/go (dec index)]))}
        "‹ Back"]
       [:button.next-button
        {:on-click #(re-frame/dispatch (if last-step?
@@ -227,17 +287,47 @@
                 :intent    b/INTENT-PRIMARY
                 :on-click  #(re-frame/dispatch [:kiosk.attract/exit])}]]))
 
+(defn- panel-morph
+  "Between the wide story list and a story's narrow card, a blank panel that
+  narrows or widens from one to the other, under the arriving card as it fades
+  in. It's empty, so animating its width is cheap enough to run during a flight
+  (going home). Keyed by transition, so each restarts its animation; once done
+  it's invisible."
+  [_mode]
+  (let [state (atom {:mode nil :n 0})]
+    (fn [mode]
+      (let [{prev :mode} @state]
+        (when (and prev (not= prev mode))
+          (swap! state #(-> % (update :n inc) (assoc :to (if (= mode :browse) "to-wide" "to-narrow")))))
+        (swap! state assoc :mode mode)
+        (let [{:keys [n to]} @state]
+          (when (pos? n)
+            ^{:key n} [:div.panel-morph {:class to}]))))))
+
 (defn layout-app []
-  (let [story? (some? @(re-frame/subscribe [:kiosk/story]))]
-    [:div#main-wrapper.seamap.kiosk-player
-     {:class (when story? "story-mode")}
-     [:div#content-wrapper
-      [map-component]]
-     [views/loading-display]
-     (if story?
-       [:<>
-        [story-card]
-        [media-card]]
-       [story-list])
-     [loading-notice]
-     [attract-screen]]))
+  ;; The intro card fades in only when it arrives from the story list; back
+  ;; from the first step, it morphs in instead (see `with-view-transition`).
+  (let [screen    (atom nil)
+        arriving? (atom false)]
+    (fn []
+      (let [story? (some? @(re-frame/subscribe [:kiosk/story]))
+            intro? @(re-frame/subscribe [:kiosk/intro?])
+            now    (cond (not story?) :list intro? :intro :else :step)]
+        (when (not= now @screen)
+          (reset! arriving? (and (= now :intro) (= @screen :list)))
+          (reset! screen now))
+        [:div#main-wrapper.seamap.kiosk-player
+         {:class (when story? "story-mode")}
+         [:div#content-wrapper
+          [map-component]]
+         [views/loading-display]
+         [panel-morph (if story? :story :browse)]
+         (case now
+           :list  [story-list]
+           :intro [intro-card {:arriving? @arriving?}]
+           ;; The media card belongs to the steps.
+           :step  [:<>
+                   [story-card]
+                   [media-card]])
+         [loading-notice]
+         [attract-screen]]))))

@@ -1,6 +1,6 @@
 // Watches the kiosk's warm-up (see frontend/docs/tmag-kiosk.md) until it's
-// done: save states, flight tiles prefetched, steps toured, first flights
-// decoded. Prints a row every few seconds.
+// done: save states, flight tiles prefetched, steps toured, decoding
+// finished. Prints a row every few seconds.
 //
 //   node warmup.mjs [--reload] [--port 9333] [--page tmag-kiosk]
 //

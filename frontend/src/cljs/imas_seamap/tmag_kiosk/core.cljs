@@ -57,6 +57,7 @@
     :kiosk/stories                        tksubs/stories
     :kiosk/story                          tksubs/story
     :kiosk/step-index                     tksubs/step-index
+    :kiosk/intro?                         tksubs/intro?
     :kiosk/attract?                       tksubs/attract?
     :kiosk/media                          tksubs/media
     :kiosk/media-index                    tksubs/media-index
@@ -230,6 +231,9 @@
     :kiosk.stories/loaded                 [tkevents/stories-loaded]
     :kiosk.stories/load-failed            [tkevents/stories-load-failed]
     :kiosk.story/open                     [tkevents/open-story]
+    :kiosk.story/begin                    tkevents/begin-story
+    :kiosk.story/begin-flight             [tkevents/begin-flight]
+    :kiosk.story/intro                    tkevents/show-intro
     :kiosk.step/go                        [tkevents/go-to-step]
     :kiosk.step/apply-view                [tkevents/apply-step-view]
     :kiosk.step/apply-layers              [tkevents/apply-step-layers]

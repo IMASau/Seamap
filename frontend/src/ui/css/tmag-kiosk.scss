@@ -107,6 +107,48 @@
         box-shadow: $card-shadow;
     }
 
+    // Between the story list and a story (`panel-morph`): a blank card that
+    // widens from the story card's width to the list's (twice it), or narrows
+    // back, from the right edge, while the arriving card fades in over it. Its
+    // width is animated, not scaled, so its corners and shadow are always a
+    // card's. It's empty: each frame lays out one box and redraws a rounded
+    // rectangle and its shadow. It changes size over the first 0.4 s, stays
+    // until the card has faded in (by 0.5 s), then fades out, handing its
+    // shadow to the card: gone sooner, the map would show through the card.
+    $morph: .6s cubic-bezier(.4, 0, .2, 1);
+    .panel-morph {
+        position: absolute;
+        z-index: 19;
+        top: var(--kiosk-gutter);
+        right: var(--kiosk-gutter);
+        bottom: calc(var(--kiosk-bezel-h) + var(--kiosk-gutter));
+        width: var(--kiosk-story-card-w);
+        border: u(2) solid rgba(25, 68, 82, .22);
+        border-radius: u(22);
+        background: rgba(255, 254, 250, .97);
+        box-shadow: $card-shadow;
+        opacity: 0;
+        pointer-events: none;
+
+        &.to-narrow { animation: kiosk-morph-narrow $morph; }
+        &.to-wide { animation: kiosk-morph-wide $morph; }
+    }
+    @keyframes kiosk-morph-narrow {
+        from { opacity: 1; width: calc(2 * var(--kiosk-story-card-w)); }
+        66%, 85% { opacity: 1; width: var(--kiosk-story-card-w); }
+        to { opacity: 0; width: var(--kiosk-story-card-w); }
+    }
+    @keyframes kiosk-morph-wide {
+        from { opacity: 1; width: var(--kiosk-story-card-w); }
+        66%, 85% { opacity: 1; width: calc(2 * var(--kiosk-story-card-w)); }
+        to { opacity: 0; width: calc(2 * var(--kiosk-story-card-w)); }
+    }
+    // Arriving cards fade in as the panel settles (0.3 to 0.5 s); their shadow
+    // comes in as the panel's goes (0.51 to 0.6 s), so it never doubles.
+    .browse-card, .story-intro.arriving { animation: kiosk-card-in .2s ease-out .3s both, kiosk-card-shadow $morph both; }
+    @keyframes kiosk-card-in { from { opacity: 0; } to { opacity: 1; } }
+    @keyframes kiosk-card-shadow { from, 85% { box-shadow: 0 u(20) u(60) rgba(19, 54, 67, 0); } }
+
     // ── Browse: no story open ───────────────────────────────────────────────
     // The story card's height and right edge, twice as wide, so the list has
     // room for two columns. It never changes size.
@@ -215,17 +257,109 @@
             letter-spacing: .025em;
             overflow-wrap: anywhere;
         }
+        // With the story's picture behind the title instead: cropped to fill
+        // the band, under a gradient dark enough for white text on any
+        // picture, with the title at the bottom where it's darkest.
+        > .eyebrow.with-image {
+            position: relative;
+            display: flex;
+            align-items: flex-end;
+            overflow: hidden;
+            border-bottom: 0;
+            background: #081f2a;
+            color: white;
+
+            &::after {
+                content: "";
+                position: absolute;
+                inset: 0;
+                background: linear-gradient(to top, rgba(4, 20, 28, .88), rgba(4, 20, 28, .4) 60%, rgba(4, 20, 28, .12));
+            }
+        }
+        .eyebrow-image {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            max-width: none;
+            height: 100%;
+            object-fit: cover;
+        }
+        .eyebrow-title {
+            position: relative;
+            z-index: 1;
+            text-shadow: 0 u(1) u(8) rgba(0, 0, 0, .45);
+        }
         h1 { margin: u(18) 0 0; font-size: u(28); line-height: 1.16; letter-spacing: -.02em; }
         > .story-progress, > .story-actions { flex-shrink: 0; }
     }
+    // The intro card: the story's whole picture (the only place it's shown
+    // uncropped) edge to edge at the top, then its title and subtitle, and
+    // Begin. A very tall picture is fitted into half the screen's height.
+    .story-intro {
+        .intro-image {
+            display: block;
+            flex: none;
+            width: calc(100% + #{u(48)});
+            max-width: none; // past the card's padding, to its edges
+            height: auto;
+            max-height: 50vh;
+            margin: u(-30) u(-24) 0;
+            object-fit: contain;
+        }
+        div.intro-image { aspect-ratio: 4 / 3; }
+        .story-thumb-fallback { background: linear-gradient(145deg, #4c9eaa, #153d50); }
+        h1 { margin: u(26) 0 0; font-size: u(32); line-height: 1.15; }
+        > .story-actions { flex-shrink: 0; }
+    }
+    .intro-copy {
+        flex: 1;
+        min-height: 0;
+        overflow: hidden;
+    }
+    // After the title, back from the first step, has morphed past them.
+    .intro-summary, .intro-read-time { animation: kiosk-story-copy-in .22s ease-out .35s both; }
+    .intro-summary p, .intro-summary {
+        margin: 0;
+        color: var(--kiosk-muted);
+        font-size: u(19);
+        line-height: 1.45;
+    }
+    .intro-summary { margin-top: u(14); }
+    .intro-read-time {
+        margin: u(16) 0 0;
+        color: var(--kiosk-purple);
+        font-size: u(17);
+        font-weight: 800;
+    }
+
     // Only the prose scrolls (a fallback for long copy); the controls stay put.
+    // On to another step, the last step's copy fades out over the new one
+    // (`step-copy`), then the new one fades in. Opacity only, as a flight
+    // is under way.
+    .story-copy-stack {
+        position: relative;
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
+    }
     .story-copy {
         display: flex;
         flex-direction: column;
         flex: 1;
         min-height: 0;
-        animation: kiosk-story-copy-in .22s ease-out both;
+        animation: kiosk-story-copy-in .22s ease-out .15s both;
+
+        &.leaving {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            animation: kiosk-story-copy-out .15s ease-in both;
+        }
+        // From the intro card: after the title has morphed past it.
+        &.after-morph { animation-delay: .4s; }
     }
+    @keyframes kiosk-story-copy-out { to { opacity: 0; } }
     .narrative {
         min-height: 0;
         margin: u(12) 0 u(24);
@@ -276,8 +410,6 @@
     .home-button, .back-button {
         border: u(2) solid #9fb5bd;
         background: white;
-
-        &:disabled { opacity: .35; cursor: default; }
     }
     // Square, icon only.
     .home-button {
@@ -543,7 +675,7 @@
         --kiosk-story-card-w: max(#{u(350)}, 22.058824vw);
 
         .leaflet-bottom.leaflet-left { bottom: u(24); }
-        .browse-card { bottom: u(24); }
+        .browse-card, .panel-morph { bottom: u(24); }
         .story-card {
             bottom: u(24);
             padding: u(22) u(24) u(24);
@@ -558,4 +690,40 @@
         }
         .loading-notice { top: u(20); }
     }
+}
+
+// ── Intro card <-> first step: the story's picture and title morph ─────────
+// A view transition (`with-view-transition` in views.cljs): the intro's whole
+// picture becomes the step card's title band, cropping to it as it goes, and
+// its title moves into the band. Only these are captured: the root isn't, so
+// the rest of the page (the map, mid-flight) stays live. The transition's
+// pseudo-elements hang off the root, so the design unit is defined there too.
+html:has(> body.tmag-kiosk) {
+    --kiosk-u: min(100vw / 1920, 100vh / 1080);
+    view-transition-name: none;
+}
+.tmag-kiosk {
+    .story-intro .intro-image, .story-card > .eyebrow { view-transition-name: kiosk-story-image; }
+    .story-intro h1, .eyebrow-title { view-transition-name: kiosk-story-title; }
+}
+::view-transition-group(kiosk-story-image),
+::view-transition-group(kiosk-story-title) {
+    animation-duration: .45s;
+    animation-timing-function: cubic-bezier(.4, 0, .2, 1);
+}
+// The picture crops into the band, under the card's rounded top corners.
+::view-transition-group(kiosk-story-image) {
+    overflow: clip;
+    border-radius: u(22) u(22) 0 0;
+}
+::view-transition-old(kiosk-story-image),
+::view-transition-new(kiosk-story-image) {
+    height: 100%;
+    object-fit: cover;
+}
+::view-transition-old(kiosk-story-image),
+::view-transition-new(kiosk-story-image),
+::view-transition-old(kiosk-story-title),
+::view-transition-new(kiosk-story-title) {
+    animation-duration: .45s;
 }
