@@ -20,11 +20,12 @@
   "The current step's media, for the media card: [{:url :lat :lon :caption
   :overlay}]. Only once its flight has landed: the media belongs to the place,
   and loading it (a video's first frame) mid-flight can cost a frame. None on
-  the story's intro card."
+  the story's intro card. A tapped feature's media replaces the step's."
   [db _]
-  (let [{:keys [landed-step step-index intro?]} (:kiosk db)]
+  (let [{:keys [landed-step step-index intro? feature-media]} (:kiosk db)]
     (when (and (= landed-step step-index) (not intro?))
-      (get-in (tkevents/current-story db) [:steps step-index :media]))))
+      (or feature-media
+          (get-in (tkevents/current-story db) [:steps step-index :media])))))
 
 (defn media-index [db _]
   (get-in db [:kiosk :media-index] 0))
@@ -34,9 +35,9 @@
   lags the story card by a flight; `:selected` is the item in the media card,
   once the map has caught up. None on the story's intro card."
   [db _]
-  (let [{:keys [landed-step step-index media-index intro?]} (:kiosk db)]
+  (let [{:keys [landed-step step-index media-index intro? feature-media]} (:kiosk db)]
     (when (and landed-step (not intro?))
-      {:media    (get-in (tkevents/current-story db) [:steps landed-step :media])
+      {:media    (or feature-media (get-in (tkevents/current-story db) [:steps landed-step :media]))
        :selected (when (= landed-step step-index) (or media-index 0))})))
 
 (defn attract? [db _]

@@ -145,7 +145,9 @@
     :transect.plot/mouseout               events/transect-onmouseout
     :transect.plot/toggle-visibility      events/transect-visibility-toggle
     :map.feature/show                     mevents/show-popup
-    :map/clicked                          (fn [db _] db) ; default Leaflet interaction only: no feature info on tap
+    :map/clicked                          [tkevents/map-clicked] ; features' media to the media card, not Seamap's popup
+    :kiosk.features/loaded                tkevents/features-loaded
+    :kiosk.features/failed                tkevents/features-failed
     :map/feature-info-dispatcher          [mevents/feature-info-dispatcher]
     :map/get-feature-info                 [mevents/get-feature-info]
     :map/get-feature-info-map-server-step-2 [mevents/get-feature-info-map-server-step-2] ; MapServer layers need to make an additional request to determine if they are a group layer

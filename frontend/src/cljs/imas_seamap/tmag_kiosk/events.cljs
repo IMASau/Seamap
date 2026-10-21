@@ -5,6 +5,7 @@
   (:require [ajax.core :as ajax]
             [imas-seamap.db :as db]
             [imas-seamap.map.events :as mevents]
+            [imas-seamap.map.utils :as map-utils]
             [imas-seamap.utils :refer [merge-in ajax-loaded-info append-params-from-map decode-html-entities parse-state]]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -124,7 +125,8 @@
   "Kiosk state to carry through a reset: loaded stories and save states are
   kept (applying any refresh that arrived mid-story); the open story is closed."
   [{:keys [pending-stories] :as kiosk}]
-  (cond-> (dissoc kiosk :story-id :step-index :intro? :pending-stories :keep-view? :media-index :landed-step)
+  (cond-> (dissoc kiosk :story-id :step-index :intro? :pending-stories :keep-view? :media-index :landed-step
+                  :feature-media :feature-query)
     pending-stories (assoc :stories pending-stories)))
 
 (declare prepare-flights)
@@ -500,12 +502,143 @@
 (defn show-intro
   "Back from the first step to the intro card; the map stays put."
   [db _]
-  (update db :kiosk assoc :intro? true :media-index 0))
+  (update db :kiosk #(-> % (assoc :intro? true :media-index 0) (dissoc :feature-media :feature-query))))
 
 (defn go-to-step [{:keys [db]} [_ index]]
   (when (< -1 index (count (:steps (current-story db))))
-    {:db       (update db :kiosk assoc :step-index index :media-index 0)
+    {:db       (update db :kiosk #(-> % (assoc :step-index index :media-index 0) (dissoc :feature-media :feature-query)))
      :dispatch [:kiosk.step/apply-view]}))
+
+;;; Feature media. Tapping a step's map asks the layers under the tap for their
+;;; features (WMS GetFeatureInfo, as JSON); features carrying media fill the
+;;; media card in place of the step's own, until the visitor moves on. Only
+;;; once the step's flight has landed: elsewhere there's no media card.
+
+;; How far around a tap a feature counts as tapped, in design units (see
+;; `--kiosk-u` in tmag-kiosk.scss): it's a finger, not a pointer.
+(def feature-tolerance 15)
+
+(def ^:private media-re #"(?i)\.(jpe?g|png|webp|gif|mp4|m4v|webm|mov)(\?|$)")
+
+(defn- parse-overlay [overlay]
+  (if (string? overlay)
+    (try (js->clj (js/JSON.parse overlay) :keywordize-keys true)
+         (catch :default _ nil))
+    overlay))
+
+(defn feature->media
+  "A media item, in a story step's form ({:url :lat :lon :caption :overlay}),
+  from a GeoJSON feature, or nil if it carries no photo or video. Takes the
+  stories' own property names, or those of the KIOSK layers so far: the media
+  from `media_url`, `media_URL` or `image_orig` before `url` (the iNaturalist
+  layer's `url` is its web page); the place from `lat`/`lon`, `latitude`/
+  `longitude` or the feature's point; the caption from `caption`, or the
+  species' common and scientific names; readings from `overlay`, or
+  `temperature` and `depth`."
+  [{p :properties {:keys [type coordinates]} :geometry}]
+  (let [url  (some #(let [v (get p %)] (when (and (string? v) (re-find media-re v)) v))
+                   [:media_url :media_URL :image_orig :url])
+        [x y] (when (= "Point" type) coordinates)
+        lat  (or (:lat p) (:latitude p) y)
+        lon  (or (:lon p) (:longitude p) x)
+        {common :common_name sci :scientific_name} p]
+    (when url
+      {:url     url
+       :lat     lat
+       :lon     lon
+       :caption (or (:caption p)
+                    (cond (and common sci) (str common " (" sci ")")
+                          :else            (or common sci)))
+       :overlay (or (parse-overlay (:overlay p))
+                    (not-empty (select-keys p [:temperature :depth])))})))
+
+(defn- feature-request
+  "GetFeatureInfo for `layer`'s features within `feature-tolerance` of the tap."
+  [layer {:keys [lat lng]} {:keys [size bounds]} request-id]
+  (let [{:keys [north south east west]} bounds
+        ;; A 101px window round the tap, at the map's own scale.
+        dx     (* 50 (/ (- east west) (:x size)))
+        dy     (* 50 (/ (- north south) (:y size)))
+        buffer (js/Math.round (* feature-tolerance (min (/ (:x size) 1920) (/ (:y size) 1080))))
+        names  (map-utils/layer-name layer)]
+    {:method          :get
+     :uri             (:server_url layer)
+     :params          {:SERVICE       "WMS"
+                       :VERSION       "1.1.1"
+                       :REQUEST       "GetFeatureInfo"
+                       :LAYERS        names
+                       :QUERY_LAYERS  names
+                       :STYLES        ""
+                       :SRS           "EPSG:4326"
+                       :BBOX          (str (- lng dx) "," (- lat dy) "," (+ lng dx) "," (+ lat dy))
+                       :WIDTH         101
+                       :HEIGHT        101
+                       :X             50
+                       :Y             50
+                       :BUFFER        buffer
+                       :FEATURE_COUNT 50
+                       :INFO_FORMAT   "application/json"}
+     :response-format (ajax/json-response-format {:keywords? true})
+     :on-success      [:kiosk.features/loaded request-id]
+     :on-failure      [:kiosk.features/failed request-id]}))
+
+(defn map-clicked
+  "The kiosk's `:map/clicked`: on a step whose map has landed, asks the WMS
+  layers under the tap for their features."
+  [{:keys [db]} [_ leaflet-props point]]
+  (let [{:keys [story-id intro? landed-step step-index]} (:kiosk db)
+        layers     (->> (map-utils/displayed-layers-under-point (map-utils/visible-layers (:map db)) point db)
+                        (filter #(and (:server_url %) (re-find #"^wms" (name (or (:layer_type %) "")))))
+                        (remove #(map-utils/is-insecure? (:server_url %))))
+        request-id (random-uuid)]
+    (when (and story-id (not intro?) (= landed-step step-index) (seq layers))
+      {:db         (assoc-in db [:kiosk :feature-query] {:id request-id :remaining (count layers) :media [] :point point})
+       :http-xhrio (mapv #(feature-request % point leaflet-props request-id) layers)})))
+
+(defn- nearest-first
+  "`media` sorted by distance from `point` ({:lat :lng}), nearest first; those
+  without a place last."
+  [media {:keys [lat lng]}]
+  (let [k (js/Math.cos (* lat (/ js/Math.PI 180)))]
+    (sort-by (fn [{mlat :lat mlon :lon}]
+               (if (and (number? mlat) (number? mlon))
+                 (+ (js/Math.pow (- mlat lat) 2) (js/Math.pow (* k (- mlon lng)) 2))
+                 js/Infinity))
+             media)))
+
+(defn- distinct-urls
+  "`media` without repeats of a url (layers can share features), in order."
+  [media]
+  (second (reduce (fn [[seen out] {:keys [url] :as m}]
+                    (if (seen url) [seen out] [(conj seen url) (conj out m)]))
+                  [#{} []]
+                  media)))
+
+(defn- features-in
+  "One layer's answer (`media`) to the tap `request-id`. Once all are in, any
+  media found fills the media card, nearest the tap first; none leaves it as it
+  was."
+  [db request-id media]
+  (if (not= request-id (get-in db [:kiosk :feature-query :id]))
+    db ; an earlier tap, or the visitor has moved on
+    (let [db                (-> db
+                                (update-in [:kiosk :feature-query :remaining] dec)
+                                (update-in [:kiosk :feature-query :media] into media))
+          {:keys [remaining point]
+           found :media}    (get-in db [:kiosk :feature-query])]
+      (cond
+        (pos? remaining) db
+        (seq found)      (update db :kiosk #(-> %
+                                                (dissoc :feature-query)
+                                                (assoc :feature-media (distinct-urls (nearest-first found point))
+                                                       :media-index 0)))
+        :else            (update db :kiosk dissoc :feature-query)))))
+
+(defn features-loaded [db [_ request-id response]]
+  (features-in db request-id (keep feature->media (:features response))))
+
+(defn features-failed [db [_ request-id _response]]
+  (features-in db request-id []))
 
 (defn select-media
   "Shows the current step's `index`th media item in the media card."

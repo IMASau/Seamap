@@ -2,7 +2,8 @@
 ;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.tmag-kiosk.map.views
-  (:require [re-frame.core :as re-frame]
+  (:require ["leaflet" :as L]
+            [re-frame.core :as re-frame]
             [imas-seamap.map.utils :refer [map->bounds]]
             [imas-seamap.map.views :as map-views]
             [imas-seamap.interop.leaflet :as leaflet]
@@ -36,14 +37,18 @@
                               :weight      (* u 3)
                               :fillColor   (if selected? "#fbbf24" "#6d267f")
                               :fillOpacity 1}
-              :eventHandlers {:click #(re-frame/dispatch [:kiosk.media/select i])}}]))))
+              ;; Kept from the map, which would ask for features there.
+              :eventHandlers {:click (fn [e]
+                                       (.. L/default -DomEvent (stopPropagation e))
+                                       (re-frame/dispatch [:kiosk.media/select i]))}}]))))
 
 (defn map-component
   "Seamap's layers with Leaflet's default interaction and controls: no Seamap
   controls, keyboard shortcuts or feature-info popups (the kiosk's
-  `:map/clicked` does nothing). The map starts at the kiosk's home view; after
-  that it's moved with `:map/update-map-view`, as in Seamap. The zoom control
-  is bottom-left, in easy reach."
+  `:map/clicked` puts tapped features' media in the media card). The map
+  starts at the kiosk's home view; after that it's moved with
+  `:map/update-map-view`, as in Seamap. The zoom control is bottom-left, in
+  easy reach."
   []
   [leaflet/map-container
    {:id           "map"
