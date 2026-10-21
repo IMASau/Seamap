@@ -42,7 +42,8 @@
   "Seamap's layers with Leaflet's default interaction and controls: no Seamap
   controls, keyboard shortcuts or feature-info popups (the kiosk's
   `:map/clicked` does nothing). The map starts at the kiosk's home view; after
-  that it's moved with `:map/update-map-view`, as in Seamap."
+  that it's moved with `:map/update-map-view`, as in Seamap. The zoom control
+  is bottom-left, in easy reach."
   []
   [leaflet/map-container
    {:id           "map"
@@ -51,7 +52,9 @@
     :use-fly-to   false
     :bounds       (map->bounds home-bounds)
     :minZoom      2
+    :zoomControl  false
     :ref          #(when % (re-frame/dispatch [:map/update-leaflet-map %]))} ; obtain a reference to the leaflet map in re-frame state, so we can call leaflet map methods from anywhere in the app
+   [leaflet/zoom-control {:position "bottomleft"}]
    [map-views/basemap-layers]
    [map-views/catalogue-layers]
    [media-markers]])

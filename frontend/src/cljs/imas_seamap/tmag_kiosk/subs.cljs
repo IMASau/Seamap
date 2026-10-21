@@ -38,11 +38,6 @@
 (defn attract? [db _]
   (get-in db [:kiosk :attract?]))
 
-(defn layer-names
-  "Names of the layers on the map, for the story card's \"On the map\" key."
-  [active-layers _]
-  (->> active-layers (map :name) distinct vec))
-
 (defn layers-loading?
   "Whether any layer on the map is still loading. Only active layers count:
   one removed mid-load never reports that it finished."

@@ -3,12 +3,13 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.tmag-kiosk.views
   "The kiosk's layout, after the seamap-kiosk prototype (kiosk_vertical_slice):
-  a full-bleed map with the kiosk's content in fixed cards over it. With no
-  story open, a story list sits bottom-right; with one open, the story card
-  takes the right-hand column, and the step's media card the left. The map
-  keeps Leaflet's default controls and interaction; only the layout comes from
-  the prototype. Styles: src/ui/css/tmag-kiosk.scss."
+  a full-bleed map with the kiosk's content in fixed cards over it. The
+  right-hand column holds the story list, or the open story's card; with a
+  story open, the step's media card is in the left. The map keeps Leaflet's
+  default controls and interaction; only the layout comes from the prototype.
+  Styles: src/ui/css/tmag-kiosk.scss."
   (:require [clojure.string :as string]
+            [reagent.core :as r]
             [re-frame.core :as re-frame]
             [imas-seamap.blueprint :as b]
             [imas-seamap.views :as views]
@@ -19,13 +20,14 @@
   [:div {:dangerouslySetInnerHTML {:__html content}}])
 
 (defn- html->text
-  "Plain text of a WordPress HTML fragment, for one-line summaries. DOMParser
+  "Plain text of a WordPress HTML fragment, for card summaries. DOMParser
   doesn't run scripts or fetch anything."
   [content]
   (when (seq content)
     (.. (js/DOMParser.) (parseFromString content "text/html") -body -textContent)))
 
-;;; Browse: no story open
+;;; Browse: no story open. A card per story: a band of its picture with the read
+;;; time on it, then its title and summary.
 
 (defn- story-list []
   (let [stories @(re-frame/subscribe [:kiosk/stories])]
@@ -34,30 +36,26 @@
      [:h1 "Choose a story"]
      [:div.browse-story-list
       (if (seq stories)
-        (for [{:keys [id title summary image read-time steps]} stories]
+        (for [{:keys [id title summary image read-time]} stories]
           ^{:key id}
           [:button.browse-story
            {:on-click #(re-frame/dispatch [:kiosk.story/open id])}
-           (if image
-             [:img {:src image :alt ""}]
-             [:span.story-thumb-fallback])
+           [:span.browse-story-image
+            (if image
+              [:img {:src image :alt ""}]
+              [:span.story-thumb-fallback])]
            [:span.browse-story-copy
             [:b title]
-            [:span (html->text summary)]
-            [:small (count steps) " map " (if (= 1 (count steps)) "reveal" "reveals")
-             (when read-time (str " · " read-time " min"))]]])
+            [:span.summary (html->text summary)]
+            (when read-time [:small.read-time read-time " min"])]])
         [:p.browse-loading [:span.spinner] "Loading stories…"])]]))
 
 ;;; Story: one open
 
-(defn- layer-key []
-  (let [names @(re-frame/subscribe [:kiosk/layer-names])]
-    (when (seq names)
-      [:aside.layer-key
-       [:h2 "On the map"]
-       (for [name names]
-         ^{:key name}
-         [:div.key-row name])])))
+(defn- home-button []
+  [:button.home-button {:aria-label "Start again"
+                        :on-click   #(re-frame/dispatch [:kiosk/start-again])}
+   [b/icon {:icon "home"}]])
 
 (defn- story-card []
   (let [{:keys [title steps]} @(re-frame/subscribe [:kiosk/story])
@@ -71,12 +69,15 @@
      [:div.story-copy
       (when (seq step-title) [:h1 step-title])
       [:div.narrative [html content]]]
-     [layer-key]
-     [:div.step-number "Reveal " (inc index) " of " (count steps)]
-     [:div.progress-dots
-      (for [i (range (count steps))]
-        ^{:key i} [:span {:class (when (<= i index) "done")}])]
+     ;; One continuous bar, not a segment per step, so it doesn't read as tabs.
+     [:div.story-progress
+      {:role "progressbar" :aria-valuemin 1 :aria-valuemax (count steps) :aria-valuenow (inc index)}
+      [:div.progress-track
+       [:div.progress-fill {:style {:width (str (* 100 (/ (inc index) (count steps))) "%")}}]]
+      [:div.step-number (inc index) " / " (count steps)]]
+     ;; Start again leftmost, with Back between it and Next, the most tapped.
      [:div.story-actions
+      [home-button]
       [:button.back-button
        {:disabled (zero? index)
         :on-click #(re-frame/dispatch [:kiosk.step/go (dec index)])}
@@ -107,6 +108,52 @@
            (str (.toLocaleString v "en-AU" #js {:maximumFractionDigits decimals}) unit)
            (str v))]]))
 
+(defn- clock [seconds]
+  (let [s (js/Math.floor seconds)]
+    (str (quot s 60) ":" (.padStart (str (mod s 60)) 2 "0"))))
+
+(defn- media-video
+  "A video with the kiosk's own controls, sized for touch, and none of the
+  browser's extras (download, playback speed, picture-in-picture). Tapping the
+  video plays or pauses it."
+  [_url]
+  (let [video   (atom nil)
+        state   (r/atom {:playing? false :muted? false :time 0 :duration 0})
+        sync!   #(when-let [^js v @video]
+                   (reset! state {:playing? (not (.-paused v))
+                                  :muted?   (.-muted v)
+                                  :time     (.-currentTime v)
+                                  :duration (if (js/isFinite (.-duration v)) (.-duration v) 0)}))
+        toggle! #(when-let [^js v @video]
+                   (if (.-paused v) (.catch (.play v) (fn [_])) (.pause v)))
+        mute!   #(when-let [^js v @video] (set! (.-muted v) (not (.-muted v))))
+        seek!   #(when-let [^js v @video] (set! (.-currentTime v) (js/parseFloat (.. % -target -value))))]
+    (fn [url]
+      (let [{:keys [playing? muted? time duration]} @state]
+        [:div.media-video
+         [:video {:src                     url
+                  :preload                 "metadata"
+                  :playsInline             true
+                  :disablePictureInPicture true
+                  :ref                     #(reset! video %)
+                  :on-click                toggle!
+                  :on-play                 sync!
+                  :on-pause                sync!
+                  :on-ended                sync!
+                  :on-time-update          sync!
+                  :on-loaded-metadata      sync!
+                  :on-volume-change        sync!}]
+         (when-not playing?
+           [:button.video-play-big {:aria-label "Play" :on-click toggle!} [b/icon {:icon "play"}]])
+         [:div.video-controls
+          [:button {:aria-label (if playing? "Pause" "Play") :on-click toggle!}
+           [b/icon {:icon (if playing? "pause" "play")}]]
+          [:input.video-seek {:type "range" :min 0 :max duration :step "any" :value time
+                              :aria-label "Position" :on-change seek!}]
+          [:span.video-time (clock time) " / " (clock duration)]
+          [:button {:aria-label (if muted? "Unmute" "Mute") :on-click mute!}
+           [b/icon {:icon (if muted? "volume-off" "volume-up")}]]]]))))
+
 (def ^:private max-media-dots 8)
 
 ;; Every step has media, so the card is there for the whole story: it shows
@@ -126,7 +173,7 @@
         ^{:key url}
         [:div.media-item
          (if (video? url)
-           [:video {:src url :controls true :preload "metadata" :playsInline true}]
+           [media-video url]
            [:img {:src url :alt (or caption "")}])])]
      [:div.media-caption
       (when url
@@ -174,10 +221,11 @@
               :align-items     "center"
               :justify-content "center"
               :background      "#002b49"}}
-     [b/button {:text     "Start exploring"
-                :large    true
-                :intent   b/INTENT-PRIMARY
-                :on-click #(re-frame/dispatch [:kiosk.attract/exit])}]]))
+     [b/button {:text      "Start exploring"
+                :className "attract-start"
+                :large     true
+                :intent    b/INTENT-PRIMARY
+                :on-click  #(re-frame/dispatch [:kiosk.attract/exit])}]]))
 
 (defn layout-app []
   (let [story? (some? @(re-frame/subscribe [:kiosk/story]))]
@@ -189,8 +237,7 @@
      (if story?
        [:<>
         [story-card]
-        [media-card]
-        [:button.home-button {:on-click #(re-frame/dispatch [:kiosk/start-again])} "⌂ Start again"]]
+        [media-card]]
        [story-list])
      [loading-notice]
      [attract-screen]]))

@@ -61,8 +61,6 @@
     :kiosk/media                          tksubs/media
     :kiosk/media-index                    tksubs/media-index
     :kiosk/media-markers                  tksubs/media-markers
-    :kiosk/layer-names                    [:<- [:dbsubs.map/active-layers]
-                                           tksubs/layer-names]
     :kiosk/layers-loading?                [:<- [:dbsubs.map/active-layers]
                                            :<- [:dbsubs/layer-state-loading]
                                            tksubs/layers-loading?]
