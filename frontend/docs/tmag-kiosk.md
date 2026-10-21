@@ -28,8 +28,16 @@ what's still open. Keep it current: update it in the same change as the code it 
 
 - Animations must hold 60 fps at 4K on integrated graphics and feel quick, or not exist. Judge
   them by their worst frames (missed vsyncs, frame time against 16.6 ms), never by averages.
-- A flight must set off on the frame after the tap, from the home screen into any story, and
-  between any steps.
+- A flight must set off on the frame after the tap: Begin on a story's intro card (into its
+  first step), between any steps, and home.
+- Choosing a story doesn't move the map, and nothing on the cards waits for a flight: the
+  intro card shows at once, and Start again (or Finish) brings the story list back at once,
+  while the map flies home under it.
+- Panel transitions (story list to a story and back) mustn't cost a flight under way frames.
+  The blank panel's width is animated rather than scaled (scaling stretched its shadow and
+  corners); it's an empty box, so a frame lays out one box and redraws a rounded rectangle
+  and its shadow. Its shadow is handed to the arriving card as it fades out, so the shadow
+  never doubles.
 - The path is a parabolic zoom out and in (van Wijk and Nuij's, as Leaflet's `flyTo`), drawn on
   a canvas from tiles decoded in advance. Short hops don't zoom far out.
 - Destination layers may appear a few hundred ms after landing, as long as the flight itself is
@@ -42,8 +50,54 @@ what's still open. Keep it current: update it in the same change as the code it 
 
 - The map uses Leaflet's default interaction and controls. Don't port the prototype's map
   interaction (drift detection, snap-back, gesture limits) or Seamap's own map tools (custom
-  controls, scale, keyboard shortcuts, feature info on tap). Touch improvements are explored
-  separately.
+  controls, scale, keyboard shortcuts, the feature-info popup). Touch improvements are
+  explored separately.
+- Tapping a feature on a step's landed map puts its media in the media card in place of the
+  step's (`map-clicked`): every visible WMS layer under the tap is asked for its features as
+  JSON (GetFeatureInfo, `BUFFER` of 15 design units for a finger), and features with a photo
+  or video become media items, nearest the tap first. A tap that finds none leaves the card as it was; moving to
+  another step (or back to the intro) returns to the step's media. Tapping a media marker
+  only selects that item.
+- Feature properties are read as media items by `feature->media`: the story fields (`url`,
+  `lat`, `lon`, `caption`, `overlay`), or the KIOSK layers' current ones (`media_URL` or
+  `image_orig` before `url`, which is a web page on the iNaturalist layer; `latitude`/
+  `longitude`; caption from `common_name` and `scientific_name`; `temperature` and `depth`
+  as readings).
+- Controls go where a hand reaches them, and the costly ones away from stray taps: the zoom
+  control is bottom-left (a stray zoom is harmless), and Start again is a house icon at the
+  left of the story card's Back/Next row, not in a screen corner.
+
+### Layout
+
+- Panels never change size. The story list has the story card's height and right edge, at
+  twice its width, and fits 8 stories without scrolling: two columns of four cards, a fixed
+  slot each. A card is a band of the story's picture (40% of its height) with the read time
+  on it, then the title and summary (two lines each at most). Image-left and text-over-image
+  cards were tried and dropped: the first squeezed both, the second darkened the pictures.
+- A story opens on an intro card in the story card's place: its whole picture, uncropped
+  (the only place it's shown whole; a very tall one is fitted into half the screen's
+  height), title, subtitle (`description`) and "Estimated read time: N minutes" (`read_time`,
+  if set), with Start again and a long Begin button. The
+  map stays home; Begin flies to the first step. The media card and markers belong to the
+  steps. Back on the first step returns to the intro card, leaving the map there.
+- On the steps, the story card's title band shows the story's picture, cropped to fill it,
+  under a dark gradient, with the title in white at the bottom (legible on light pictures
+  too). A story without a picture keeps the contour pattern.
+- Intro card to first step (Begin) and back: the story's picture crops into the title band
+  and its title moves into it, as a view transition (`with-view-transition`), 0.45 s. Only
+  those two are captured (the root isn't), so the map stays live, and Begin's flight is
+  dispatched before the transition starts, so it still sets off on the next frame. The
+  arriving card's body text waits for the title to pass (about 0.4 s). In headless Edge
+  some transitions finish without animating; in a real window they all animate.
+- Between steps, the copy fades out (0.15 s) and the next fades in (`step-copy`); opacity
+  only, as a flight is under way.
+- Between the story list and a story, a blank panel narrows (or widens) from one to the other
+  and the arriving card fades in over it (`panel-morph`).
+- The media card is 16:9, the shape of most media, above a caption strip (two lines) and a
+  row for its controls. Items are laid over the window, so no photo can resize the card.
+- Videos use the kiosk's own controls (big play button; play/pause, seek, time, mute), sized
+  for touch, without the browser's download, speed and picture-in-picture options.
+- The zoom buttons are 60 design units, separated, for touch.
 
 ### Content and data
 
@@ -68,8 +122,9 @@ what's still open. Keep it current: update it in the same change as the code it 
 - Offline operation is out of scope. Resilience to outages after warm-up is best effort.
 - The app returns to the attract screen after inactivity without reloading, so the session
   (and the caches) live for days.
-- Before a visitor taps Start exploring, everything every story needs should be cached, and
-  each story's first flight decoded.
+- Before a visitor taps Start exploring, everything every story needs should be cached. A
+  story's first flight is decoded when its intro card opens, while the visitor reads it,
+  rather than every story's being held decoded at home.
 
 ## How it works
 
@@ -85,7 +140,7 @@ what's still open. Keep it current: update it in the same change as the code it 
 | `flight.cljs` | Canvas flights: path, planning, drawing, landing, and preparing flights at rest |
 
 **Flights.** Whenever the map comes to rest, the flights a visitor could take from there
-(back, next, home; or into each story from home) are planned and their tiles decoded. The
+(back, next, home; on an intro card, into its story) are planned and their tiles decoded. The
 tiles on screen (basemap and overlays) are decoded from the tile cache and uploaded to the GPU,
 so every flight starts on Leaflet's own full-resolution tiles. A tap then only shows the canvas
 and starts the clock. A flight tapped before its tiles are ready sets off anyway, decoding the
@@ -97,8 +152,7 @@ and each overlay fades in once loaded.
 
 1. every step's save state is fetched;
 2. every flight of every story has its tiles fetched into the tile cache;
-3. the flights from home into each story are decoded, and kept throughout;
-4. behind the attract screen, the map visits every step (`tour-next`), so its layers' tiles and
+3. behind the attract screen, the map visits every step (`tour-next`), so its layers' tiles and
    its photos are cached too. Leaving the attract screen ends the tour.
 
 It's redone for new stories or revisions after a refresh.
@@ -129,14 +183,16 @@ The scripts in `frontend/tools/kiosk-bench/` do all of the following (see its RE
 - Reloading a tab can drop DevTools' device emulation: check `innerWidth` after a reload.
 - Tap with trusted input (DevTools Protocol `Input.dispatchMouseEvent`), not `element.click()`,
   to measure tap-to-frame latency.
-- With only one or two real stories, test 6–8 by serving extra stories to the test browser
-  (eg the DevTools Protocol's `Fetch` domain on the `story_map` request), built from
-  existing save states. Don't create them in the shared dev database.
+- Test with 8 stories: add test stories (titles starting "TEST") to the local WordPress
+  (`docker compose run --rm --entrypoint wp wp-init ...`), reusing existing save states.
+  Don't create save states in the shared dev database.
 
 **Last measured** (2026-10-20, laptop Intel UHD, 8 stories): cold warm-up 80–165 s (about
 16,000 tiles); 48 flights with 0 missed frames, worst frame interval 18.0 ms, worst draw
 10.1 ms, tap to first moving frame 18–39 ms; decoded tiles 1.3 GB at home, peak about 1.9 GB
-in a story.
+in a story. That predates the intro card: home now holds only the tiles on screen, and each
+story's first flight is decoded on its intro card, so re-measure (memory at home, and Begin
+tapped soon after a story opens).
 
 ## Open items
 
@@ -176,6 +232,11 @@ Items marked *(needs a person)* need a decision, access or hardware.
 
 ### Content *(needs a person)*
 
+- [ ] Agree one property schema for the KIOSK feature layers' media (ideally the story
+      fields: `url`, `lat`, `lon`, `caption`, `overlay`), so `feature->media` can drop the
+      per-layer fallbacks. The VME layer has no captions; the iNaturalist layer has no
+      credit or licence field (its photos need attribution).
+
 - [ ] The Seamounts story's shortcodes are borrowed from other story maps: its steps show
       Bass Strait while its media are at the Huon seamounts (about −44.3, 147.2), so most
       markers are off screen; and one step shows GEBCO greyscale at zoom 18, past its last
@@ -212,7 +273,9 @@ Items marked *(needs a person)* need a decision, access or hardware.
 - [ ] Taps the instant a flight lands: an unplanned flight is planned at the tap (up to about
       70 ms to the first frame), and one tap in 24 dropped a frame while the map was still
       loading the step it had landed on. A tap 150 ms after landing was clean.
-- [ ] The story card changes as a flight starts; Start again closes it only on landing.
+- [ ] The story card changes as a flight starts.
+- [ ] Begin tapped the moment a story opens may find its flight still decoding (it sets off
+      anyway, from coarser tiles). Measure how long the intro takes to get it ready.
 - [ ] On a cold visit the canvas gives up after 3 s if Leaflet's basemap hasn't loaded, and
       shows a part-loaded map. Keep it up longer?
 - [ ] Basemap sub-layers (eg ESRI Ocean's labels) aren't drawn in flight; only `:tile`
