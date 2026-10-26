@@ -26,13 +26,27 @@
   (let [projection (get projections crs)]
     (-> coords clj->js projection.forward js->clj)))
 
-(defn bounds->projected [project-fn {:keys [north south east west] :as _bounds}]
-  (let [[x0 y0] (project-fn [west south])
-        [x1 y1] (project-fn [east north])]
-    {:west  x0
-     :south y0
-     :east  x1
-     :north y1}))
+(def ^:private bounds-edge-samples 64)
+
+(defn bounds->projected
+  "Projected bounding box enclosing the lat/lng bounds. Projecting just
+  two corners isn't enough for curved projections such as EPSG:3112
+  (Lambert conformal conic), where the region's extent lies along its
+  edges, so we sample each edge and take the extremes."
+  [project-fn {:keys [north south east west] :as _bounds}]
+  (let [n      bounds-edge-samples
+        lerp   (fn [a b i] (+ a (/ (* (- b a) i) n)))
+        points (for [i (range (inc n))
+                     point [[(lerp west east i) south]
+                            [(lerp west east i) north]
+                            [west (lerp south north i)]
+                            [east (lerp south north i)]]]
+                 point)
+        [xs ys] (apply map vector (map project-fn points))]
+    {:west  (apply min xs)
+     :south (apply min ys)
+     :east  (apply max xs)
+     :north (apply max ys)}))
 
 (defn bounds->str:wms
   "Prepare a string suitable for use in the BBOX parameter for *WMS* queries.
