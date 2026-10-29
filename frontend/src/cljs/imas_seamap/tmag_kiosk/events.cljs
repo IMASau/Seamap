@@ -387,7 +387,11 @@
 ;;;   (`:kiosk/prefetch-flights`); a story's first flight is decoded once its
 ;;;   intro card opens (`prepare-flights`);
 ;;; - behind the attract screen, the map visits every step, so its layers'
-;;;   tiles (and its photos) are cached too (`tour-next`).
+;;;   tiles (and its photos) are cached too, and its layers' rings beyond the
+;;;   screen kept in the tile cache (`tour-next`, and
+;;;   `imas-seamap.tmag-kiosk.map.tiers/keep-surroundings!`);
+;;; - the floor (the kiosk's whole extent, at its minimum zoom) is fetched and
+;;;   kept in the tile cache (`:kiosk.map/keep-floors`).
 ;;;
 ;;; Each is done once per story revision, or per step, so a refresh that brings
 ;;; new ones warms just those up.
@@ -431,6 +435,12 @@
       (and all-in? (not (get-in db [:kiosk :story-id])) (prepare-flights db))
       (assoc :kiosk/prepare-flights (prepare-flights db))
       all-in?
+      (assoc :kiosk.map/keep-floors {:leaflet-map (get-in db [:map :leaflet-map])
+                                     :basemaps    (distinct (map :basemap (cons (home-target db)
+                                                                                (keep #(step-target db %) (all-shortcodes db)))))}
+             ;; Steps no longer in any story
+             :kiosk.map/drop-surroundings (all-shortcodes db))
+      all-in?
       (update :dispatch-n conj [:kiosk.tour/start]))))
 
 (defn- video? [url]
@@ -464,6 +474,7 @@
          :kiosk/tour-visit {:leaflet-map (get-in db [:map :leaflet-map])
                             :to          target
                             :images      images
+                            :keep-as     shortcode
                             :on-loaded   [:kiosk.tour/visited shortcode]}}
         {:db       (update db :kiosk assoc :tour (vec more))
          :dispatch [:kiosk.tour/visited shortcode]}))))

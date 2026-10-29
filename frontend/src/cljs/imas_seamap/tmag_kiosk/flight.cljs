@@ -36,6 +36,7 @@
             [goog.object :as gobject]
             [imas-seamap.tmag-kiosk.bitmaps :as bitmaps]
             [imas-seamap.tmag-kiosk.map.limits :as limits]
+            [imas-seamap.tmag-kiosk.map.tiers :as tiers]
             [imas-seamap.tmag-kiosk.tile-cache :as tile-cache]
             [re-frame.core :as re-frame]))
 
@@ -160,21 +161,11 @@
 ;;; Basemap tiles
 
 (defn- tile-source
-  "A `:tile` catalogue base layer's tiles, with their URLs exactly as Leaflet
-  requests them (so they're shared with the tile cache)."
+  "A `:tile` catalogue base layer's tiles: {:key :max-zoom :url} (see
+  `imas-seamap.tmag-kiosk.map.tiers/tile-urls`)."
   [{:keys [server_url layer_type]}]
   (when (and server_url (= layer_type :tile))
-    (let [^js layer ((.-tileLayer L/default) server_url)
-          urls      (js/Map.)]
-      {:key      server_url
-       :max-zoom (.. layer -options -maxZoom)
-       :url      (fn [z x y]
-                   (let [k (str z "/" x "/" y)]
-                     (or (.get urls k)
-                         (do (set! (.-_tileZoom layer) z) ; Leaflet's URL zoom comes from here
-                             (let [url (.getTileUrl layer #js {:x x :y y :z z})]
-                               (.set urls k url)
-                               url)))))})))
+    (assoc (tiers/tile-urls server_url) :key server_url)))
 
 (defn- tile-zoom [{:keys [max-zoom]} zoom]
   (-> (js/Math.round zoom) (max 0) (min max-zoom)))
@@ -302,8 +293,12 @@
 
 ;;; The map's tile layers
 
-(defn- grid-layers [^js m]
-  (filter #(instance? (.-GridLayer L/default) %) (gobject/getValues (.-_layers m))))
+(defn- grid-layers
+  "The map's tile layers, but for the kiosk's copies of the basemap under it
+  (see `imas-seamap.tmag-kiosk.map.tiers`)."
+  [^js m]
+  (filter #(and (instance? (.-GridLayer L/default) %) (not (tiers/backdrop? %)))
+          (gobject/getValues (.-_layers m))))
 
 (defn- overlay? [^js layer]
   (and (instance? (.-GridLayer L/default) layer)
@@ -314,9 +309,9 @@
   "The layer's tiles on screen, with the URLs they were loaded from (see
   `imas-seamap.tmag-kiosk.tile-cache`): [{:z :x :y :url :img}]."
   [^js layer]
-  (for [^js tile (gobject/getValues (.-_tiles layer))
+  (for [^js tile (tiers/on-screen layer)
         :let [^js img (.-el tile)]
-        :when (and (.-current tile) (.-loaded tile) (.-kioskUrl img))]
+        :when (and (.-loaded tile) (.-kioskUrl img))]
     {:z   (.. tile -coords -z)
      :x   (.. tile -coords -x)
      :y   (.. tile -coords -y)
@@ -380,11 +375,11 @@
     (prepare-now!)))
 
 (defn- decoded
-  "A Promise that resolves once the layer's current tiles are decoded (loaded
+  "A Promise that resolves once the layer's tiles on screen are decoded (loaded
   isn't decoded: a tile not yet decoded pops in later)."
   [^js layer]
   (js/Promise.all
-   (clj->js (for [^js tile (gobject/getValues (.-_tiles layer)) :when (.-current tile)]
+   (clj->js (for [^js tile (tiers/on-screen layer)]
               (.catch (.decode (.-el tile)) (constantly nil))))))
 
 (defn- polled
@@ -407,7 +402,7 @@
                    (some (fn [^js layer]
                            (and (= (.-_url layer) (:key source))
                                 (= (.-_tileZoom layer) (tile-zoom source zoom))
-                                (not (.isLoading layer))
+                                (not (tiers/loading-on-screen? layer))
                                 layer))
                          (grid-layers m)))
                  3000)
@@ -430,7 +425,7 @@
   (when-let [^js pane (own-pane m layer)]
     (set! (.. pane -style -transition) "")
     (set! (.. pane -style -opacity) 0)
-    (-> (js/Promise.all #js [(.then (polled #(not (.isLoading layer)) 3000) #(decoded layer)) after])
+    (-> (js/Promise.all #js [(.then (polled #(not (tiers/loading-on-screen? layer)) 3000) #(decoded layer)) after])
         (.then (fn []
                  (when (.hasLayer m layer) ; not removed on landing
                    (swap! last-flight update :overlays-shown-after (fnil conj [])
@@ -605,7 +600,7 @@
   :rest), ahead of everything else, and uploads them to the GPU: every flight
   from here starts with them."
   [^js m gen]
-  (-> (polled #(not-any? (fn [^js layer] (.isLoading layer)) (grid-layers m)) rest-timeout-ms)
+  (-> (polled #(not-any? tiers/loading-on-screen? (grid-layers m)) rest-timeout-ms)
       (.then (fn []
                (when (and (= gen @generation) (nil? @flight))
                  (let [tiles (mapcat tiles-on-screen (grid-layers m))
@@ -764,17 +759,21 @@
 (defn visit!
   "For the attract screen's tour: puts the map at `to` at once, loads `images`
   (photos, so they're cached), and dispatches `on-loaded` once the map's
-  layers have loaded (or after `rest-timeout-ms`)."
-  [{:keys [^js leaflet-map to images on-loaded]}]
+  layers have loaded (or after `rest-timeout-ms`), keeping what they load
+  there, rings and all, in the tile cache under `keep-as` (see
+  `imas-seamap.tmag-kiosk.map.tiers/keep-surroundings!`)."
+  [{:keys [^js leaflet-map to images keep-as on-loaded]}]
   (let [m leaflet-map]
     (move! m (target-view m to))
     (doseq [url images]
       (set! (.-src (js/Image.)) url))
     ;; The step's layers are added with the next render.
     (-> (wait 500)
-        (.then #(polled (fn [] (not-any? (fn [^js layer] (.isLoading layer)) (grid-layers m)))
+        (.then #(polled (fn [] (not-any? tiers/loading-on-screen? (grid-layers m)))
                         rest-timeout-ms))
-        (.then #(re-frame/dispatch on-loaded)))))
+        (.then (fn []
+                 (when keep-as (tiers/keep-surroundings! m keep-as))
+                 (re-frame/dispatch on-loaded))))))
 
 (defn ^:export stats
   "The last flight's frames, for checking smoothness from the console:

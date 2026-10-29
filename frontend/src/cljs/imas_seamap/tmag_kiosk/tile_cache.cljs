@@ -23,8 +23,11 @@
     without ever succeeding, its tiles load as normal, outside the cache, for
     the rest of the session.
   - Least-recently-used tiles are evicted once `budget-bytes` is exceeded, but
-    never one on screen.
+    never one on screen, nor one `pin!` keeps.
   - `prefetch!` fetches tiles in the background, behind anything on screen.
+  - `rank-by!` orders the fetches of tiles a layer wants (eg on screen before
+    off screen), and `placeholder-by!` can show something in a tile while it
+    loads.
 
   The cache lasts as long as the page: a reload or restart starts it empty."
   (:require ["leaflet" :as L]
@@ -46,6 +49,8 @@
 ;; basemap's deepest zoom level), not fetched again by `blob`.
 (defonce ^:private failed (js/Set.))
 (defonce ^:private counts (atom {:bytes 0 :hits 0 :misses 0 :uncached 0}))
+;; key -> js/Set of URLs never evicted (see `pin!`)
+(defonce ^:private pins (atom {}))
 
 (defn- origin [url]
   (.-origin (js/URL. url js/location.href)))
@@ -54,8 +59,11 @@
   (and (or (string/starts-with? url "https:") (string/starts-with? url "http:"))
        (not (@no-cors-origins (origin url)))))
 
-(defn- on-screen? [object-url]
-  (some? (.querySelector js/document (str "img[src=\"" object-url "\"]"))))
+(defn- on-screen?
+  "Whether a tile shows the object URL, or something shows part of it as a
+  placeholder."
+  [object-url]
+  (some? (.querySelector js/document (str "img[src=\"" object-url "\"], [style*=\"" object-url "\"]"))))
 
 (defn- evict! []
   (let [urls (.keys entries)]
@@ -65,7 +73,8 @@
           (when-not (.-done next-url)
             (let [url   (.-value next-url)
                   entry (.get entries url)]
-              (when-not (on-screen? (.-objectUrl entry))
+              (when-not (or (some #(.has ^js % url) (vals @pins))
+                            (on-screen? (.-objectUrl entry)))
                 (.delete entries url)
                 (js/URL.revokeObjectURL (.-objectUrl entry))
                 (swap! counts update :bytes - (.-size entry))))
@@ -84,10 +93,10 @@
 ;;; Fetching. A map flight asks for hundreds of tiles across its intermediate
 ;;; zooms, most abandoned before they arrive, so fetches are queued per server
 ;;; and limited to `max-fetches-per-origin` at a time. The newest go first (they
-;;; are for the view being landed on), and a tile Leaflet has abandoned by its
-;;; turn is skipped rather than fetched (unless it's also wanted by `blob`).
-;;; Prefetches wait in a queue of their own, first in first out, and only take
-;;; a server's spare fetches.
+;;; are for the view being landed on), within the rank `rank-by!` gives them,
+;;; and a tile Leaflet has abandoned by its turn is skipped rather than fetched
+;;; (unless it's also wanted by `blob`). Prefetches wait in a queue of their
+;;; own, first in first out, and only take a server's spare fetches.
 
 (def ^:private max-fetches-per-origin 6)
 
@@ -98,6 +107,10 @@
 (defonce ^:private origins (atom {})) ; origin -> {:active n :ok? bool :failures n}
 (defonce ^:private queues (js/Map.))  ; origin -> array of jobs, newest last
 (defonce ^:private background (js/Map.)) ; origin -> array of urls to prefetch, next first
+;; (f img) of a tile's image, with `kioskLayer` and `kioskCoords`: lower is fetched first.
+(defonce ^:private rank (atom (constantly 0)))
+;; See `placeholder-by!`.
+(defonce ^:private placeholder (atom nil))
 
 (defn- wanted?
   "Leaflet gives a tile it abandons a placeholder source, or removes it."
@@ -132,12 +145,35 @@
 (defn- spare? [from]
   (< (get-in @origins [from :active] 0) max-fetches-per-origin))
 
+(defn- job-rank
+  "The rank of the most urgent tile wanting the job, 0 for a `blob`, or -1 if
+  nothing wants it any more."
+  [{:keys [tiles prefetch?]}]
+  (let [wanted (filter wanted? tiles)]
+    (cond
+      (seq wanted) (apply min (map @rank wanted))
+      @prefetch?   0
+      :else        -1)))
+
+(defn- take-next!
+  "Takes the queue's next job: the lowest rank, newest first; but first any
+  job nothing wants any more."
+  [^js queue]
+  (loop [i (dec (.-length queue)) best -1 best-rank js/Infinity]
+    (if (neg? i)
+      (aget (.splice queue best 1) 0)
+      (let [r (job-rank (aget queue i))]
+        (cond
+          (neg? r)        (aget (.splice queue i 1) 0)
+          (< r best-rank) (recur (dec i) i r)
+          :else           (recur (dec i) best best-rank))))))
+
 (defn- pump! [from]
   (let [queue (or (.get queues from) #js [])
         later (or (.get background from) #js [])]
     (loop []
       (when (and (pos? (.-length queue)) (spare? from))
-        (let [{:keys [url tiles prefetch? resolve] :as job} (.pop queue)]
+        (let [{:keys [url tiles prefetch? resolve] :as job} (take-next! queue)]
           (if (or @prefetch? (some wanted? tiles))
             (run-job! from job)
             (do (.delete in-flight url)
@@ -184,7 +220,8 @@
   (let [tile    (js/document.createElement "img")
         url     (.getTileUrl layer coords)
         options (.-options layer)
-        dom-event (.-DomEvent L/default)]
+        dom-event (.-DomEvent L/default)
+        entry   (.get entries url)]
     (.on dom-event tile "load" (.bind (.-_tileOnLoad layer) layer done tile))
     (.on dom-event tile "error" (.bind (.-_tileOnError layer) layer done tile))
     (when (or (.-crossOrigin options) (= "" (.-crossOrigin options)))
@@ -194,13 +231,17 @@
     (set! (.-alt tile) "")
     ;; The tile's own URL, as its source may be an object URL.
     (set! (.-kioskUrl tile) url)
-    (if-let [entry (.get entries url)]
+    ;; For `rank`
+    (set! (.-kioskLayer tile) layer)
+    (set! (.-kioskCoords tile) coords)
+    (if entry
       (do (.delete entries url)       ; most recently used
           (.set entries url entry)
           (swap! counts update :hits inc)
           (set! (.-src tile) (.-objectUrl entry)))
       (if (cacheable? url)
         (do (swap! counts update :misses inc)
+            (some-> @placeholder (apply [layer coords tile]))
             (.then (fetch-tile url tile)
                    (fn [object-url]
                      ;; Leave abandoned tiles alone.
@@ -221,6 +262,17 @@
              (fn [_] (some-> (.get entries url) .-blob)))
       (js/Promise.resolve nil))))
 
+(defn cached
+  "The object URL of the tile at `url`, if it's in the cache."
+  [url]
+  (some-> (.get entries url) .-objectUrl))
+
+(defn object-url
+  "A Promise of the object URL of the tile at `url`, from the cache or fetched
+  into it, or of nil if it can't be had."
+  [url]
+  (.then (blob url) #(cached url)))
+
 (defn prefetch!
   "Fetches the tiles at `urls` into the cache in the background, in order,
   behind any tile on screen."
@@ -235,6 +287,30 @@
         (.add origins from)))
     (doseq [from (es6-iterator-seq (.values origins))]
       (pump! from))))
+
+(defn pin!
+  "Keeps the tiles at `urls` (once cached) from eviction, in place of those
+  last pinned under `k`."
+  [k urls]
+  (swap! pins assoc k (js/Set. (clj->js urls))))
+
+(defn unpin!
+  "Lets the tiles last pinned under `k` be evicted."
+  [k]
+  (swap! pins dissoc k))
+
+(defn placeholder-by!
+  "Lets (f layer coords img) show something for a tile that isn't in the
+  cache while it's fetched."
+  [f]
+  (reset! placeholder f))
+
+(defn rank-by!
+  "Orders the fetches of tiles that layers want by (f img), lower first, then
+  newest first. `img` is the tile's image, with `kioskLayer` (its Leaflet
+  layer) and `kioskCoords` (its coordinates in that layer's grid)."
+  [f]
+  (reset! rank f))
 
 (defonce ^:private installed? (atom false))
 
@@ -253,5 +329,6 @@
                   :inFlight       (.-size in-flight)
                   :failed         (.-size failed)
                   :prefetching    (reduce + (map #(.-length %) (es6-iterator-seq (.values background))))
+                  :pinned         (into {} (map (fn [[k s]] [(str k) (.-size ^js s)])) @pins)
                   :noCorsOrigins  (vec @no-cors-origins)
                   :budgetBytes    budget-bytes)))
