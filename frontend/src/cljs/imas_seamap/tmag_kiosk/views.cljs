@@ -68,11 +68,18 @@
     (f)))
 
 (defn- begin!
-  "Begin: the flight sets off at once, and the intro card turns into the first
-  step's as it goes."
+  "Begin: the intro card turns into the first step's, and the flight sets off
+  as soon as the turn's view transition has taken its snapshots: taken during
+  the flight, they cost it a frame."
   []
-  (re-frame/dispatch-sync [:kiosk.story/begin-flight])
-  (with-view-transition #(re-frame/dispatch-sync [:kiosk.story/begin])))
+  (if (.-startViewTransition js/document)
+    (let [^js transition (.startViewTransition js/document
+                                               (fn [] (re-frame/dispatch-sync [:kiosk.story/begin]) (r/flush)))]
+      (.then (.-ready transition)
+             #(re-frame/dispatch-sync [:kiosk.story/begin-flight])
+             #(re-frame/dispatch-sync [:kiosk.story/begin-flight])))
+    (do (re-frame/dispatch-sync [:kiosk.story/begin-flight])
+        (re-frame/dispatch-sync [:kiosk.story/begin]))))
 
 (defn- intro-card
   "`arriving?`: from the story list, so it fades in over `panel-morph`."

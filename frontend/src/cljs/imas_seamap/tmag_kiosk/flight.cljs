@@ -79,6 +79,9 @@
 (def max-parent-levels 4)
 ;; Rate the path is sampled at when planning its tiles.
 (def plan-hz 120)
+;; Decoded tiles of the flights from here uploaded to the GPU per frame, at
+;; rest (see `upload-gradually!`).
+(def uploads-per-frame 8)
 ;; How long an overlay takes to fade in, once loaded after landing.
 (def overlay-fade-in-ms 300)
 
@@ -571,6 +574,24 @@
         (.drawImage ctx bitmap 0 0)))
     (.getImageData ctx 0 0 1 1)))
 
+(defn- upload-gradually!
+  "`upload!`s the decoded tiles at `urls`, `uploads-per-frame` a frame, while
+  `gen` is current and no flight is under way. A Promise of when it's done or
+  given up. A flight's tiles uploaded mid-flight held up its frames: on the
+  table, flights missed frames early on (as the zoom-out reached tiles that
+  weren't on screen at rest), with the GPU blocked presenting."
+  [gen urls]
+  (let [urls (vec urls)
+        n    (count urls)]
+    (js/Promise.
+     (fn [resolve _]
+       ((fn step [i]
+          (if (and (< i n) (= gen @generation) (nil? @flight))
+            (do (upload! (subvec urls i (min n (+ i uploads-per-frame))))
+                (js/requestAnimationFrame #(step (+ i uploads-per-frame))))
+            (resolve nil)))
+        0)))))
+
 (defn- rest!
   "Once the map's layers have loaded, decodes the tiles on screen (as the set
   :rest), ahead of everything else, and uploads them to the GPU: every flight
@@ -614,7 +635,8 @@
                    (fn [{:keys [key args]}]
                      (when-let [plan (or (.get plans key) (apply flight-plan args))]
                        (.set plans key plan)
-                       (bitmaps/retain! key (:urls plan) false))))
+                       (.then (bitmaps/retain! key (:urls plan) false)
+                              #(upload-gradually! gen (:urls plan))))))
           (.then #(when (= gen @generation)
                     (bitmaps/retain-only! (concat wanted [:rest :flight]))
                     (doseq [k (vec (es6-iterator-seq (.keys plans))) :when (not (wanted k))]
