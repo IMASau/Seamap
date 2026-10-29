@@ -70,9 +70,13 @@ what's still open. Keep it current: update it in the same change as the code it 
 ### Layout
 
 - Panels never change size. The story list has the story card's height and right edge, at
-  twice its width, and fits 8 stories without scrolling: two columns of four cards, a fixed
-  slot each. A card is a band of the story's picture (40% of its height) with the read time
-  on it, then the title and summary (two lines each at most). Image-left and text-over-image
+  twice its width, and fits 8 stories without scrolling: two columns of four cards. Five or
+  six stories (6 expected at first) fill three rows instead, so the list has no empty strip.
+  Four or fewer are one column, at the story card's width (exactly its box); three fill it,
+  and one or two keep three rows' size rather than growing into giant cards. With none, the
+  list says "No stories yet." ("Loading stories…" is only until the first load), in one
+  column. A card is a band of the story's picture (40% of its height) with the read time on
+  it, then the title and summary (two lines each at most). Image-left and text-over-image
   cards were tried and dropped: the first squeezed both, the second darkened the pictures.
 - A story opens on an intro card in the story card's place: its whole picture, uncropped
   (the only place it's shown whole; a very tall one is fitted into half the screen's
@@ -95,7 +99,10 @@ what's still open. Keep it current: update it in the same change as the code it 
 - Between steps, the copy fades out (0.15 s) and the next fades in (`step-copy`); opacity
   only, as a flight is under way.
 - Between the story list and a story, a blank panel narrows (or widens) from one to the other
-  and the arriving card fades in over it (`panel-morph`).
+  and the arriving card fades in over it (`panel-morph`), in 0.6 s. From or to a one-column
+  list there's nothing to resize: the arriving card fades in at once over the same-width
+  panel, in 0.24 s. Measured frame by frame (list to intro, intro to list, step to list, with 4
+  and 8 stories), the map never shows through.
 - The media card is 16:9, the shape of most media, above a caption strip (two lines) and a
   row for its controls. Items are laid over the window, so no photo can resize the card.
 - Videos use the kiosk's own controls (big play button; play/pause, seek, time, mute), sized
@@ -302,7 +309,8 @@ The scripts in `frontend/tools/kiosk-bench/` do all of the following (see its RE
 - Reloading a tab can drop DevTools' device emulation: check `innerWidth` after a reload.
 - Tap with trusted input (DevTools Protocol `Input.dispatchMouseEvent`), not `element.click()`,
   to measure tap-to-frame latency.
-- Test with 8 stories: add test stories (titles starting "TEST") to the local WordPress
+- Test with 0, 6 and 8 stories: hide stories with `wp post update <ids> --post_status=draft`,
+  and add test stories (titles starting "TEST") to the local WordPress
   (`docker compose run --rm --entrypoint wp wp-init ...`), reusing existing save states.
   Don't create save states in the shared dev database.
 

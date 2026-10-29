@@ -95,6 +95,12 @@
     {:when :seen? :events :ui/hide-loading :halt? true}
     {:when :seen-any-of? :events [:ajax/default-err-handler] :dispatch [:loading-failed] :halt? true}]})
 
+(defn one-column?
+  "Whether the story list is one column of cards, the story card's width:
+  for four stories or fewer. Otherwise it's two, twice as wide."
+  [stories]
+  (<= (count stories) 4))
+
 ;; The home view, where the kiosk starts and returns to: the waters around
 ;; Tasmania, from Bass Strait to the south of the island. Seamap's own (the
 ;; start-up layer's bounds) is all of Australia.

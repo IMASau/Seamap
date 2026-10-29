@@ -13,6 +13,7 @@
             [re-frame.core :as re-frame]
             [imas-seamap.blueprint :as b]
             [imas-seamap.views :as views]
+            [imas-seamap.tmag-kiosk.events :refer [one-column?]]
             [imas-seamap.tmag-kiosk.map.views :refer [map-component]]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -29,13 +30,21 @@
 ;;; Browse: no story open. A card per story: a band of its picture with the read
 ;;; time on it, then its title and summary.
 
-(defn- story-list []
-  (let [stories @(re-frame/subscribe [:kiosk/stories])]
+(defn- story-list
+  "One or two columns of story cards (see `one-column?`), in three rows while
+  a column has up to three cards (so three fill it), and four for four.
+  Stories are nil until they've loaded, and may load as none."
+  []
+  (let [stories @(re-frame/subscribe [:kiosk/stories])
+        columns (if (one-column? stories) 1 2)]
     [:section.browse-card
+     {:class (when (= columns 1) "one-column")}
      [:div.eyebrow "Island to Ice"]
      [:h1 "Choose a story"]
      [:div.browse-story-list
-      (if (seq stories)
+      {:style {"--browse-rows" (-> (count stories) (/ columns) js/Math.ceil (max 3) (min 4))}}
+      (cond
+        (seq stories)
         (for [{:keys [id title summary image read-time]} stories]
           ^{:key id}
           [:button.browse-story
@@ -48,6 +57,11 @@
             [:b title]
             [:span.summary (html->text summary)]
             (when read-time [:small.read-time read-time " min"])]])
+
+        (some? stories)
+        [:p.browse-loading "No stories yet."]
+
+        :else
         [:p.browse-loading [:span.spinner] "Loading stories…"])]]))
 
 ;;; Story: one open. It starts on an intro card, in the story card's place.
@@ -298,14 +312,17 @@
   "Between the wide story list and a story's narrow card, a blank panel that
   narrows or widens from one to the other, under the arriving card as it fades
   in. It's empty, so animating its width is cheap enough to run during a flight
-  (going home). Keyed by transition, so each restarts its animation; once done
-  it's invisible."
-  [_mode]
+  (going home). Between a one-column list and a story it stays the same width,
+  just keeping the map from showing through as the card fades in. Keyed by
+  transition, so each restarts its animation; once done it's invisible."
+  [_mode _wide-list?]
   (let [state (atom {:mode nil :n 0})]
-    (fn [mode]
+    (fn [mode wide-list?]
       (let [{prev :mode} @state]
         (when (and prev (not= prev mode))
-          (swap! state #(-> % (update :n inc) (assoc :to (if (= mode :browse) "to-wide" "to-narrow")))))
+          (swap! state #(-> % (update :n inc) (assoc :to (cond (not wide-list?) "to-same"
+                                                                (= mode :browse) "to-wide"
+                                                                :else            "to-narrow")))))
         (swap! state assoc :mode mode)
         (let [{:keys [n to]} @state]
           (when (pos? n)
@@ -319,16 +336,17 @@
     (fn []
       (let [story? (some? @(re-frame/subscribe [:kiosk/story]))
             intro? @(re-frame/subscribe [:kiosk/intro?])
+            wide?  (not (one-column? @(re-frame/subscribe [:kiosk/stories])))
             now    (cond (not story?) :list intro? :intro :else :step)]
         (when (not= now @screen)
           (reset! arriving? (and (= now :intro) (= @screen :list)))
           (reset! screen now))
         [:div#main-wrapper.seamap.kiosk-player
-         {:class (when story? "story-mode")}
+         {:class [(when story? "story-mode") (when-not wide? "same-width")]}
          [:div#content-wrapper
           [map-component]]
          [views/loading-display]
-         [panel-morph (if story? :story :browse)]
+         [panel-morph (if story? :story :browse) wide?]
          (case now
            :list  [story-list]
            :intro [intro-card {:arriving? @arriving?}]

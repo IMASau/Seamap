@@ -149,28 +149,50 @@
     @keyframes kiosk-card-in { from { opacity: 0; } to { opacity: 1; } }
     @keyframes kiosk-card-shadow { from, 85% { box-shadow: 0 u(20) u(60) rgba(19, 54, 67, 0); } }
 
+    // To or from a one-column list (`.same-width`), the story card's width:
+    // nothing to resize, so the arriving card fades in at once over the panel
+    // (0 to 0.2 s), which then hands it its shadow (0.2 to 0.24 s) and goes.
+    $same: .24s cubic-bezier(.4, 0, .2, 1);
+    .kiosk-player.same-width {
+        .panel-morph.to-same { animation: kiosk-morph-same $same; }
+        .browse-card, .story-intro.arriving { animation: kiosk-card-in .2s ease-out both, kiosk-card-shadow $same both; }
+    }
+    @keyframes kiosk-morph-same {
+        from, 85% { opacity: 1; }
+        to { opacity: 0; }
+    }
+
     // ── Browse: no story open ───────────────────────────────────────────────
     // The story card's height and right edge, twice as wide, so the list has
-    // room for two columns. It never changes size.
+    // room for two columns; for four stories or fewer, one column, the story
+    // card's width (`one-column?`).
     .browse-card {
         top: var(--kiosk-gutter);
         width: calc(2 * var(--kiosk-story-card-w));
         padding: u(24) u(24) u(20);
 
         h1 { margin: u(5) 0 u(16); font-size: u(34); line-height: 1.1; }
+
+        &.one-column {
+            width: var(--kiosk-story-card-w);
+
+            .browse-story-list { grid-template-columns: minmax(0, 1fr); }
+        }
     }
-    // Room for 8 stories without scrolling, in two columns of four: one fixed
-    // slot each, however many there are. A ninth wouldn't show.
+    // Room for 8 stories without scrolling, in two columns of four. Three
+    // rows fill with five or six stories (or three in one column), and fewer
+    // keep that size (`--browse-rows`, from `story-list`). A ninth wouldn't show.
     .browse-story-list {
         display: grid;
         flex: 1;
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        grid-template-rows: repeat(4, minmax(0, 1fr));
+        grid-template-rows: repeat(var(--browse-rows, 4), minmax(0, 1fr));
         gap: u(16);
         min-height: 0;
         overflow: hidden;
     }
     .browse-loading {
+        grid-column: 1 / -1;
         display: flex;
         align-items: center;
         gap: u(12);
