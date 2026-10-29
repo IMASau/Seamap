@@ -34,8 +34,8 @@
   so every flight of every story is a fetch away from ready."
   (:require ["leaflet" :as L]
             [goog.object :as gobject]
-            [imas-seamap.map.utils :refer [map->bounds]]
             [imas-seamap.tmag-kiosk.bitmaps :as bitmaps]
+            [imas-seamap.tmag-kiosk.map.limits :as limits]
             [imas-seamap.tmag-kiosk.tile-cache :as tile-cache]
             [re-frame.core :as re-frame]))
 
@@ -94,12 +94,20 @@
 
 (defn- target-view
   "The view for `target`: {:zoom :center} or {:bounds} (fitted as Leaflet's
-  `fitBounds` would)."
+  `fitBounds` would, whatever the map's current limits)."
   [^js m {:keys [zoom center bounds]}]
   (if bounds
-    (let [fitted (._getBoundsCenterZoom m ((.-latLngBounds L/default) (clj->js (map->bounds bounds))))]
-      (->view m (.-center fitted) (.-zoom fitted)))
+    (let [[center zoom] (limits/fitted m bounds)]
+      (->view m center zoom))
     (->view m center zoom)))
+
+(defn- move!
+  "Puts the map at `view` at once, with the kiosk's limits taking it in (see
+  `imas-seamap.tmag-kiosk.map.limits`)."
+  [^js m {:keys [center zoom]}]
+  (let [center (.unproject m center 0)]
+    (limits/apply! m center zoom)
+    (.setView m center zoom #js {:animate false})))
 
 (defn- path
   "van Wijk and Nuij's smooth zoom and pan from view `a` to `b` (Leaflet's
@@ -456,7 +464,7 @@
                          :requested   (:requested @flight)
                          :first-frame (:first-frame @flight)
                          :landed    (js/performance.now)})
-    (.setView m (.unproject m (:center to) 0) (:zoom to) #js {:animate false})
+    (move! m to)
     (re-frame/dispatch on-land)
     (bitmaps/limit! bitmaps/max-decodes)
     (-> (basemap-shown m to-source (:zoom to))
@@ -693,7 +701,7 @@
     (swap! generation inc)
     (if-not plan
       (do (when mid-air? (finish! (:id current)))
-          (.setView m (.unproject m (:center to-view) 0) (:zoom to-view) #js {:animate false})
+          (move! m to-view)
           (re-frame/dispatch on-land))
       (do (watch! m)
           (reset! flight {:id           id
@@ -758,9 +766,8 @@
   (photos, so they're cached), and dispatches `on-loaded` once the map's
   layers have loaded (or after `rest-timeout-ms`)."
   [{:keys [^js leaflet-map to images on-loaded]}]
-  (let [m                     leaflet-map
-        {:keys [center zoom]} (target-view m to)]
-    (.setView m (.unproject m center 0) zoom #js {:animate false})
+  (let [m leaflet-map]
+    (move! m (target-view m to))
     (doseq [url images]
       (set! (.-src (js/Image.)) url))
     ;; The step's layers are added with the next render.

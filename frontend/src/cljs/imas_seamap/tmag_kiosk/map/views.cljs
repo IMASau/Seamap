@@ -7,8 +7,9 @@
             [imas-seamap.map.utils :refer [map->bounds]]
             [imas-seamap.map.views :as map-views]
             [imas-seamap.interop.leaflet :as leaflet]
-            [imas-seamap.tmag-kiosk.events :refer [home-bounds]]
+            [imas-seamap.tmag-kiosk.events :refer [home-bounds kiosk-limits]]
             [imas-seamap.tmag-kiosk.inertia :as inertia]
+            [imas-seamap.tmag-kiosk.map.limits :as limits]
             ["esri-leaflet-renderers"]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -46,11 +47,14 @@
 (defonce ^:private set-up (js/WeakSet.))
 
 (defn- set-up!
-  "Sets up a new map (see `inertia/attach!`)."
+  "Sets up a new map (see `inertia/attach!` and `limits/attach!`), at the home
+  view with the kiosk's limits."
   [^js m]
   (when-not (.has set-up m)
     (.add set-up m)
-    (inertia/attach! m)))
+    (inertia/attach! m)
+    (limits/attach! m kiosk-limits)
+    (limits/apply-to-target! {:leaflet-map m :to {:bounds home-bounds}})))
 
 (defn map-component
   "Seamap's layers with Leaflet's default interaction and controls: no Seamap
@@ -60,7 +64,8 @@
   `:map/update-map-view`, as in Seamap. The zoom control is bottom-left, in
   easy reach. Zoom is continuous (`zoomSnap` 0): a pinch stays where the
   fingers leave it instead of snapping to a whole zoom level, and the zoom
-  buttons step a whole level from wherever it is. A touch stops a glide
+  buttons step a whole level from wherever it is. Drags and pinches are held
+  back past the kiosk's limits (`limits`), and a touch stops a glide
   (`inertia`)."
   []
   [leaflet/map-container
@@ -69,8 +74,8 @@
     :preferCanvas true
     :use-fly-to   false
     :bounds       (map->bounds home-bounds)
-    :minZoom      2
     :zoomSnap     0
+    :maxBoundsViscosity limits/resistance
     :zoomControl  false
     :ref          #(when % (set-up! %) (re-frame/dispatch [:map/update-leaflet-map %]))} ; obtain a reference to the leaflet map in re-frame state, so we can call leaflet map methods from anywhere in the app
    [leaflet/zoom-control {:position "bottomleft"}]

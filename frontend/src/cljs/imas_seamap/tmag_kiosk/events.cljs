@@ -100,6 +100,11 @@
 ;; start-up layer's bounds) is all of Australia.
 (def home-bounds {:west 142.5 :south -44.5 :east 149.5 :north -39.0})
 
+;; Where a visitor can take the map, the same at every view (see
+;; `imas-seamap.tmag-kiosk.map.limits`). A placeholder: Bass Strait to the
+;; Antarctic coast, taking in Macquarie Island.
+(def kiosk-limits {:bounds {:west 130 :south -70 :east 170 :north -36}})
+
 (defn boot [{:keys [save-code hash-code] {:keys [seamap-app-state]} :local-storage/get} [_ api-url-base media-url-base wordpress-url-base img-url-base]]
   {:db         (-> db/default-db
                    (assoc-in [:config :url-base]
@@ -129,7 +134,7 @@
                   :feature-media :feature-query)
     pending-stories (assoc :stories pending-stories)))
 
-(declare prepare-flights)
+(declare prepare-flights home-target)
 
 (defn re-boot
   "Resets the map and the kiosk. `landed-home?` (from `start-again`): the story
@@ -152,6 +157,10 @@
                           [:kiosk/warm-up]]
              :local-storage/remove
              {:name :seamap-app-state}}
+      ;; Before it's moved home (the limits might have grown to take in a step
+      ;; outside them).
+      (get-in db [:map :leaflet-map])
+      (assoc :kiosk.map/limits {:leaflet-map (get-in db [:map :leaflet-map]) :to (home-target db)})
       ;; Prepared once the map is home (it may be anywhere: the idle reset
       ;; and the tour leave it where it was).
       (prepare-flights db) (assoc :kiosk/prepare-flights (assoc (prepare-flights db) :moving? true)))))

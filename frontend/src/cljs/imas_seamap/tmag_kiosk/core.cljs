@@ -16,6 +16,7 @@
             [imas-seamap.tmag-kiosk.flight :as flight]
             [imas-seamap.tmag-kiosk.idle :as idle]
             [imas-seamap.tmag-kiosk.inertia :as inertia]
+            [imas-seamap.tmag-kiosk.map.limits :as limits]
             [imas-seamap.tmag-kiosk.tile-cache :as tile-cache]
             [imas-seamap.tmag-kiosk.subs :as tksubs]
             [imas-seamap.fx]
@@ -376,6 +377,7 @@
   ;; Before anything creates a tile layer or the map.
   (tile-cache/install!)
   (inertia/install!)
+  (limits/install!)
   (register-handlers! config-handlers)
   (re-frame/dispatch-sync [:boot api-url-base media-url-base wordpress-url-base img-url-base])
   (idle/start!)
