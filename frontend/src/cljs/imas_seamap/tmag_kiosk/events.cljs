@@ -101,15 +101,24 @@
   [stories]
   (<= (count stories) 4))
 
-;; The home view, where the kiosk starts and returns to: the waters around
-;; Tasmania, from Bass Strait to the south of the island. Seamap's own (the
-;; start-up layer's bounds) is all of Australia.
-(def home-bounds {:west 142.5 :south -44.5 :east 149.5 :north -39.0})
+;; The home view, where the kiosk starts and returns to: Tasmania and the
+;; marine parks around it (Zeehan and Franklin to Flinders and Freycinet, Beagle
+;; to most of Tasman Fracture; not Macquarie Island's), 141.8 to 149 E and 39.2
+;; to 46.3 S, fitted with a margin into the map left of the story list and
+;; above the bezel, on the table's 3840x2160 screen. The list is twice as wide
+;; for five stories or more (`one-column?`), so that view's centre is further
+;; east; the parks' height sets the zoom of both.
+(def home-views
+  {:one-column {:center [-43.047 147.916] :zoom 8}
+   :two-column {:center [-43.047 150.226] :zoom 8}})
+
+(defn- home-view [db]
+  (home-views (if (one-column? (get-in db [:kiosk :stories])) :one-column :two-column)))
 
 ;; Where a visitor can take the map, the same at every view (see
-;; `imas-seamap.tmag-kiosk.map.limits`). A placeholder: Bass Strait to the
-;; Antarctic coast, taking in Macquarie Island.
-(def kiosk-limits {:bounds {:west 130 :south -70 :east 170 :north -36}})
+;; `imas-seamap.tmag-kiosk.map.limits`): the marine parks around Tasmania,
+;; Macquarie Island's included (to 164.7 E and 58.5 S), with a margin.
+(def kiosk-limits {:bounds {:west 140.5 :south -59.5 :east 166 :north -37.5}})
 
 (defn boot [{:keys [save-code hash-code] {:keys [seamap-app-state]} :local-storage/get} [_ api-url-base media-url-base wordpress-url-base img-url-base]]
   {:db         (-> db/default-db
@@ -158,7 +167,7 @@
                (assoc :initialised true)
                (assoc :kiosk kiosk))]
     (cond-> {:db         db
-             :dispatch-n [[:map/update-map-view {:bounds home-bounds :instant? true}]
+             :dispatch-n [[:map/update-map-view (assoc (home-view db) :instant? true)]
                           ;; Anything new since the last warm-up (eg refreshed stories)
                           [:kiosk/warm-up]]
              :local-storage/remove
@@ -315,8 +324,7 @@
 ;;; :center} or {:bounds}, and the catalogue base layer shown there.
 
 (defn- home-target [db]
-  {:bounds  home-bounds
-   :basemap (first (get-in db [:map :grouped-base-layers]))})
+  (assoc (home-view db) :basemap (first (get-in db [:map :grouped-base-layers]))))
 
 (defn- step-target
   "The view of the step with save state `shortcode`, if it's loaded and has one."
@@ -376,12 +384,22 @@
                 :on-success      [:kiosk.stories/loaded]
                 :on-failure      [:kiosk.stories/load-failed]}})
 
-(defn stories-loaded [{:keys [db]} [_ response]]
-  (let [stories (->> response (map response->story) (filter (comp seq :steps)) vec)]
-    {:db             (if (get-in db [:kiosk :story-id])
-                       (assoc-in db [:kiosk :pending-stories] stories)
-                       (assoc-in db [:kiosk :stories] stories))
-     :dispatch       [:kiosk/warm-up]
+(defn stories-loaded
+  "Takes in loaded stories, unless one is open (then they wait for the reset).
+  If they change the story list's width (`one-column?`), the map moves at once
+  to the home view for it, unless the tour has it."
+  [{:keys [db]} [_ response]]
+  (let [stories  (->> response (map response->story) (filter (comp seq :steps)) vec)
+        browsing (not (get-in db [:kiosk :story-id]))
+        resized? (and browsing
+                      (not (get-in db [:kiosk :tour]))
+                      (not= (one-column? stories) (one-column? (get-in db [:kiosk :stories]))))
+        db       (if browsing
+                   (assoc-in db [:kiosk :stories] stories)
+                   (assoc-in db [:kiosk :pending-stories] stories))]
+    {:db             db
+     :dispatch-n     [(when resized? [:map/update-map-view (assoc (home-view db) :instant? true)])
+                      [:kiosk/warm-up]]
      :dispatch-later {:ms stories-refresh-ms :dispatch [:kiosk.stories/load]}}))
 
 ;;; Warming up. Every story must be ready before a visitor arrives: Begin, or a

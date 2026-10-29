@@ -110,8 +110,14 @@ what's still open. Keep it current: update it in the same change as the code it 
 - The zoom buttons are 60 design units, separated, for touch.
 - Zoom is continuous (`zoomSnap` 0, from the touch-sandbox project): a pinch stays where the
   fingers leave it rather than snapping to a whole level, and the buttons step a whole level
-  from there. Step views that are bounds, and the home view, fit exactly rather than to the
-  next whole level out.
+  from there. Step views that are bounds fit exactly rather than to the next whole level out.
+- The home view (`events/home-views`) is a centre and zoom for each width of story list: it
+  frames Tasmania and the marine parks around it (not Macquarie Island's) in the map left of
+  the list, so with five stories or more (a two-column list) its centre is further east.
+  Stories loading or refreshing into the other width move the map there at once, unless a
+  story is open or the attract tour has the map. Its layers are the catalogue's `startup`
+  keyed layers (as in Seamap), meant to be the marine parks: in the Seamap Australia
+  catalogue, "AMPs 2025: Parks (simple overlay)" (`seamap:SeamapAus_BOUNDARIES_AMP`).
 - Every flick glides (`inertia.cljs`). The table reports a lift 44–47 ms after the finger's
   last move (measured over 23 swipes); Leaflet measures the release speed from the 50 ms
   before the lift, which held one move or two by chance, so two thirds of swipes didn't glide.
@@ -190,8 +196,8 @@ what's still open. Keep it current: update it in the same change as the code it 
 - The kiosk has one set of limits on where the visitor can take the map, the same for every
   story (decided: not per story or step) (`map/limits.cljs`, from the touch-sandbox
   project): an extent and a zoom range, `{:bounds :min-zoom :max-zoom}`, all optional, in
-  `events/kiosk-limits`, for now a placeholder extent from Bass Strait to the Antarctic
-  coast. With an extent and no min zoom, the map zooms out until the extent fits the screen.
+  `events/kiosk-limits`: the marine parks around Tasmania, Macquarie Island's included, with
+  a margin (140.5 to 166 E, 37.5 to 59.5 S). With an extent and no min zoom, the map zooms out until the extent fits the screen.
   - Limits are set as the map is moved to a view (a flight landing, the attract screen's
     tour, the idle reset), and always take that view in: for a step outside them, the extent
     grows to hold it, and the zoom range to include its zoom, until the map next moves. So
@@ -340,7 +346,8 @@ Items marked *(needs a person)* need a decision, access or hardware.
 - [ ] **Inertia tuning on the table:** `inertiaDeceleration`, `easeLinearity` and
       `inertiaMaxSpeed` are Leaflet's defaults; the touch sandbox's tuning (3000, 0.2, 5000)
       is a starting point.
-- [ ] **Map limits:** the real extent (`events/kiosk-limits` is a placeholder). Tune
+- [ ] **Map limits:** `events/kiosk-limits` takes in Macquarie Island where it really is;
+      revisit once the tiles show it as an inset nearer Tasmania (planned). Tune
       `limits/resistance` on the table.
 - [ ] **GEBCO basemap past zoom 10:** its tiles at zoom 11–14 fail (315 failed fetches in a
       warm-up), so zoomed in, only its coarse copy and floor show. Its catalogue entry
@@ -351,8 +358,10 @@ Items marked *(needs a person)* need a decision, access or hardware.
       navigation, or `overscroll-behavior: none` on the page?
 - [ ] **Page pinch-zoom:** disabling it was planned; check it fits "default Leaflet
       interaction only".
-- [ ] **Home view:** `events/home-bounds` is a placeholder (Tasmania and Bass Strait). Set the
-      real extent; allow for the story card; configurable without a rebuild?
+- [ ] **Home view:** `events/home-views` are defaults (Tasmania and its marine parks, for a
+      one- and a two-column story list); set them by eye on the table, and choose the home
+      basemap (now the catalogue's first). Configurable without a rebuild? Set the TMAG
+      catalogue's `startup` keyed layer to its marine parks layer.
 - [ ] **Start exploring during warm-up:** a visitor who taps it in the first 1–3 minutes after
       a cold start gets flights from coarse or missing tiles. Hold the button until warm?
 

@@ -4,10 +4,9 @@
 (ns imas-seamap.tmag-kiosk.map.views
   (:require ["leaflet" :as L]
             [re-frame.core :as re-frame]
-            [imas-seamap.map.utils :refer [map->bounds]]
             [imas-seamap.map.views :as map-views]
             [imas-seamap.interop.leaflet :as leaflet]
-            [imas-seamap.tmag-kiosk.events :refer [home-bounds kiosk-limits]]
+            [imas-seamap.tmag-kiosk.events :refer [home-views kiosk-limits]]
             [imas-seamap.tmag-kiosk.inertia :as inertia]
             [imas-seamap.tmag-kiosk.map.tiers :as tiers]
             [imas-seamap.tmag-kiosk.map.limits :as limits]
@@ -56,14 +55,15 @@
     (inertia/attach! m)
     (limits/attach! m kiosk-limits)
     (tiers/attach! m)
-    (limits/apply-to-target! {:leaflet-map m :to {:bounds home-bounds}})))
+    (limits/apply-to-target! {:leaflet-map m :to (:one-column home-views)})))
 
 (defn map-component
   "Seamap's layers with Leaflet's default interaction and controls: no Seamap
   controls, keyboard shortcuts or feature-info popups (the kiosk's
   `:map/clicked` puts tapped features' media in the media card). The map
-  starts at the kiosk's home view; after that it's moved with
-  `:map/update-map-view`, as in Seamap. The zoom control is bottom-left, in
+  starts at the kiosk's home view for a one-column story list (the list
+  before stories load); after that it's moved with `:map/update-map-view`, as
+  in Seamap (see `events/home-views`). The zoom control is bottom-left, in
   easy reach. Zoom is continuous (`zoomSnap` 0): a pinch stays where the
   fingers leave it instead of snapping to a whole zoom level, and the zoom
   buttons step a whole level from wherever it is. Drags and pinches are held
@@ -76,7 +76,8 @@
     :crs          leaflet/crs-epsg3857
     :preferCanvas true
     :use-fly-to   false
-    :bounds       (map->bounds home-bounds)
+    :center       (:center (:one-column home-views))
+    :zoom         (:zoom (:one-column home-views))
     :zoomSnap     0
     :maxBoundsViscosity limits/resistance
     :zoomControl  false
