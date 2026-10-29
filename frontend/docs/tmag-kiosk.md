@@ -112,12 +112,16 @@ what's still open. Keep it current: update it in the same change as the code it 
   fingers leave it rather than snapping to a whole level, and the buttons step a whole level
   from there. Step views that are bounds fit exactly rather than to the next whole level out.
 - The home view (`events/home-views`) is a centre and zoom for each width of story list: it
-  frames Tasmania and the marine parks around it (not Macquarie Island's) in the map left of
-  the list, so with five stories or more (a two-column list) its centre is further east.
-  Stories loading or refreshing into the other width move the map there at once, unless a
-  story is open or the attract tour has the map. Its layers are the catalogue's `startup`
-  keyed layers (as in Seamap), meant to be the marine parks: in the Seamap Australia
-  catalogue, "AMPs 2025: Parks (simple overlay)" (`seamap:SeamapAus_BOUNDARIES_AMP`).
+  frames Tasmania, the marine parks around it and the inset of Macquarie Island's (141.8 to
+  159.4 E, 39 to 50.6 S) in the map left of the list, so with five stories or more (a
+  two-column list) its centre is further east. Stories loading or refreshing into the other
+  width move the map there at once, unless a story is open or the attract tour has the map.
+  Its layers are the catalogue's `startup` keyed layers (as in Seamap): the client's home
+  layer, `TMAG:HOME_AMP_boundaries` on the TMAG GeoServer
+  (`https://geoserver-seamaptmag-uat.imas.utas.edu.au/geoserver/wms`), the south-east
+  network's parks with Macquarie Island's drawn as an inset south-east of Tasmania. Its
+  basemap is the catalogue's first: meant to be Esri's World Ocean Base (WMTS tiles,
+  `…/World_Ocean_Base/default/default028mm/{z}/{y}/{x}.jpeg`).
 - Every flick glides (`inertia.cljs`). The table reports a lift 44–47 ms after the finger's
   last move (measured over 23 swipes); Leaflet measures the release speed from the 50 ms
   before the lift, which held one move or two by chance, so two thirds of swipes didn't glide.
@@ -196,8 +200,9 @@ what's still open. Keep it current: update it in the same change as the code it 
 - The kiosk has one set of limits on where the visitor can take the map, the same for every
   story (decided: not per story or step) (`map/limits.cljs`, from the touch-sandbox
   project): an extent and a zoom range, `{:bounds :min-zoom :max-zoom}`, all optional, in
-  `events/kiosk-limits`: the marine parks around Tasmania, Macquarie Island's included, with
-  a margin (140.5 to 166 E, 37.5 to 59.5 S). With an extent and no min zoom, the map zooms out until the extent fits the screen.
+  `events/kiosk-limits`: the marine parks around Tasmania and the inset of Macquarie
+  Island's, with a margin (140.5 to 160.5 E, 37.5 to 51.5 S). With an extent and no min
+  zoom, the map zooms out until the extent fits the screen.
   - Limits are set as the map is moved to a view (a flight landing, the attract screen's
     tour, the idle reset), and always take that view in: for a step outside them, the extent
     grows to hold it, and the zoom range to include its zoom, until the map next moves. So
@@ -257,6 +262,7 @@ what's still open. Keep it current: update it in the same change as the code it 
 | `inertia.cljs` | Leaflet's drag inertia: every flick glides, starting at the release speed (replaces `Map.Drag` `_onDragEnd`); a touch stops a glide |
 | `map/limits.cljs` | The kiosk's extent and zoom range, resisting drags and pinches past them (replaces `Map.TouchZoom` `_onTouchMove`) |
 | `map/tiers.cljs` | No grey map: the basemap and overlays load a ring beyond the screen; the basemap sits over a coarse copy (a wider ring) and a floor (the whole extent at its min zoom); overlays' coarse copies are hidden and show as placeholders; each step's surroundings are pinned; which tiles are on screen (replaces `GridLayer` `_getTiledPixelBounds`) |
+| `media_cache.cljs` | The attract video, fetched (CORS) once into a Blob and played from it, and put in Cache Storage for reloads (checked against the server's Last-Modified and Content-Length); streamed from its URL until then, or if the server won't allow it |
 | `tile_cache.cljs` | In-memory tile cache: Leaflet tiles fetched (CORS) into Blobs, LRU within `budget-bytes` (1 GB) but for pinned tiles (floors, steps' surroundings) and those shown, fetches ranked (on screen first), placeholders while fetching, plus a background prefetch queue |
 | `bitmaps.cljs` | Decoded tiles (ImageBitmaps) held in named sets, one per flight path |
 | `flight.cljs` | Canvas flights: path, planning, drawing, landing, and preparing flights at rest |
@@ -327,6 +333,26 @@ in a story. That predates the intro card: home now holds only the tiles on scree
 story's first flight is decoded on its intro card, so re-measure (memory at home, and Begin
 tapped soon after a story opens).
 
+## Deploying
+
+The kiosk is deployed with the IMAS infrastructure playbooks (`imas-data-infrastructure`),
+like the other Seamap sites:
+
+- **Frontend** (`seamap-site.yml`, group `seamap-tmag-test`): the release's `index.html`
+  calls `imas_seamap.tmag_kiosk.core.init`, at `https://seamaptmag-uat.imas.utas.edu.au/app/`.
+  Until the kiosk is merged into `develop`, releases come from running the "Build frontend"
+  workflow on `feature/tmag-kiosk` (`seamap_frontend_branch` matches the release's name).
+- **Admin page** at `app/admin/` (`seamap_admin_page`): plain Seamap on the kiosk's
+  catalogue, from the same release, for setting up stories' map views. Its "Create Shareable
+  URL" saves the view as a save state and copies `…#<id>`; the id is the step's shortcode.
+- **Backend** (`playbook.yml`, group `data-tmag-test`): the Seamap API on the
+  `IMASSeamapTMAG` database (testimasag3), at
+  `https://data-seamaptmag-uat.imas.utas.edu.au/seamap/api/`. The playbook doesn't migrate
+  it.
+- **Stories** are written in the kiosk's own WordPress (seamaptmag-uat), which needs this
+  branch's `story-map` plugin, ACF, and CORS on its uploads. The deployment doesn't add
+  any.
+
 ## Open items
 
 Items marked *(needs a person)* need a decision, access or hardware.
@@ -346,9 +372,12 @@ Items marked *(needs a person)* need a decision, access or hardware.
 - [ ] **Inertia tuning on the table:** `inertiaDeceleration`, `easeLinearity` and
       `inertiaMaxSpeed` are Leaflet's defaults; the touch sandbox's tuning (3000, 0.2, 5000)
       is a starting point.
-- [ ] **Map limits:** `events/kiosk-limits` takes in Macquarie Island where it really is;
-      revisit once the tiles show it as an inset nearer Tasmania (planned). Tune
-      `limits/resistance` on the table.
+- [ ] **Map limits:** `events/kiosk-limits` follows the home layer's inset; revisit if the
+      client moves or shrinks it. Tune `limits/resistance` on the table.
+- [ ] **Basemap past zoom 13:** World Ocean Base has no tiles past zoom 13 around Tasmania
+      (Esri serves a "Map data not yet available" tile instead), as GEBCO past 10. The kiosk
+      should scale up a basemap's deepest tiles (Leaflet's `maxNativeZoom`, also in `tiers`
+      and the flight's tile planning), from the catalogue's `max_zoom` or a kiosk setting.
 - [ ] **GEBCO basemap past zoom 10:** its tiles at zoom 11–14 fail (315 failed fetches in a
       warm-up), so zoomed in, only its coarse copy and floor show. Its catalogue entry
       probably needs a `maxNativeZoom`, so Leaflet scales up its deepest tiles instead.
@@ -358,10 +387,11 @@ Items marked *(needs a person)* need a decision, access or hardware.
       navigation, or `overscroll-behavior: none` on the page?
 - [ ] **Page pinch-zoom:** disabling it was planned; check it fits "default Leaflet
       interaction only".
-- [ ] **Home view:** `events/home-views` are defaults (Tasmania and its marine parks, for a
-      one- and a two-column story list); set them by eye on the table, and choose the home
-      basemap (now the catalogue's first). Configurable without a rebuild? Set the TMAG
-      catalogue's `startup` keyed layer to its marine parks layer.
+- [ ] **Home view:** `events/home-views` are defaults (Tasmania, its marine parks and the
+      Macquarie inset, for a one- and a two-column story list); set them by eye on the table.
+      Configurable without a rebuild? In the TMAG catalogue (being populated by the client):
+      World Ocean Base as the first basemap, and `TMAG:HOME_AMP_boundaries` as the
+      `startup` keyed layer.
 - [ ] **Start exploring during warm-up:** a visitor who taps it in the first 1–3 minutes after
       a cold start gets flights from coarse or missing tiles. Hold the button until warm?
 
@@ -412,8 +442,9 @@ Items marked *(needs a person)* need a decision, access or hardware.
 
 ### Caching
 
-- [ ] Media as Blobs (attract and story videos, photos), protecting the attract video and the
-      current story's media from eviction. Story videos aren't warmed yet (photos are).
+- [ ] Story media as Blobs (videos, photos), like the attract video (`media_cache.cljs`),
+      protecting the current story's from eviction. Story videos aren't warmed yet (photos
+      are).
 - [ ] esri-leaflet tiled layers have their own `createTile`, so they bypass the tile cache.
 
 ### Map flights
@@ -455,7 +486,13 @@ Items marked *(needs a person)* need a decision, access or hardware.
 
 ### UI (prototype layout)
 
-- [ ] Attract screen: looping video with Start exploring (needs a video).
+- [ ] Attract video (`events/attract-video-url`, on data.imas.utas.edu.au): the 30 s draft is
+      146 MB (4K, about 39 Mbit/s). The kiosk keeps its own copy (`media_cache.cljs`), but
+      only once the server sends `Access-Control-Allow-Origin` for it (being asked for);
+      until then it streams it each time the attract screen shows. Tested with the header
+      added by a proxy, InPrivate: the copy took over after about 28 s on the first load,
+      where the video had got to, and a reload took it from Cache Storage (one HEAD request,
+      no download). The final video is to be made smaller.
 - [ ] Graphic map legend beside the story card.
 - [ ] Closing panel ("Take this story with you"), if stories gain a takeaway or QR code.
 - [ ] Idle countdown, if wanted (see Decisions).

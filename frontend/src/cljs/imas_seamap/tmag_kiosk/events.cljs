@@ -101,24 +101,29 @@
   [stories]
   (<= (count stories) 4))
 
-;; The home view, where the kiosk starts and returns to: Tasmania and the
-;; marine parks around it (Zeehan and Franklin to Flinders and Freycinet, Beagle
-;; to most of Tasman Fracture; not Macquarie Island's), 141.8 to 149 E and 39.2
-;; to 46.3 S, fitted with a margin into the map left of the story list and
-;; above the bezel, on the table's 3840x2160 screen. The list is twice as wide
-;; for five stories or more (`one-column?`), so that view's centre is further
-;; east; the parks' height sets the zoom of both.
+;; The home view, where the kiosk starts and returns to: Tasmania, the marine
+;; parks around it and the inset of Macquarie Island's (south-east of Tasmania
+;; in the home layer, TMAG:HOME_AMP_boundaries), 141.8 to 159.4 E and 39 to
+;; 50.6 S, fitted with a margin into the map left of the story list and above
+;; the bezel, on the table's 3840x2160 screen. The list is twice as wide for
+;; five stories or more (`one-column?`), so that view's centre is further east.
 (def home-views
-  {:one-column {:center [-43.047 147.916] :zoom 8}
-   :two-column {:center [-43.047 150.226] :zoom 8}})
+  {:one-column {:center [-45.409 154.831] :zoom 7.25}
+   :two-column {:center [-45.409 158.716] :zoom 7.25}})
 
 (defn- home-view [db]
   (home-views (if (one-column? (get-in db [:kiosk :stories])) :one-column :two-column)))
 
 ;; Where a visitor can take the map, the same at every view (see
-;; `imas-seamap.tmag-kiosk.map.limits`): the marine parks around Tasmania,
-;; Macquarie Island's included (to 164.7 E and 58.5 S), with a margin.
-(def kiosk-limits {:bounds {:west 140.5 :south -59.5 :east 166 :north -37.5}})
+;; `imas-seamap.tmag-kiosk.map.limits`): the marine parks around Tasmania and
+;; the inset of Macquarie Island's (to 159.4 E and 50.5 S; see `home-views`),
+;; with a margin. A step at the real Macquarie Island, outside them, stretches
+;; them while it's shown.
+(def kiosk-limits {:bounds {:west 140.5 :south -51.5 :east 160.5 :north -37.5}})
+
+;; Loops behind the attract screen's button. A 30 s draft; the final one will
+;; be longer, and made smaller for the web.
+(def attract-video-url "https://data.imas.utas.edu.au/kiosk/app_files/attract.mp4")
 
 (defn boot [{:keys [save-code hash-code] {:keys [seamap-app-state]} :local-storage/get} [_ api-url-base media-url-base wordpress-url-base img-url-base]]
   {:db         (-> db/default-db

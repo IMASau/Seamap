@@ -13,8 +13,9 @@
             [re-frame.core :as re-frame]
             [imas-seamap.blueprint :as b]
             [imas-seamap.views :as views]
-            [imas-seamap.tmag-kiosk.events :refer [one-column?]]
+            [imas-seamap.tmag-kiosk.events :refer [one-column? attract-video-url]]
             [imas-seamap.tmag-kiosk.map.views :refer [map-component]]
+            [imas-seamap.tmag-kiosk.media-cache :as media-cache]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn- html [content]
@@ -287,8 +288,35 @@
   (when @(re-frame/subscribe [:kiosk/layers-loading?])
     [:div.loading-notice [:div.spinner] "Bringing the next view into focus…"]))
 
-;;; Attract screen: shown at start-up and whenever the kiosk goes idle. A
-;;; placeholder until the looping attract video arrives.
+;;; Attract screen: shown at start-up and whenever the kiosk goes idle. The
+;;; attract video loops, muted, behind the button (on the background colour
+;;; until it starts).
+
+(defn- attract-video
+  "Plays the kiosk's own copy of the video once it has one (see
+  `media-cache`), or else streams it. A copy arriving while it streams takes
+  over where it's got to."
+  []
+  (let [el        (atom nil)
+        shown     (atom nil)
+        resume-at (atom nil)]
+    (fn []
+      (let [src (media-cache/src attract-video-url)]
+        ;; Rendered before the new src is set, so the old one's time is read.
+        (when (and @el @shown (not= src @shown))
+          (reset! resume-at (.-currentTime ^js @el)))
+        (reset! shown src)
+        [:video {:ref                #(reset! el %)
+                 :src                src
+                 :auto-play          true
+                 :muted              true
+                 :loop               true
+                 :plays-inline       true
+                 :on-loaded-metadata (fn [^js e]
+                                       (when-let [t @resume-at]
+                                         (set! (.. e -target -currentTime) t)
+                                         (reset! resume-at nil)))
+                 :style              {:position "absolute" :inset 0 :width "100%" :height "100%" :object-fit "cover"}}]))))
 
 (defn- attract-screen []
   (when @(re-frame/subscribe [:kiosk/attract?])
@@ -302,10 +330,12 @@
               :align-items     "center"
               :justify-content "center"
               :background      "#002b49"}}
+     [attract-video]
      [b/button {:text      "Start exploring"
                 :className "attract-start"
                 :large     true
                 :intent    b/INTENT-PRIMARY
+                :style     {:position "relative"} ; over the video
                 :on-click  #(re-frame/dispatch [:kiosk.attract/exit])}]]))
 
 (defn- panel-morph
