@@ -8,6 +8,7 @@
             [imas-seamap.map.views :as map-views]
             [imas-seamap.interop.leaflet :as leaflet]
             [imas-seamap.tmag-kiosk.events :refer [home-bounds]]
+            [imas-seamap.tmag-kiosk.inertia :as inertia]
             ["esri-leaflet-renderers"]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -42,13 +43,25 @@
                                        (.. L/default -DomEvent (stopPropagation e))
                                        (re-frame/dispatch [:kiosk.media/select i]))}}]))))
 
+(defonce ^:private set-up (js/WeakSet.))
+
+(defn- set-up!
+  "Sets up a new map (see `inertia/attach!`)."
+  [^js m]
+  (when-not (.has set-up m)
+    (.add set-up m)
+    (inertia/attach! m)))
+
 (defn map-component
   "Seamap's layers with Leaflet's default interaction and controls: no Seamap
   controls, keyboard shortcuts or feature-info popups (the kiosk's
   `:map/clicked` puts tapped features' media in the media card). The map
   starts at the kiosk's home view; after that it's moved with
   `:map/update-map-view`, as in Seamap. The zoom control is bottom-left, in
-  easy reach."
+  easy reach. Zoom is continuous (`zoomSnap` 0): a pinch stays where the
+  fingers leave it instead of snapping to a whole zoom level, and the zoom
+  buttons step a whole level from wherever it is. A touch stops a glide
+  (`inertia`)."
   []
   [leaflet/map-container
    {:id           "map"
@@ -57,8 +70,9 @@
     :use-fly-to   false
     :bounds       (map->bounds home-bounds)
     :minZoom      2
+    :zoomSnap     0
     :zoomControl  false
-    :ref          #(when % (re-frame/dispatch [:map/update-leaflet-map %]))} ; obtain a reference to the leaflet map in re-frame state, so we can call leaflet map methods from anywhere in the app
+    :ref          #(when % (set-up! %) (re-frame/dispatch [:map/update-leaflet-map %]))} ; obtain a reference to the leaflet map in re-frame state, so we can call leaflet map methods from anywhere in the app
    [leaflet/zoom-control {:position "bottomleft"}]
    [map-views/basemap-layers]
    [map-views/catalogue-layers]

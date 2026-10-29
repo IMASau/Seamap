@@ -14,7 +14,7 @@
   (s/keys :req-un [:map.size/x
                    :map.size/y]))
 
-(s/def :map/zoom integer?)
+(s/def :map/zoom number?) ; fractional where zoomSnap allows it (the TMAG kiosk)
 (s/def :map/zoom-cutover integer?)
 
 ;;; categories
