@@ -547,7 +547,7 @@
 
 (defn info-card []
   (let [layer-info       @(re-frame/subscribe [:map.layer/info])
-        {:keys [metadata_url category download_format] :as layer} (:layer layer-info)
+        {:keys [download_format] :as layer} (:layer layer-info)
         title            (or (get-in layer-info [:layer :name]) "Layer Information")
         {:keys [region]} @(re-frame/subscribe [:map.layer.selection/info])]
     [b/dialogue {:title    title
