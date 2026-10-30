@@ -3,6 +3,7 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.tmag-kiosk.map.views
   (:require ["leaflet" :as L]
+            [goog.string :as gstring]
             [re-frame.core :as re-frame]
             [imas-seamap.map.views :as map-views]
             [imas-seamap.interop.leaflet :as leaflet]
@@ -43,6 +44,36 @@
               :eventHandlers {:click (fn [e]
                                        (.. L/default -DomEvent (stopPropagation e))
                                        (re-frame/dispatch [:kiosk.media/select i]))}}]))))
+
+(def ^:private story-icon
+  "A story marker's icon: its image in a disc, as on its card (`.story-icon`),
+  or a plain dot without one; bigger, with a gold ring, if `selected?`. Sized
+  and centred on the location by CSS (`.kiosk-story-marker`), as the image's
+  shape isn't known."
+  (memoize
+   (fn [image selected?]
+     (.divIcon L/default
+               #js {:className (cond-> "kiosk-story-marker" selected? (str " selected"))
+                    :iconSize  nil
+                    :html      (if image
+                                 (str "<span class=\"story-icon\"><img src=\"" (gstring/htmlEscape image) "\" alt=\"\"></span>")
+                                 "<span class=\"dot\"></span>")}))))
+
+(defn- story-markers
+  "A marker for each story with a location; tapping one opens its story, as
+  its card does. With a story open (on its intro card), its marker is
+  highlighted and on top; the rest stay as they were, as they can still be
+  tapped (see `:kiosk/story-markers`)."
+  []
+  (into [:<>]
+        (for [{:keys [id lat lon icon selected?]} @(re-frame/subscribe [:kiosk/story-markers])]
+          ^{:key id}
+          [leaflet/marker
+           {:position      [lat lon]
+            :icon          (story-icon icon selected?)
+            :zIndexOffset  (if selected? 1000 0)
+            :keyboard      false
+            :eventHandlers {:click #(re-frame/dispatch [:kiosk.story/open id])}}])))
 
 (defonce ^:private set-up (js/WeakSet.))
 
@@ -86,4 +117,5 @@
    [tiers/backdrop]
    [map-views/basemap-layers]
    [map-views/catalogue-layers]
+   [story-markers]
    [media-markers]])

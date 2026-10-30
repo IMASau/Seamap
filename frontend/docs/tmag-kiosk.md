@@ -78,6 +78,18 @@ what's still open. Keep it current: update it in the same change as the code it 
   column. A card is a band of the story's picture (40% of its height) with the read time on
   it, then the title and summary (two lines each at most). Image-left and text-over-image
   cards were tried and dropped: the first squeezed both, the second darkened the pictures.
+- With the story list, the home map has a marker for each story with a location
+  (`marker_lat`, `marker_lon`): its icon (`marker_icon`) in a white disc with a purple ring
+  (`.story-icon`, the icon fitted into a square inside it), or a purple dot without one,
+  centred on the location. The story's card shows the same disc on its picture band's
+  top-right corner, to match them up. Tapping a marker opens the story, as its card does,
+  and on its intro card (the map still home) its marker is highlighted: bigger, with a gold
+  ring, popping up, on top. The rest aren't dimmed, as they can still be tapped: another
+  opens its story instead. They're shown only with the map home: not on the attract screen (the tour
+  moves the map behind it), not once Begin is tapped (nor back on the intro card from the
+  first step, where the map is), and not while the map flies home (`:homeward?`), as
+  nothing is added to the page during a flight. They appear when it lands. A story about
+  Macquarie Island needs its marker in the home layer's inset, not at the island.
 - A story opens on an intro card in the story card's place: its whole picture, uncropped
   (the only place it's shown whole; a very tall one is fitted into half the screen's
   height), title, subtitle (`description`) and "Estimated read time: N minutes" (`read_time`,
@@ -229,8 +241,9 @@ what's still open. Keep it current: update it in the same change as the code it 
   the kiosk. A refresh never changes the story a visitor is in.
 - Each step's map view is a Seamap save state (the step's shortcode), applied with Seamap's
   `:merge-state`.
-- Story fields `read_time` and per-step `media` (url, lat, lon, caption, `overlay` readings)
-  come from the story-map plugin; the main Seamap site doesn't use them.
+- Story fields `read_time`, the home map marker (`marker_lat`, `marker_lon`, `marker_icon`,
+  all optional) and per-step `media` (url, lat, lon, caption, `overlay` readings) come from
+  the story-map plugin; the main Seamap site doesn't use them.
 - Every story has media: a media card in the left column shows the current step's items
   (photos; videos tap-to-play with controls), and each item has a marker on the map. The map
   doesn't move to a marker.
@@ -257,7 +270,7 @@ what's still open. Keep it current: update it in the same change as the code it 
 | `core.cljs` | Handler registration (the deployment's `config-handlers`), `init`, `warm_up_status()` |
 | `events.cljs` | Boot, stories, steps, flight targets, warm-up and the attract-screen tour, idle reset |
 | `subs.cljs` | Kiosk subscriptions (story, step, media, markers) |
-| `views.cljs`, `map/views.cljs` | Layout (story list, story card, media card, attract screen), the map and media markers |
+| `views.cljs`, `map/views.cljs` | Layout (story list, story card, media card, attract screen), the map, and the story and media markers |
 | `idle.cljs` | Inactivity timer (`timeout-ms`, 2 minutes); a playing video counts as activity |
 | `inertia.cljs` | Leaflet's drag inertia: every flick glides, starting at the release speed (replaces `Map.Drag` `_onDragEnd`); a touch stops a glide |
 | `map/limits.cljs` | The kiosk's extent and zoom range, resisting drags and pinches past them (replaces `Map.TouchZoom` `_onTouchMove`) |
@@ -409,6 +422,12 @@ Items marked *(needs a person)* need a decision, access or hardware.
 - [ ] Test on touch hardware: a touch mid-flight is swallowed by the canvas.
 
 ### Content *(needs a person)*
+
+- [ ] Story marker icons: simple, squarish, transparent background (the disc is the
+      kiosk's), centred on the location. The local test stories use game-icons.net icons
+      (CC BY 3.0, by Delapouite and Lorc), recoloured purple; real ones need their licences'
+      attribution somewhere on the kiosk. Markers close together overlap (Leaflet puts the
+      lower one on screen on top); nothing spreads them apart yet.
 
 - [ ] Agree one property schema for the KIOSK feature layers' media (ideally the story
       fields: `url`, `lat`, `lon`, `caption`, `overlay`), so `feature->media` can drop the

@@ -14,7 +14,7 @@
  * @wordpress-plugin
  * Plugin Name:       Story Maps
  * Description:       Adds the Seamap story map post type.
- * Version:           1.2.0
+ * Version:           1.3.0
  * Author:            Condense Pty Ltd.
  * Author URI:        https://condense.com.au/
  * License:           Affero General Public Licence (AGPL) v3
@@ -80,6 +80,34 @@ function story_map_add_acf_fields() {
                         'min'          => 0,
                         'step'         => 1,
                         'append'       => 'minutes',
+                    ],
+                    [
+                        'key'          => 'field_story_map_marker_lat',
+                        'label'        => 'Marker Latitude',
+                        'name'         => 'marker_lat',
+                        'type'         => 'number',
+                        'instructions' => 'Where the story\'s marker goes on the kiosk\'s home map (no marker without both latitude and longitude).',
+                        'min'          => -90,
+                        'max'          => 90,
+                        'step'         => 'any',
+                        'wrapper'      => ['width' => '50'],
+                    ],
+                    [
+                        'key'      => 'field_story_map_marker_lon',
+                        'label'    => 'Marker Longitude',
+                        'name'     => 'marker_lon',
+                        'type'     => 'number',
+                        'min'      => -180,
+                        'max'      => 180,
+                        'step'     => 'any',
+                        'wrapper'  => ['width' => '50'],
+                    ],
+                    [
+                        'key'          => 'field_story_map_marker_icon',
+                        'label'        => 'Marker Icon',
+                        'name'         => 'marker_icon',
+                        'type'         => 'url',
+                        'instructions' => 'URL of the marker\'s image, centred on its location (a plain dot without one).',
                     ],
                     [
                         'key'        => 'field_story_map_map_link',
@@ -210,7 +238,8 @@ add_filter('acf/format_value/key=field_story_map_map_link_media', function($valu
 /**
  * Number fields are stored as strings; serve them as numbers (or null).
  */
-foreach (['field_story_map_read_time', 'field_story_map_map_link_media_lat', 'field_story_map_map_link_media_lon'] as $story_map_number_field) {
+foreach (['field_story_map_read_time', 'field_story_map_marker_lat', 'field_story_map_marker_lon',
+          'field_story_map_map_link_media_lat', 'field_story_map_map_link_media_lon'] as $story_map_number_field) {
     add_filter("acf/format_value/key=$story_map_number_field", function($value) {
         return is_numeric($value) ? $value + 0 : null;
     });

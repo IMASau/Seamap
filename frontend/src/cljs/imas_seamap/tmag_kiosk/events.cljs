@@ -170,7 +170,7 @@
                (assoc-in [:map :active-layers] startup-layers)
                (assoc-in [:map :active-base-layer] (first (get-in db [:map :grouped-base-layers])))
                (assoc :initialised true)
-               (assoc :kiosk kiosk))]
+               (assoc :kiosk (dissoc kiosk :homeward?)))]
     (cond-> {:db         db
              :dispatch-n [[:map/update-map-view (assoc (home-view db) :instant? true)]
                           ;; Anything new since the last warm-up (eg refreshed stories)
@@ -311,6 +311,10 @@
    :summary   (:description acf)
    :image     (or (:image acf) nil) ; ACF returns false for no image
    :read-time (:read_time acf)
+   ;; Its marker on the home map, if it has a location.
+   :marker    (let [{:keys [marker_lat marker_lon marker_icon]} acf]
+                (when (and (number? marker_lat) (number? marker_lon))
+                  {:lat marker_lat :lon marker_lon :icon (not-empty marker_icon)}))
    :revision  modified_gmt
    :steps     (mapv (fn [{:keys [subtitle description shortcode media]}]
                       {:title     subtitle
@@ -729,9 +733,10 @@
 
 (defn start-again
   "Closes the story at once, so the story list is back while the map flies
-  home; then resets the map (`re-boot`)."
+  home; then resets the map (`re-boot`). The stories' markers wait for it to
+  land (`:homeward?`)."
   [{:keys [db]} _]
-  (let [db (update db :kiosk kiosk-reset)]
+  (let [db (update db :kiosk #(assoc (kiosk-reset %) :homeward? true))]
     (if-let [leaflet-map (get-in db [:map :leaflet-map])]
       {:db        db
        :kiosk/fly {:leaflet-map  leaflet-map

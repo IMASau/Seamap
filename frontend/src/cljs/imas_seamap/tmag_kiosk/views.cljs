@@ -46,7 +46,7 @@
       {:style {"--browse-rows" (-> (count stories) (/ columns) js/Math.ceil (max 3) (min 4))}}
       (cond
         (seq stories)
-        (for [{:keys [id title summary image read-time]} stories]
+        (for [{:keys [id title summary image read-time marker]} stories]
           ^{:key id}
           [:button.browse-story
            {:on-click #(re-frame/dispatch [:kiosk.story/open id])}
@@ -54,6 +54,9 @@
             (if image
               [:img {:src image :alt ""}]
               [:span.story-thumb-fallback])]
+           ;; As on its marker, to match them up.
+           (when-let [icon (:icon marker)]
+             [:span.story-icon [:img {:src icon :alt ""}]])
            [:span.browse-story-copy
             [:b title]
             [:span.summary (html->text summary)]

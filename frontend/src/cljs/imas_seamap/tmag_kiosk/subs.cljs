@@ -40,6 +40,21 @@
       {:media    (or feature-media (get-in (tkevents/current-story db) [:steps landed-step :media]))
        :selected (when (= landed-step step-index) (or media-index 0))})))
 
+(defn story-markers
+  "The home map's story markers: [{:id :lat :lon :icon :selected?}], for
+  stories with a location. Only with the map home: on the story list, and on
+  a story's intro card opened from it, where the story's marker is
+  `:selected?`. Not on the attract screen (behind it, the tour moves the map),
+  back on the intro card from the first step (the map's there), or while the
+  map flies home, when nothing is added to the page (see
+  `imas-seamap.tmag-kiosk.flight`)."
+  [db _]
+  (let [{:keys [stories story-id intro? landed-step attract? homeward?]} (:kiosk db)]
+    (when (and (not (or attract? homeward?))
+               (or (not story-id) (and intro? (not landed-step))))
+      (for [{:keys [id marker]} stories :when marker]
+        (assoc marker :id id :selected? (= id story-id))))))
+
 (defn attract? [db _]
   (get-in db [:kiosk :attract?]))
 

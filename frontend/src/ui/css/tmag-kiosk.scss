@@ -75,6 +75,54 @@
     }
     .leaflet-container .leaflet-control-attribution { padding: 0 u(5); font-size: u(12); }
 
+    // A story's icon in a disc, the same on its card and its marker, to match
+    // them up. The icon fits a square inside it, whatever its shape (Leaflet's
+    // CSS overrides max-width on marker images).
+    .story-icon {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-sizing: border-box;
+        width: u(48);
+        height: u(48);
+        border: u(3) solid var(--kiosk-purple);
+        border-radius: 50%;
+        background: var(--kiosk-paper);
+        box-shadow: 0 u(2) u(8) rgba(14, 44, 58, .35);
+
+        img { width: 66%; height: 66%; object-fit: contain; }
+    }
+    // Story markers on the home map (`story-markers` in map/views.cljs): the
+    // story's icon, or a dot, centred on its location; big enough to tap.
+    .kiosk-story-marker {
+        .story-icon, .dot {
+            position: absolute;
+            transform: translate(-50%, -50%);
+        }
+        .story-icon { width: u(60); height: u(60); }
+        // The open story's: bigger, with a gold ring, popping up as it's tapped.
+        &.selected {
+            .story-icon, .dot {
+                border-color: var(--kiosk-gold);
+                box-shadow: 0 0 0 u(4) rgba(251, 191, 36, .45), 0 u(4) u(14) rgba(14, 44, 58, .45);
+                animation: kiosk-marker-pop .25s ease-out;
+            }
+            .story-icon { width: u(80); height: u(80); border-width: u(5); }
+            .dot { width: u(40); height: u(40); }
+        }
+        @keyframes kiosk-marker-pop {
+            from { transform: translate(-50%, -50%) scale(.75); }
+        }
+        .dot {
+            width: u(28);
+            height: u(28);
+            border: u(4) solid #fff;
+            border-radius: 50%;
+            background: var(--kiosk-purple);
+            box-shadow: 0 u(2) u(8) rgba(14, 44, 58, .35);
+        }
+    }
+
     // Full-bleed, and its own stacking context, so Leaflet's panes and
     // controls (z-index up to 1000) stay under the cards.
     #content-wrapper {
@@ -254,6 +302,12 @@
         color: var(--kiosk-purple);
         font-size: u(14);
         font-weight: 800;
+    }
+    // On the picture band's top-right corner.
+    .browse-story > .story-icon {
+        position: absolute;
+        top: u(10);
+        right: u(10);
     }
 
     // ── Story: the reading column ───────────────────────────────────────────
