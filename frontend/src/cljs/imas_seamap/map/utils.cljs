@@ -910,3 +910,8 @@
                        (catch :default e nil))]
     (re-find search-re (layer-search-keywords categories layer))
     false))
+
+(defn layer-downloadable?
+  "Predicate for if a layer supports downloading"
+  [{:keys [download_format] :as _layer}]
+  (not (string/blank? download_format)))
