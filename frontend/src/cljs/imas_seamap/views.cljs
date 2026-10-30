@@ -489,10 +489,11 @@
          [:p.download-instructions
           "Downloading implies acceptance of all citation and usage requirements."])])))
 
-(defn- download-menu [{:keys [title disabled? bbox] {:keys [download_format] :as layer} :layer}]
+(defn- download-menu
   "Download menu for layers.
    Layers with the WFS download format will have GeoTIFF, SHP, and CSV available, while WCS will only have GeoTIFF available.
    Assumption for now that WFS and WCS are the only download formats that need to be supported."
+  [{:keys [title disabled? bbox] {:keys [download_format] :as layer} :layer}]
   [b/popover {:position           b/BOTTOM
               :disabled           disabled?
               :popover-class-name "bp3-minimal"
