@@ -95,11 +95,13 @@
 
 (defn tile-urls
   "A tile basemap's tiles, with their URLs exactly as Leaflet requests them (so
-  they're shared with the tile cache): {:max-zoom :url (fn [z x y])}."
-  [server-url]
+  they're shared with the tile cache): {:max-zoom :url (fn [z x y])}.
+  `:max-zoom` is its last tiles' zoom: `max-native-zoom` if it has one (see
+  `imas-seamap.tmag-kiosk.events/native-max-zooms`)."
+  [server-url max-native-zoom]
   (let [^js layer ((.-tileLayer L/default) server-url)
         urls      (js/Map.)]
-    {:max-zoom (.. layer -options -maxZoom)
+    {:max-zoom (or max-native-zoom (.. layer -options -maxZoom))
      :url      (fn [z x y]
                  (let [k (str z "/" x "/" y)]
                    (or (.get urls k)
@@ -148,9 +150,9 @@
 
 (defn- floor-urls
   "The URLs of the floor of `basemap` (a catalogue base layer)."
-  [^js m {:keys [server_url layer_type]}]
+  [^js m {:keys [server_url layer_type max_native_zoom]}]
   (when (and server_url (= layer_type :tile))
-    (let [{:keys [max-zoom url]}    (tile-urls server_url)
+    (let [{:keys [max-zoom url]}    (tile-urls server_url max_native_zoom)
           {:keys [extent min-zoom]} (limits/own-extent m)]
       (when-let [{:keys [zoom x0 x1 y0 y1]} (floor-tiles m extent min-zoom max-zoom)]
         (let [n (js/Math.pow 2 zoom)]
@@ -472,7 +474,10 @@
   (r/adapt-react-class
    (ReactLeafletCore/createLayerComponent
     (fn [props context]
-      #js {:instance (Layer. (.-url props) (ReactLeafletCore/withPane #js {:referrerPolicy "origin"} context))
+      #js {:instance (Layer. (.-url props) (ReactLeafletCore/withPane
+                                            (cond-> #js {:referrerPolicy "origin"}
+                                              (.-maxNativeZoom props) (doto (gobject/set "maxNativeZoom" (.-maxNativeZoom props))))
+                                            context))
            :context  context})
     (fn [_ _ _]))))
 
@@ -483,11 +488,11 @@
   "The floor and the coarse copy, under the basemap. Only for tile basemaps."
   []
   (let [{:keys [active-base-layer]} @(re-frame/subscribe [:map/base-layers])
-        {:keys [layer_type server_url]} active-base-layer]
+        {:keys [layer_type server_url max_native_zoom]} active-base-layer]
     (when (and (= layer_type :tile) server_url)
       ;; Under the basemap's pane (z-index 0, see `map-views/basemap-layers`)
       [:<>
        [leaflet/pane {:name "kiosk-floor" :style {:z-index -3}}
-        ^{:key server_url} [floor-layer {:url server_url}]]
+        ^{:key server_url} [floor-layer {:url server_url :maxNativeZoom max_native_zoom}]]
        [leaflet/pane {:name "kiosk-backdrop" :style {:z-index -2}}
-        ^{:key server_url} [coarse-layer {:url server_url}]]])))
+        ^{:key server_url} [coarse-layer {:url server_url :maxNativeZoom max_native_zoom}]]])))

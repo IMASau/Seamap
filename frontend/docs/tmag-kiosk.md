@@ -133,7 +133,13 @@ what's still open. Keep it current: update it in the same change as the code it 
   (`https://geoserver-seamaptmag-uat.imas.utas.edu.au/geoserver/wms`), the south-east
   network's parks with Macquarie Island's drawn as an inset south-east of Tasmania. Its
   basemap is the catalogue's first: meant to be Esri's World Ocean Base (WMTS tiles,
-  `…/World_Ocean_Base/default/default028mm/{z}/{y}/{x}.jpeg`).
+  `…/World_Ocean_Base/default/default028mm/{z}/{y}/{x}.jpeg`; a `tile` base layer in the
+  catalogue, as the flights can only draw those). Its tiles stop at zoom 13 around Tasmania
+  (Esri serves a "Map data not yet available" tile past it), so past 13 its zoom-13 tiles are
+  scaled up: `native-max-zooms` in events.cljs gives the base layer a `:max_native_zoom`,
+  which the basemap (Leaflet's `maxNativeZoom`), its coarse copy and floor, and the flights'
+  tiles all keep to. Not the catalogue's `max_zoom`, which in Seamap (and so in the kiosk)
+  switches to another basemap past it.
 - Every flick glides (`inertia.cljs`). The table reports a lift 44–47 ms after the finger's
   last move (measured over 23 swipes); Leaflet measures the release speed from the 50 ms
   before the lift, which held one move or two by chance, so two thirds of swipes didn't glide.
@@ -387,13 +393,9 @@ Items marked *(needs a person)* need a decision, access or hardware.
       is a starting point.
 - [ ] **Map limits:** `events/kiosk-limits` follows the home layer's inset; revisit if the
       client moves or shrinks it. Tune `limits/resistance` on the table.
-- [ ] **Basemap past zoom 13:** World Ocean Base has no tiles past zoom 13 around Tasmania
-      (Esri serves a "Map data not yet available" tile instead), as GEBCO past 10. The kiosk
-      should scale up a basemap's deepest tiles (Leaflet's `maxNativeZoom`, also in `tiers`
-      and the flight's tile planning), from the catalogue's `max_zoom` or a kiosk setting.
 - [ ] **GEBCO basemap past zoom 10:** its tiles at zoom 11–14 fail (315 failed fetches in a
-      warm-up), so zoomed in, only its coarse copy and floor show. Its catalogue entry
-      probably needs a `maxNativeZoom`, so Leaflet scales up its deepest tiles instead.
+      warm-up), so zoomed in, only its coarse copy and floor show. If the kiosk gets it, it
+      needs an entry in `native-max-zooms`, as World Ocean Base has.
 - [ ] **Swipe back:** a sideways flick on the map took Edge back a page (seen in testing, in a
       window with history); the kiosk never navigates, so it has none, but anything that does
       (a link in story content) would make a flick leave the kiosk. Turn off Edge's swipe

@@ -197,7 +197,7 @@
     :map.rich-layer/get-cql-filter-values         [mevents/rich-layer-get-cql-filter-values]
     :map.rich-layer/get-cql-filter-values-success mevents/rich-layer-get-cql-filter-values-success
     :map.region-stats/select-habitat      mevents/region-stats-select-habitat
-    :map/update-base-layers               mevents/update-base-layers
+    :map/update-base-layers               tkevents/update-base-layers
     :map/update-base-layer-groups         mevents/update-base-layer-groups
     :map/update-grouped-base-layers       mevents/update-grouped-base-layers
     :map/update-layers                    mevents/update-layers

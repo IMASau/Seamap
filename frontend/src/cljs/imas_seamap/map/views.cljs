@@ -330,11 +330,12 @@
 (defmulti basemap-layer-component :layer_type)
 
 (defmethod basemap-layer-component :tile
- [{:keys [server_url attribution]}]
+ [{:keys [server_url attribution max_native_zoom]}]
  [leaflet/tile-layer
-  {:url             server_url
-   :attribution     attribution
-   :referrer-policy "origin"}]) ; ISA-702: including referrer-policy header, because OSM requires it: https://operations.osmfoundation.org/policies/tiles/
+  (cond-> {:url             server_url
+           :attribution     attribution
+           :referrer-policy "origin"} ; ISA-702: including referrer-policy header, because OSM requires it: https://operations.osmfoundation.org/policies/tiles/
+    max_native_zoom (assoc :maxNativeZoom max_native_zoom))]) ; Not from the catalogue: set by the TMAG kiosk, for tiles that stop short
 
 (defmethod basemap-layer-component :vector
   [{:keys [server_url attribution]}]

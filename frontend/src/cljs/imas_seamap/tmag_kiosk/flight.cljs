@@ -163,9 +163,9 @@
 (defn- tile-source
   "A `:tile` catalogue base layer's tiles: {:key :max-zoom :url} (see
   `imas-seamap.tmag-kiosk.map.tiers/tile-urls`)."
-  [{:keys [server_url layer_type]}]
+  [{:keys [server_url layer_type max_native_zoom]}]
   (when (and server_url (= layer_type :tile))
-    (assoc (tiers/tile-urls server_url) :key server_url)))
+    (assoc (tiers/tile-urls server_url max_native_zoom) :key server_url)))
 
 (defn- tile-zoom [{:keys [max-zoom]} zoom]
   (-> (js/Math.round zoom) (max 0) (min max-zoom)))

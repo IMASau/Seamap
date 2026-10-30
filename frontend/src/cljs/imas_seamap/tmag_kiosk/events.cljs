@@ -121,6 +121,23 @@
 ;; them while it's shown.
 (def kiosk-limits {:bounds {:west 140.5 :south -51.5 :east 160.5 :north -37.5}})
 
+;; The last zoom at which a tile basemap has tiles, for those that stop short
+;; of Leaflet's 18 around Tasmania (keyed by a pattern in the URL). Past it,
+;; its last tiles are scaled up. World Ocean Base serves a "Map data not yet
+;; available" tile from zoom 14. Not the catalogue's `max_zoom`: in Seamap,
+;; and so in the kiosk too, that switches to another basemap past it.
+(def native-max-zooms [[#"/World_Ocean_Base/" 13]])
+
+(defn update-base-layers
+  "Seamap's, with each base layer's `:max_native_zoom` (see `native-max-zooms`)
+  where it has one."
+  [db event]
+  (update-in (mevents/update-base-layers db event) [:map :base-layers]
+             (partial mapv (fn [{:keys [server_url] :as layer}]
+                             (if-let [[_ z] (first (filter #(re-find (first %) (str server_url)) native-max-zooms))]
+                               (assoc layer :max_native_zoom z)
+                               layer)))))
+
 ;; Loops behind the attract screen's button. A 30 s draft; the final one will
 ;; be longer, and made smaller for the web.
 (def attract-video-url "https://data.imas.utas.edu.au/kiosk/app_files/attract.mp4")
