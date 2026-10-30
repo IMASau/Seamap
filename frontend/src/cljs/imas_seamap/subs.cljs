@@ -42,10 +42,9 @@
     (scale-distance s1 s2 remainder-pct)))
 
 (defn feature-info [{:keys [feature] :as db} _]
-  (let [{:keys [status location had-insecure? responses]} feature]
+  (let [{:keys [status location responses]} feature]
     (if feature
       {:has-info?     true
-       :had-insecure? had-insecure?
        :status        status
        :responses     responses
        :location      ((juxt :lat :lng) location)

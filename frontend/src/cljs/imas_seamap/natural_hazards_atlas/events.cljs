@@ -543,7 +543,6 @@
         
         visible-layers
         (nhatutils/displayed-layers-under-point (mutils/visible-layers (:map db)) layer-displayed-layers-lookup point db)
-        secure-layers  (remove #(mutils/is-insecure? (:server_url %)) visible-layers)
         request-id     (gensym)
 
         ;; Requests used to be grouped by server URL, but has since been changed to be
@@ -555,25 +554,21 @@
         requests       (map
                         (fn [{:keys [info_format_type] :as layer}]
                           [:map/get-feature-info info_format_type [layer] request-id leaflet-props point])
-                        secure-layers)
-        had-insecure?  (some #(mutils/is-insecure? (:server_url %)) visible-layers)
-        db             (if had-insecure?
-                         (assoc db :feature {:status :feature-info/none-queryable :location point :show? true}) ;; This is the fall-through case for "layers are visible, but they're http so we can't query them":
-                         (assoc ;; Initialise marshalling-pen of data: how many in flight, and current best-priority response
-                          db
-                          :feature-query
-                          {:request-id        request-id
-                           :response-remain   (count requests)
-                           :had-insecure?     had-insecure?
-                           :responses         []}
-                          :feature
-                          {:status   :feature-info/waiting
-                           :leaflet-props leaflet-props
-                           :location point
-                           :show?    false}))]
+                        visible-layers)
+        db             (assoc ;; Initialise marshalling-pen of data: how many in flight, and current best-priority response
+                        db
+                        :feature-query
+                        {:request-id        request-id
+                         :response-remain   (count requests)
+                         :responses         []}
+                        :feature
+                        {:status   :feature-info/waiting
+                         :leaflet-props leaflet-props
+                         :location point
+                         :show?    false})]
     (merge
      {:db db
       :dispatch-later {:ms 300 :dispatch [:map.feature/show request-id]}}
-     (if (and (seq requests) (not had-insecure?))
+     (if (seq requests)
        {:dispatch-n requests}
        {:dispatch   [:map/got-featureinfo request-id point nil nil []]}))))
