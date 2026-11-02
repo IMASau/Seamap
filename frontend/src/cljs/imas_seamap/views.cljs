@@ -644,6 +644,7 @@
   [control-block-child
    {:on-click #(re-frame/dispatch [:map.print/start])
     :id       "print-control"
+    :tooltip  "Export Map at Current Size"
     :icon     "media"}])
 
 (defn transect-control []
