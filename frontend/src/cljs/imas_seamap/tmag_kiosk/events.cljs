@@ -7,7 +7,7 @@
             [imas-seamap.db :as db]
             [imas-seamap.map.events :as mevents]
             [imas-seamap.map.utils :as map-utils]
-            [imas-seamap.utils :refer [merge-in ajax-loaded-info append-params-from-map decode-html-entities parse-state]]
+            [imas-seamap.utils :refer [merge-in ajax-loaded-info append-params-from-map decode-html-entities parse-state ids->layers]]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
 (defn- boot-flow []
@@ -169,7 +169,7 @@
   kept (applying any refresh that arrived mid-story); the open story is closed."
   [{:keys [pending-stories] :as kiosk}]
   (cond-> (dissoc kiosk :story-id :step-index :intro? :pending-stories :keep-view? :media-index :landed-step
-                  :feature-media :feature-html :feature-query :still-there?)
+                  :feature-media :feature-html :feature-query :bookmark :still-there?)
     pending-stories (assoc :stories pending-stories)))
 
 (declare prepare-flights home-target)
@@ -333,6 +333,25 @@
   (str (get-in db [:config :url-base :wordpress-url-base])
        "wp-json/wp/v2/story_map?acf_format=standard&per_page=100"))
 
+;; A save state's id at the end of a link: Seamap's shareable URLs
+;; (`…/#<id>`, as the admin page's Create Shareable URL gives).
+(def ^:private bookmark-re #"(?i)#([0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})$")
+
+(defn bookmark-shortcode
+  "The save state a link's `href` is a bookmark of, if it's one."
+  [href]
+  (some-> (re-find bookmark-re (str href)) second string/lower-case))
+
+(defn- bookmarks-in
+  "The save states of the bookmark links in a step's copy (HTML), in order."
+  [content]
+  (when (seq content)
+    (->> (.querySelectorAll (.-body (.parseFromString (js/DOMParser.) content "text/html")) "a[href]")
+         array-seq
+         (keep #(bookmark-shortcode (.getAttribute ^js % "href")))
+         distinct
+         vec)))
+
 (defn- response->story [{:keys [id title modified_gmt acf]}]
   {:id        id
    :title     (decode-html-entities (:rendered title))
@@ -348,6 +367,8 @@
                       {:title     subtitle
                        :content   description
                        :shortcode shortcode
+                       ;; Map bookmarks linked from its copy (see `go-to-bookmark`)
+                       :bookmarks (bookmarks-in description)
                        :media     (vec (or media []))})
                     (or (:map_links acf) []))})
 
@@ -378,14 +399,25 @@
   (some->> (get-in steps [0 :shortcode]) (step-target db)))
 
 (defn- step-flights
-  "The flights a visitor can take from the current step: back, next, home."
+  "The flights a visitor can take from the current step: back, next, home and
+  to its bookmarks; and from a bookmark of it, back to the step too."
   [db]
   (let [steps (:steps (current-story db))
         index (get-in db [:kiosk :step-index])
         to    #(some->> (get-in steps [% :shortcode]) (step-target db))]
-    (filterv some? [(when (pos? index) (to (dec index)))
-                    (to (inc index))
-                    (home-target db)])))
+    (filterv some? (concat [(when (get-in db [:kiosk :bookmark]) (to index))
+                            (when (pos? index) (to (dec index)))
+                            (to (inc index))
+                            (home-target db)]
+                           (map #(step-target db %) (get-in steps [index :bookmarks]))))))
+
+(defn- map-target
+  "Where the map is, or is going, with a story open: the bookmark the visitor
+  has gone to, or else the current step."
+  [db]
+  (if-let [shortcode (get-in db [:kiosk :bookmark :shortcode])]
+    (step-target db shortcode)
+    (some->> (current-shortcode db) (step-target db))))
 
 (defn- prepare-flights
   "The flights to keep ready (see `imas-seamap.tmag-kiosk.flight/prepare!`).
@@ -397,7 +429,7 @@
   (let [leaflet-map (get-in db [:map :leaflet-map])
         home        (home-target db)
         {:keys [story-id landed-step]} (:kiosk db)
-        step        (some->> (current-shortcode db) (step-target db))]
+        step        (map-target db)]
     (when (and leaflet-map (:basemap home))
       (cond
         (and story-id landed-step)
@@ -464,19 +496,34 @@
                 (get-in db [:map :leaflet-map])
                 (seq (get-in db [:map :grouped-base-layers])))))
 
+(defn- story-shortcodes
+  "A story's save states: its steps', and their bookmarks'."
+  [{:keys [steps]}]
+  (->> steps (mapcat #(cons (:shortcode %) (:bookmarks %))) (remove nil?) distinct))
+
 (defn- all-shortcodes [db]
-  (->> (get-in db [:kiosk :stories]) (mapcat :steps) (keep :shortcode) distinct))
+  (->> (get-in db [:kiosk :stories]) (mapcat story-shortcodes) distinct))
+
+(defn- all-bookmarks [db]
+  (->> (get-in db [:kiosk :stories]) (mapcat :steps) (mapcat :bookmarks) distinct))
 
 (defn- story-flights
   "Every flight of a story, into it from home first: then between its steps,
-  and home from each."
+  and home from each; then to each step's bookmarks, and from each back to its
+  step and on to the next."
   [db {:keys [steps]}]
   (let [home    (home-target db)
-        targets (mapv #(step-target db (:shortcode %)) steps)]
+        targets (mapv #(step-target db (:shortcode %)) steps)
+        marks   (mapv (fn [{:keys [bookmarks]}] (keep #(step-target db %) bookmarks)) steps)]
     (when (every? some? targets)
       (concat [{:from home :to (first targets)}]
               (for [[a b] (partition 2 1 targets)] {:from a :to b})
-              (for [t (rest targets)] {:from t :to home})))))
+              (for [t (rest targets)] {:from t :to home})
+              (for [[i t] (map-indexed vector targets)
+                    m      (get marks i)
+                    flight (concat [{:from t :to m} {:from m :to t}]
+                                   (when-let [next-t (get targets (inc i))] [{:from m :to next-t}]))]
+                flight)))))
 
 (defn warm-up [{:keys [db]} _]
   (let [kiosk     (:kiosk db)
@@ -485,10 +532,14 @@
         all-in?   (and (ready? db) (empty? uncached))
         revision  (juxt :id :revision)
         unfetched (when all-in? (remove #(contains? (:prefetched kiosk) (revision %)) (:stories kiosk)))
-        flights   (keep #(story-flights db %) unfetched)]
+        flights   (keep #(story-flights db %) unfetched)
+        ;; Bookmarks' features, asked for once (see `fetch-bookmark-features`)
+        features  (when all-in? (remove (set (:bookmark-features-requested kiosk)) (all-bookmarks db)))]
     (cond-> {:db         (cond-> (update-in db [:kiosk :save-states-requested] (fnil into #{}) to-fetch)
-                           (seq unfetched) (update-in [:kiosk :prefetched] (fnil into #{}) (map revision unfetched)))
-             :dispatch-n (mapv #(vector :kiosk.save-state/fetch %) to-fetch)}
+                           (seq unfetched) (update-in [:kiosk :prefetched] (fnil into #{}) (map revision unfetched))
+                           (seq features)  (update-in [:kiosk :bookmark-features-requested] (fnil into #{}) features))
+             :dispatch-n (into (mapv #(vector :kiosk.save-state/fetch %) to-fetch)
+                               (map #(vector :kiosk.bookmark/fetch-features %) features))}
       ;; Into each story first, as those are needed first.
       (seq flights)
       (assoc :kiosk/prefetch-flights {:leaflet-map (get-in db [:map :leaflet-map])
@@ -527,8 +578,10 @@
     (let [hashstate (get-in db [:kiosk :save-states shortcode])
           target    (step-target db shortcode)
           images    (->> (get-in db [:kiosk :stories]) (mapcat :steps)
-                         (filter #(= shortcode (:shortcode %))) (mapcat :media) (keep :url)
-                         (remove video?) distinct)]
+                         (filter #(= shortcode (:shortcode %))) (mapcat :media)
+                         ;; a bookmark's feature's, if they're in
+                         (concat (get-in db [:kiosk :bookmark-features shortcode :images]))
+                         (keep :url) (remove video?) distinct)]
       (if (and hashstate target)
         {:db               (update db :kiosk assoc :tour (vec more) :keep-view? true)
          :dispatch         [:merge-state hashstate]
@@ -558,7 +611,7 @@
 ;; flies to its first step. Meanwhile that flight is prepared.
 (defn open-story [{:keys [db]} [_ story-id]]
   (let [db         (update db :kiosk assoc :story-id story-id :step-index 0 :media-index 0 :intro? true)
-        uncached   (->> (current-story db) :steps (map :shortcode) distinct
+        uncached   (->> (current-story db) story-shortcodes
                         (remove #(get-in db [:kiosk :save-states %])))
         prepare    (prepare-flights db)]
     (cond-> {:db         db
@@ -581,14 +634,71 @@
   (update db :kiosk dissoc :intro?))
 
 (defn show-intro
-  "Back from the first step to the intro card; the map stays put."
+  "Back from the first step to the intro card; the map stays put. From a
+  bookmark, Begin flies back to the step (it's not showing)."
   [db _]
-  (update db :kiosk #(-> % (assoc :intro? true :media-index 0) (dissoc :feature-media :feature-html :feature-query))))
+  (update db :kiosk #(cond-> (-> % (assoc :intro? true :media-index 0) (dissoc :feature-media :feature-html :feature-query :bookmark))
+                       (:bookmark %) (dissoc :landed-step))))
 
 (defn go-to-step [{:keys [db]} [_ index]]
   (when (< -1 index (count (:steps (current-story db))))
-    {:db       (update db :kiosk #(-> % (assoc :step-index index :media-index 0) (dissoc :feature-media :feature-html :feature-query)))
+    {:db       (update db :kiosk #(-> % (assoc :step-index index :media-index 0) (dissoc :feature-media :feature-html :feature-query :bookmark)))
      :dispatch [:kiosk.step/apply-view]}))
+
+;;; Bookmarks. A step's copy can link to map bookmarks: Seamap save states, as
+;;; the admin page's shareable URLs (`bookmark-shortcode`). Tapping one is a
+;;; detour from the step: the map flies to the bookmark's view (its layers
+;;; applied on landing), and Back and Next go on from it. They're warmed up with the steps (save states, flights, the tour). A
+;;; bookmark saved with a feature open shows that feature as if it had been
+;;; tapped: its html in the story card at the tap, its images in the media card
+;;; on landing. Its features are fetched beforehand (`fetch-bookmark-features`),
+;;; so neither waits for the map.
+
+(defn- with-bookmark-feature
+  "`kiosk` showing bookmark `shortcode`'s feature, if it has one and it's in."
+  [kiosk shortcode]
+  (let [{:keys [images html]} (get-in kiosk [:bookmark-features shortcode])]
+    (cond-> kiosk
+      (seq images) (assoc :feature-media images)
+      html         (assoc :feature-html {:id shortcode :html html}))))
+
+(defn go-to-bookmark
+  "Flies to bookmark `shortcode` (see Bookmarks), once its save state is in
+  (`save-state-loaded` comes back here)."
+  [{:keys [db]} [_ shortcode]]
+  (let [leaflet-map (get-in db [:map :leaflet-map])
+        target      (step-target db shortcode)
+        hashstate   (get-in db [:kiosk :save-states shortcode])
+        db          (update db :kiosk #(-> %
+                                           (assoc :bookmark {:shortcode shortcode} :media-index 0)
+                                           (dissoc :feature-media :feature-html :feature-query)
+                                           (with-bookmark-feature shortcode)))]
+    (cond
+      (and leaflet-map target)
+      {:db        db
+       :kiosk/fly {:leaflet-map  leaflet-map
+                   :to           target
+                   :from-basemap (get-in db [:map :active-base-layer])
+                   :on-land      [:kiosk.bookmark/apply-layers shortcode]}}
+      hashstate
+      {:db (assoc-in db [:kiosk :bookmark :landed?] true) :dispatch [:merge-state hashstate]}
+      :else
+      {:db db :dispatch [:kiosk.save-state/fetch shortcode]})))
+
+(defn apply-bookmark-layers
+  "Applies bookmark `shortcode`'s save state on landing, apart from its view,
+  and prepares the flights on from it. Nothing to do if the visitor has moved
+  on. Its features, if they weren't in by the tap, are asked for now."
+  [{:keys [db]} [_ shortcode]]
+  (when (= shortcode (get-in db [:kiosk :bookmark :shortcode]))
+    (let [db (update db :kiosk #(-> %
+                                    (assoc :keep-view? true :landed-step (:step-index %))
+                                    (assoc-in [:bookmark :landed?] true)))]
+      (cond-> {:db         db
+               :dispatch-n [[:merge-state (get-in db [:kiosk :save-states shortcode])]
+                            (when-not (get-in db [:kiosk :bookmark-features shortcode])
+                              [:kiosk.bookmark/fetch-features shortcode])]}
+        (prepare-flights db) (assoc :kiosk/prepare-flights (prepare-flights db))))))
 
 ;;; Feature info. Tapping a step's map asks the layers under the tap for their
 ;;; features (WMS GetFeatureInfo, as JSON). Their images fill the media card in
@@ -673,13 +783,13 @@
        (remove #(map-utils/is-insecure? (:server_url %)))))
 
 (defn map-clicked
-  "The kiosk's `:map/clicked`: on a step whose map has landed, asks the WMS
-  layers under the tap for their features."
+  "The kiosk's `:map/clicked`: on a step whose map has landed (or a bookmark's),
+  asks the WMS layers under the tap for their features."
   [{:keys [db]} [_ leaflet-props point]]
-  (let [{:keys [story-id intro? landed-step step-index]} (:kiosk db)
+  (let [{:keys [story-id intro? landed-step step-index bookmark]} (:kiosk db)
         layers     (queryable-layers db point)
         request-id (random-uuid)]
-    (when (and story-id (not intro?) (= landed-step step-index) (seq layers))
+    (when (and story-id (not intro?) (= landed-step step-index) (or (not bookmark) (:landed? bookmark)) (seq layers))
       {:db         (assoc-in db [:kiosk :feature-query] {:id request-id :remaining (count layers) :features [] :point point})
        :http-xhrio (mapv #(feature-request % point leaflet-props
                                            [:kiosk.features/loaded request-id] [:kiosk.features/failed request-id])
@@ -740,6 +850,66 @@
 
 (defn features-failed [db [_ request-id _response]]
   (features-in db request-id []))
+
+;; A bookmark's feature (see Bookmarks): Seamap saves an open feature info as
+;; the point tapped (`[:feature :location]`) and the map's size and bounds
+;; then (`[:feature :leaflet-props]`), and its `merge-state` asks the layers
+;; again with them. The kiosk does the same, ahead of time, for the layers the
+;; bookmark shows there, and keeps the answer by bookmark
+;; (`:bookmark-features`; {} if it has none).
+
+(defn ignore-feature-info
+  "The kiosk's `:map/feature-info-dispatcher`, which Seamap's `merge-state`
+  dispatches for a save state with a feature open, for its popup: the kiosk has
+  no popup, and shows a bookmark's feature itself."
+  [_ _]
+  {})
+
+(defn fetch-bookmark-features
+  "Asks for bookmark `shortcode`'s feature, if its save state has one open."
+  [{:keys [db]} [_ shortcode]]
+  (let [state (parse-state (get-in db [:kiosk :save-states shortcode]))
+        {:keys [location leaflet-props]} (:feature state)
+        ;; The map as the bookmark shows it, for the layers under the point.
+        shown  (-> db
+                   (assoc-in [:map :active-layers] (filterv some? (ids->layers (get-in state [:map :active]) (get-in db [:map :layers]))))
+                   (assoc-in [:map :hidden-layers] #{})
+                   (assoc-in [:map :rich-layers :states] (get-in state [:map :rich-layers :states])))
+        layers (when (and location leaflet-props) (queryable-layers shown location))]
+    (if (seq layers)
+      {:db         (assoc-in db [:kiosk :bookmark-queries shortcode] {:remaining (count layers) :features [] :point location})
+       :http-xhrio (mapv #(feature-request % location leaflet-props
+                                           [:kiosk.bookmark/features-loaded shortcode]
+                                           [:kiosk.bookmark/features-failed shortcode])
+                         layers)}
+      {:db (assoc-in db [:kiosk :bookmark-features shortcode] {})})))
+
+(defn- bookmark-features-in
+  "One layer's answer (`features`) for bookmark `shortcode`'s feature. Once all
+  are in, kept (see `combined`); and shown if the visitor is already at the
+  bookmark, unless they've tapped a feature since."
+  [db shortcode features]
+  (if-not (get-in db [:kiosk :bookmark-queries shortcode])
+    db
+    (let [db (-> db
+                 (update-in [:kiosk :bookmark-queries shortcode :remaining] dec)
+                 (update-in [:kiosk :bookmark-queries shortcode :features] into features))
+          {:keys [remaining point] found :features} (get-in db [:kiosk :bookmark-queries shortcode])]
+      (if (pos? remaining)
+        db
+        (let [{:keys [bookmark feature-media feature-html]} (:kiosk db)
+              db (-> db
+                     (update-in [:kiosk :bookmark-queries] dissoc shortcode)
+                     (assoc-in [:kiosk :bookmark-features shortcode] (combined found point)))]
+          (cond-> db
+            (and (= shortcode (:shortcode bookmark)) (not feature-media) (not feature-html))
+            (update :kiosk with-bookmark-feature shortcode)))))))
+
+(defn bookmark-features-loaded [db [_ shortcode response]]
+  (bookmark-features-in db shortcode (keep feature->info (:features response))))
+
+(defn bookmark-features-failed [db [_ shortcode _response]]
+  (bookmark-features-in db shortcode []))
 
 (defn select-media
   "Shows the current step's `index`th media item in the media card."
@@ -817,6 +987,10 @@
         (and (= shortcode (current-shortcode db)) (get-in db [:kiosk :intro?]))
         (cond-> {:db db}
           (prepare-flights db) (assoc :kiosk/prepare-flights (prepare-flights db)))
+        ;; A bookmark tapped before its save state was in.
+        (and (= shortcode (get-in db [:kiosk :bookmark :shortcode]))
+             (not (get-in db [:kiosk :bookmark :landed?])))
+        {:db db :dispatch [:kiosk.bookmark/go shortcode]}
         ;; Only move the map if the visitor is still on the step that asked.
         (= shortcode (current-shortcode db))
         {:db db :dispatch [:kiosk.step/apply-view]}

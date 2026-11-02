@@ -13,7 +13,7 @@
             [re-frame.core :as re-frame]
             [imas-seamap.blueprint :as b]
             [imas-seamap.views :as views]
-            [imas-seamap.tmag-kiosk.events :refer [one-column? attract-video-url]]
+            [imas-seamap.tmag-kiosk.events :refer [one-column? attract-video-url bookmark-shortcode]]
             [imas-seamap.tmag-kiosk.map.views :refer [map-component]]
             [imas-seamap.tmag-kiosk.idle :as idle]
             [imas-seamap.tmag-kiosk.media-cache :as media-cache]
@@ -133,10 +133,31 @@
          (.removeAttribute el (.-name attr)))
        (.-innerHTML body)))))
 
+(def ^:private with-bookmark-links
+  "`content` with its map bookmark links (see
+  `imas-seamap.tmag-kiosk.events/bookmark-shortcode`) marked as such: they're
+  the only links in the narrative that can be tapped."
+  (memoize
+   (fn [content]
+     (let [body  (.-body (.parseFromString (js/DOMParser.) (or content "") "text/html"))
+           links (filter #(bookmark-shortcode (.getAttribute ^js % "href"))
+                         (array-seq (.querySelectorAll body "a[href]")))]
+       (if (seq links)
+         (do (doseq [^js a links] (.add (.-classList a) "bookmark-link"))
+             (.-innerHTML body))
+         content)))))
+
+(defn- narrative-click
+  "A tap on a bookmark link in the narrative goes to its bookmark."
+  [^js e]
+  (when-let [^js a (.closest (.-target e) "a.bookmark-link")]
+    (.preventDefault e)
+    (re-frame/dispatch [:kiosk.bookmark/go (bookmark-shortcode (.getAttribute a "href"))])))
+
 (defn- copy [{step-title :title :keys [content]} class]
   [:div.story-copy {:class class}
    (when (seq step-title) [:h1 step-title])
-   [:div.narrative [html content]]])
+   [:div.narrative {:on-click narrative-click} [html (with-bookmark-links content)]]])
 
 (defn- step-copy
   "The step's copy. On to another step, the last one's copy fades out over it

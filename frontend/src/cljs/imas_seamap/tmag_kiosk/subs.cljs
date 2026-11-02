@@ -16,14 +16,21 @@
 (defn intro? [db _]
   (get-in db [:kiosk :intro?]))
 
+(defn- bookmark-flying?
+  "Whether the map is on its way to a bookmark (see
+  `imas-seamap.tmag-kiosk.events/go-to-bookmark`)."
+  [{{:keys [bookmark]} :kiosk}]
+  (boolean (and bookmark (not (:landed? bookmark)))))
+
 (defn media
   "The current step's media, for the media card: [{:url :lat :lon :caption
   :overlay}]. Only once its flight has landed: the media belongs to the place,
   and loading it (a video's first frame) mid-flight can cost a frame. None on
-  the story's intro card. A tapped feature's media replaces the step's."
+  the story's intro card. A tapped feature's media (or a bookmark's feature's,
+  once there) replaces the step's."
   [db _]
   (let [{:keys [landed-step step-index intro? feature-media]} (:kiosk db)]
-    (when (and (= landed-step step-index) (not intro?))
+    (when (and (= landed-step step-index) (not intro?) (not (bookmark-flying? db)))
       (or feature-media
           (get-in (tkevents/current-story db) [:steps step-index :media])))))
 
@@ -39,12 +46,14 @@
 (defn media-markers
   "The map's media markers: those of the step whose map is showing, which
   lags the story card by a flight; `:selected` is the item in the media card,
-  once the map has caught up. None on the story's intro card."
+  once the map has caught up. None on the story's intro card. On the way to a
+  bookmark, still the step's, until the map's there."
   [db _]
-  (let [{:keys [landed-step step-index media-index intro? feature-media]} (:kiosk db)]
+  (let [{:keys [landed-step step-index media-index intro? feature-media]} (:kiosk db)
+        flying? (bookmark-flying? db)]
     (when (and landed-step (not intro?))
-      {:media    (or feature-media (get-in (tkevents/current-story db) [:steps landed-step :media]))
-       :selected (when (= landed-step step-index) (or media-index 0))})))
+      {:media    (or (when-not flying? feature-media) (get-in (tkevents/current-story db) [:steps landed-step :media]))
+       :selected (when (and (= landed-step step-index) (not flying?)) (or media-index 0))})))
 
 (defn story-markers
   "The home map's story markers: [{:id :lat :lon :icon :selected?}], for
@@ -62,12 +71,12 @@
         (assoc marker :id id :selected? (= id story-id))))))
 
 (defn step-landed?
-  "Whether the current step's flight has landed, so its layers are on the
-  map. Not on the story's intro card, nor on the attract screen (behind it,
-  the tour applies steps)."
+  "Whether the current step's flight (or a bookmark's) has landed, so its
+  layers are on the map. Not on the story's intro card, nor on the attract
+  screen (behind it, the tour applies steps)."
   [db _]
   (let [{:keys [landed-step step-index intro? attract?]} (:kiosk db)]
-    (and (= landed-step step-index) (not intro?) (not attract?))))
+    (and (= landed-step step-index) (not intro?) (not attract?) (not (bookmark-flying? db)))))
 
 (defn legends
   "The legends for the legend card: those of the step's visible layers that

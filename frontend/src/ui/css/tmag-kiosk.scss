@@ -436,9 +436,13 @@
         &.after-morph { animation-delay: .4s; }
     }
     @keyframes kiosk-story-copy-out { to { opacity: 0; } }
+    $bookmark-link-pad: u(6);
     .narrative {
         min-height: 0;
-        margin: u(12) 0 u(24);
+        // The bottom padding is the bookmark links' (below): a link on the
+        // last line would otherwise overflow by it, and scroll.
+        margin: u(12) 0 calc(#{u(24)} - #{$bookmark-link-pad});
+        padding-bottom: $bookmark-link-pad;
         overflow-y: auto;
         overscroll-behavior: contain;
 
@@ -452,6 +456,21 @@
         img { display: block; max-width: 100%; height: auto; margin: u(12) 0; border-radius: u(8); }
         b, strong { font-weight: 850; }
         a { color: inherit; pointer-events: none; text-decoration: none; }
+        // Map bookmarks (`with-bookmark-links`): the only links that can be
+        // tapped. Taller than the line, for a finger.
+        a.bookmark-link {
+            padding: $bookmark-link-pad 0;
+            color: var(--kiosk-purple);
+            font-weight: 800;
+            text-decoration: underline;
+            text-decoration-thickness: u(2);
+            text-underline-offset: u(4);
+            pointer-events: auto;
+            cursor: pointer;
+            -webkit-tap-highlight-color: transparent;
+
+            &:active { color: var(--kiosk-purple-dark); background: rgba(109, 38, 127, .1); }
+        }
     }
     @keyframes kiosk-story-copy-in {
         from { opacity: 0; transform: translateY(u(5)); }

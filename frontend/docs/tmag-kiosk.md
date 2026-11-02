@@ -70,6 +70,23 @@ what's still open. Keep it current: update it in the same change as the code it 
   until their data is in this format. The html comes from layer data rather than the
   kiosk's WordPress, so scripts, embeds, forms and event attributes are stripped
   (`safe-html`); its links are inert, as in all the narrative.
+- A step's copy can link to map bookmarks: Seamap save states, by their shareable URL
+  (`…#<save state id>`, as the admin page's Create Shareable URL gives; any host). They're
+  the only tappable links in the copy, purple and underlined (`with-bookmark-links`); others
+  stay inert. Tapping one is a detour from the step (`go-to-bookmark`): the map flies to the
+  bookmark's view and applies its layers on landing. The buttons don't change (the copy
+  only does if the bookmark has a feature with html): Back and Next go on from the
+  bookmark. A bookmark
+  saved with a feature info open shows that feature as if tapped: its html in place of the
+  copy at the tap, its images in the media card on landing (nothing is added mid-flight).
+  Seamap saves an open feature info as the point tapped and the map's size and bounds then
+  (`[:feature :location]`, `[:feature :leaflet-props]`), and asks the layers again with
+  them; the kiosk does the same during the warm-up, for the layers the bookmark shows there
+  (`fetch-bookmark-features`), so neither waits on the network. Bookmarks are warmed up
+  with the steps: save states, flights (step to bookmark, back, and on to the next step),
+  the tour, and their flights are prepared while on the step. Seamap's own feature query
+  on `merge-state` (for its popup) is switched off (`ignore-feature-info`). A feature
+  saved in a step's own state is ignored.
 - Each step's layers' legends are on a card at the bottom of the map against the story
   card (`legend-card`), topmost layer first, without headings, once the step's flight has
   landed (`:kiosk/legends`); a layer without a legend (or still loading it) is left out.
@@ -292,7 +309,7 @@ what's still open. Keep it current: update it in the same change as the code it 
 | File | Role |
 |---|---|
 | `core.cljs` | Handler registration (the deployment's `config-handlers`), `init`, `warm_up_status()` |
-| `events.cljs` | Boot, stories, steps, flight targets, warm-up and the attract-screen tour, feature taps, idle reset |
+| `events.cljs` | Boot, stories, steps, flight targets, warm-up and the attract-screen tour, bookmarks, feature taps, idle reset |
 | `subs.cljs` | Kiosk subscriptions (story, step, media, markers, legends) |
 | `views.cljs`, `map/views.cljs` | Layout (story list, story card, media card, legend card, "Still there?", attract screen), the map, and the story and media markers |
 | `idle.cljs` | Inactivity timer; a playing video counts as activity. After 2 minutes without input (`prompt-after-ms`) "Still there?" is asked, with a bar running down for `prompt-ms` (5 s) before the kiosk goes idle; any input answers it, and its scrim takes that tap |

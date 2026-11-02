@@ -163,7 +163,10 @@
     :map/clicked                          [tkevents/map-clicked] ; features to the media and story cards, not Seamap's popup
     :kiosk.features/loaded                tkevents/features-loaded
     :kiosk.features/failed                tkevents/features-failed
-    :map/feature-info-dispatcher          [mevents/feature-info-dispatcher]
+    :map/feature-info-dispatcher          [tkevents/ignore-feature-info] ; no popup: bookmarks' features are the kiosk's own
+    :kiosk.bookmark/fetch-features        [tkevents/fetch-bookmark-features]
+    :kiosk.bookmark/features-loaded       tkevents/bookmark-features-loaded
+    :kiosk.bookmark/features-failed       tkevents/bookmark-features-failed
     :map/get-feature-info                 [mevents/get-feature-info]
     :map/get-feature-info-map-server-step-2 [mevents/get-feature-info-map-server-step-2] ; MapServer layers need to make an additional request to determine if they are a group layer
     :map/got-featureinfo                  mevents/got-feature-info
@@ -258,6 +261,8 @@
     :kiosk.step/apply-layers              [tkevents/apply-step-layers]
     :kiosk/start-again                    [tkevents/start-again]
     :kiosk.media/select                   tkevents/select-media
+    :kiosk.bookmark/go                    [tkevents/go-to-bookmark]
+    :kiosk.bookmark/apply-layers          [tkevents/apply-bookmark-layers]
     :kiosk.save-state/fetch               [tkevents/fetch-save-state]
     :kiosk.save-state/loaded              [tkevents/save-state-loaded]
     :kiosk.save-state/load-failed         [tkevents/save-state-load-failed]
