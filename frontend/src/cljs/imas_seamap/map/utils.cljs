@@ -210,7 +210,11 @@
                        :compression "DEFLATE"
                        :format      (type->format-str download-type)
                        :coverageId (or detail_layer layer_name)})
-        (str (when bounds (str "&subset=Lat(" south "," north ")&subset=Long(" west "," east ")")))))) ; Add bounds params if provided. Can't be part of query dict because 'subset' param is used twice.
+        ;; Add bounds params if provided. Can't be part of query dict because 'subset' param is used twice.
+        (str (when bounds
+               (str "&subset=Lat(" south "," north ")"
+                    "&subset=Long(" west "," east ")"
+                    "&subsettingCRS=EPSG:4326"))))))
 
 (defmethod download-link :thredds-wcs
   [{:keys [server_url detail_layer layer_name] :as _layer}
