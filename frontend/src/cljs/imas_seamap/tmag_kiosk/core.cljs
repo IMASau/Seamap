@@ -68,6 +68,7 @@
     :kiosk/intro?                         tksubs/intro?
     :kiosk/attract?                       tksubs/attract?
     :kiosk/still-there?                   tksubs/still-there?
+    :kiosk/reset-map?                     tksubs/reset-map?
     :kiosk/media                          tksubs/media
     :kiosk/media-index                    tksubs/media-index
     :kiosk/feature-html                   tksubs/feature-html
@@ -261,6 +262,8 @@
     :kiosk.step/apply-layers              [tkevents/apply-step-layers]
     :kiosk/start-again                    [tkevents/start-again]
     :kiosk.media/select                   tkevents/select-media
+    :kiosk.step/reset-map                 [tkevents/reset-map]
+    :kiosk.step/map-reset                 [tkevents/map-reset]
     :kiosk.bookmark/go                    [tkevents/go-to-bookmark]
     :kiosk.bookmark/apply-layers          [tkevents/apply-bookmark-layers]
     :kiosk.save-state/fetch               [tkevents/fetch-save-state]

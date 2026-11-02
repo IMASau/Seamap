@@ -498,6 +498,30 @@
     }
     .step-number { color: var(--kiosk-muted); font-size: u(13); font-variant-numeric: tabular-nums; }
     .story-actions { display: flex; gap: u(14); justify-content: flex-end; }
+    // On every step, above the zoom control and drawn like its buttons.
+    // Faded until there's something to reset.
+    .reset-map-button {
+        position: absolute;
+        z-index: 20;
+        left: var(--kiosk-gutter);
+        bottom: calc(var(--kiosk-bezel-h) + var(--kiosk-gutter) + #{u(132)} + #{u(12)});
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        width: u(60);
+        height: u(60);
+        padding: 0;
+        border: u(2) solid rgba(0, 0, 0, .25);
+        border-radius: u(12);
+        background: white;
+        box-shadow: 0 u(4) u(14) rgba(14, 44, 58, .25);
+        cursor: pointer;
+        transition: opacity .2s;
+
+        svg { width: u(28); height: u(28); }
+        &:active { transform: scale(.97); }
+        &:disabled { opacity: .45; cursor: default; transform: none; }
+    }
     // Type scales down; touch targets keep kiosk size.
     .home-button, .back-button, .next-button {
         min-width: 0;
@@ -537,7 +561,8 @@
     // centred in the column the zoom control leaves, so its buttons stay in
     // easy reach.
     .media-card {
-        // The zoom control: two u(60) buttons and the gap between them.
+        // The zoom control: two u(60) buttons and the gap between them. Reset
+        // map above it fits below the card as it is.
         --kiosk-left-controls-h: calc(var(--kiosk-bezel-h) + 2 * var(--kiosk-gutter) + #{u(132)});
 
         position: absolute;
@@ -886,6 +911,7 @@
         --kiosk-story-card-w: max(#{u(350)}, 22.058824vw);
 
         .leaflet-bottom.leaflet-left { bottom: u(24); }
+        .reset-map-button { bottom: calc(#{u(24)} + #{u(132)} + #{u(12)}); }
         .browse-card, .panel-morph { bottom: u(24); }
         .story-card {
             bottom: u(24);

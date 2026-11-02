@@ -180,7 +180,7 @@
 
 (defn- story-card
   "The step's card. A tapped feature with html (`:kiosk/feature-html`) takes
-  the copy's place."
+  the copy's place (Reset map, `reset-map-button`, puts the step's back)."
   []
   (let [{:keys [title image steps]} @(re-frame/subscribe [:kiosk/story])
         index      @(re-frame/subscribe [:kiosk/step-index])
@@ -216,6 +216,17 @@
                                         [:kiosk/start-again]
                                         [:kiosk.step/go (inc index)]))}
        (if last-step? "Finish" "Next ›")]]]))
+
+(defn- reset-map-button
+  "Reset map, above the zoom control on every step: puts the map (and the
+  story card's copy and the media) back as the step had them. Only enabled
+  once there's something to reset (`:kiosk/reset-map?`)."
+  []
+  [:button.reset-map-button
+   {:aria-label "Reset map"
+    :disabled   (not @(re-frame/subscribe [:kiosk/reset-map?]))
+    :on-click   #(re-frame/dispatch [:kiosk.step/reset-map])}
+   [b/icon {:icon "locate"}]])
 
 ;;; Media: the step's photos and videos, each at a place on the map (see
 ;;; `imas-seamap.tmag-kiosk.map.views/media-markers`). One fixed card, whatever
@@ -499,6 +510,7 @@
            ;; The media card belongs to the steps.
            :step  [:<>
                    [story-card]
+                   [reset-map-button]
                    [media-card]
                    [legend-card]])
          [loading-notice]

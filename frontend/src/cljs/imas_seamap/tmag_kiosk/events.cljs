@@ -169,7 +169,7 @@
   kept (applying any refresh that arrived mid-story); the open story is closed."
   [{:keys [pending-stories] :as kiosk}]
   (cond-> (dissoc kiosk :story-id :step-index :intro? :pending-stories :keep-view? :media-index :landed-step
-                  :feature-media :feature-html :feature-query :bookmark :still-there?)
+                  :feature-media :feature-html :feature-query :bookmark :still-there? :start-view)
     pending-stories (assoc :stories pending-stories)))
 
 (declare prepare-flights home-target)
@@ -618,7 +618,7 @@
              :dispatch-n (mapv #(vector :kiosk.save-state/fetch %) uncached)}
       prepare (assoc :kiosk/prepare-flights prepare))))
 
-(declare apply-step-view)
+(declare apply-step-view landed)
 
 (defn begin-flight
   "Begin's flight to the first step, unless its map is already showing (back on
@@ -645,10 +645,48 @@
     {:db       (update db :kiosk #(-> % (assoc :step-index index :media-index 0) (dissoc :feature-media :feature-html :feature-query :bookmark)))
      :dispatch [:kiosk.step/apply-view]}))
 
+(defn reset-map
+  "Reset map: the step as it was, its copy and media in place of a tapped
+  feature's or a bookmark's. The map flies back to the step's view: from a
+  bookmark, the step's layers are applied on landing (and its media wait for
+  that, as `landed-step` is unset until then); otherwise only the view has
+  moved (the visitor's panning and zooming). Mid-way through the flight into
+  the step, it's already on its way."
+  [{:keys [db] :as cofx} _]
+  (let [{:keys [bookmark landed-step step-index]} (:kiosk db)
+        shortcode   (current-shortcode db)
+        leaflet-map (get-in db [:map :leaflet-map])
+        target      (step-target db shortcode)
+        db          (update db :kiosk #(-> % (assoc :media-index 0) (dissoc :feature-media :feature-html :feature-query :bookmark)))]
+    (cond
+      bookmark
+      (let [db (update db :kiosk dissoc :landed-step)]
+        (merge {:db db} (apply-step-view (assoc cofx :db db) nil)))
+
+      (and (= landed-step step-index) leaflet-map target)
+      {:db        db
+       :kiosk/fly {:leaflet-map  leaflet-map
+                   :to           target
+                   :from-basemap (get-in db [:map :active-base-layer])
+                   :on-land      [:kiosk.step/map-reset shortcode]}}
+
+      :else
+      {:db db})))
+
+(defn map-reset
+  "Back at the step's view after Reset map: the flights on from it are made
+  ready again. Nothing to do if the visitor has moved on."
+  [{:keys [db]} [_ shortcode]]
+  (when (and (= shortcode (current-shortcode db)) (not (get-in db [:kiosk :bookmark])))
+    (let [db (landed db)]
+      (cond-> {:db db}
+        (prepare-flights db) (assoc :kiosk/prepare-flights (prepare-flights db))))))
+
 ;;; Bookmarks. A step's copy can link to map bookmarks: Seamap save states, as
 ;;; the admin page's shareable URLs (`bookmark-shortcode`). Tapping one is a
 ;;; detour from the step: the map flies to the bookmark's view (its layers
-;;; applied on landing), and Back and Next go on from it. They're warmed up with the steps (save states, flights, the tour). A
+;;; applied on landing), and Reset map (`reset-map`) flies back to the step.
+;;; They're warmed up with the steps (save states, flights, the tour). A
 ;;; bookmark saved with a feature open shows that feature as if it had been
 ;;; tapped: its html in the story card at the tap, its images in the media card
 ;;; on landing. Its features are fetched beforehand (`fetch-bookmark-features`),
@@ -691,9 +729,11 @@
   on. Its features, if they weren't in by the tap, are asked for now."
   [{:keys [db]} [_ shortcode]]
   (when (= shortcode (get-in db [:kiosk :bookmark :shortcode]))
-    (let [db (update db :kiosk #(-> %
-                                    (assoc :keep-view? true :landed-step (:step-index %))
-                                    (assoc-in [:bookmark :landed?] true)))]
+    (let [db (-> db
+                 (update :kiosk #(-> %
+                                     (assoc :keep-view? true :landed-step (:step-index %))
+                                     (assoc-in [:bookmark :landed?] true)))
+                 landed)]
       (cond-> {:db         db
                :dispatch-n [[:merge-state (get-in db [:kiosk :save-states shortcode])]
                             (when-not (get-in db [:kiosk :bookmark-features shortcode])
@@ -704,8 +744,8 @@
 ;;; features (WMS GetFeatureInfo, as JSON). Their images fill the media card in
 ;;; place of the step's own, nearest feature first, and the nearest feature
 ;;; with html takes the step copy's place in the story card, until the visitor
-;;; moves on. Only once the step's flight has landed: elsewhere there's no
-;;; media card.
+;;; moves on or resets the map. Only once the step's flight has landed:
+;;; elsewhere there's no media card.
 
 ;; How far around a tap a feature counts as tapped, in design units (see
 ;; `--kiosk-u` in tmag-kiosk.scss): it's a finger, not a pointer.
@@ -916,6 +956,14 @@
   [db [_ index]]
   (assoc-in db [:kiosk :media-index] index))
 
+(defn- landed
+  "`db` with the map's view kept as where it landed, for Reset map (see
+  `imas-seamap.tmag-kiosk.subs/reset-map?`). A landing's `on-land` comes after
+  the map's `:map/view-updated` for it (both are dispatched, the latter from
+  Leaflet's moveend as the flight puts the map there), so `db` has the view."
+  [db]
+  (assoc-in db [:kiosk :start-view] (select-keys (:map db) [:center :zoom])))
+
 (defn apply-step-view
   "Flies to the current step's map view if its save state has arrived (see
   `imas-seamap.tmag-kiosk.flight`); otherwise `save-state-loaded` does it on
@@ -941,10 +989,12 @@
   (when (= shortcode (current-shortcode db))
     (let [leaflet-map (get-in db [:map :leaflet-map])
           from        (step-target db shortcode)]
-      (cond-> {:db       (update db :kiosk assoc
-                                 :keep-view? true
-                                 ;; The step whose map is showing (see `:kiosk/media-markers`)
-                                 :landed-step (get-in db [:kiosk :step-index]))
+      (cond-> {:db       (-> db
+                             (update :kiosk assoc
+                                     :keep-view? true
+                                     ;; The step whose map is showing (see `:kiosk/media-markers`)
+                                     :landed-step (get-in db [:kiosk :step-index]))
+                             landed)
                :dispatch [:merge-state (get-in db [:kiosk :save-states shortcode])]}
         (and leaflet-map from)
         (assoc :kiosk/prepare-flights (prepare-flights db))))))

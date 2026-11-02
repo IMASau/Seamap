@@ -52,13 +52,23 @@ what's still open. Keep it current: update it in the same change as the code it 
   the touch-sandbox project (below). Don't port the prototype's map interaction (drift
   detection, snap-back) or Seamap's own map tools (custom controls, scale, keyboard
   shortcuts, the feature-info popup).
+- Reset map, a square re-centre button above the zoom control on every step, drawn like its
+  buttons (`reset-map-button`, `reset-map`; the media card stays centred above the zoom
+  control alone, with room below it for this), is faded and disabled until there's
+  something to reset (`:kiosk/reset-map?`): the map moved more than 4 screen pixels or 0.01
+  zoom levels from where it landed (`:start-view`, kept by `landed`), a bookmark, or a
+  tapped feature. It puts the step back as it was: the map flies back to the step's view
+  (from wherever the visitor panned or zoomed it, or from a bookmark, whose layers are
+  swapped for the step's on landing), and a tapped feature's or bookmark's html and media
+  give way to the step's. During the flight into a step it only clears those (the map's
+  already on its way).
 - Tapping a feature on a step's landed map (`map-clicked`): every visible WMS layer under the
   tap is asked for its features as JSON (GetFeatureInfo, `BUFFER` of 15 design units for a
   finger). A feature can have several images and one html fragment. All the tapped
   features' images fill the media card in place of the step's, nearest feature first; the
   nearest feature with html takes the step copy's place in the story card. The buttons
-  don't change. Moving to another step (or back to the intro) returns to the step's copy
-  and media. A feature without images leaves the step's media; without html,
+  don't change. Reset map, or moving to another step (or back to the intro), returns to the
+  step's copy and media. A feature without images leaves the step's media; without html,
   its copy. A tap that finds nothing changes nothing; a later tap's features replace an
   earlier's. Tapping a media marker only selects that item.
 - The feature format is provisional (the common one isn't settled), read only by
@@ -75,8 +85,8 @@ what's still open. Keep it current: update it in the same change as the code it 
   the only tappable links in the copy, purple and underlined (`with-bookmark-links`); others
   stay inert. Tapping one is a detour from the step (`go-to-bookmark`): the map flies to the
   bookmark's view and applies its layers on landing. The buttons don't change (the copy
-  only does if the bookmark has a feature with html): Back and Next go on from the
-  bookmark. A bookmark
+  only does if the bookmark has a feature with html): Reset map flies back to the step
+  and restores its copy and media, and Back and Next go on from the bookmark. A bookmark
   saved with a feature info open shows that feature as if tapped: its html in place of the
   copy at the tap, its images in the media card on landing (nothing is added mid-flight).
   Seamap saves an open feature info as the point tapped and the map's size and bounds then
@@ -309,9 +319,9 @@ what's still open. Keep it current: update it in the same change as the code it 
 | File | Role |
 |---|---|
 | `core.cljs` | Handler registration (the deployment's `config-handlers`), `init`, `warm_up_status()` |
-| `events.cljs` | Boot, stories, steps, flight targets, warm-up and the attract-screen tour, bookmarks, feature taps, idle reset |
-| `subs.cljs` | Kiosk subscriptions (story, step, media, markers, legends) |
-| `views.cljs`, `map/views.cljs` | Layout (story list, story card, media card, legend card, "Still there?", attract screen), the map, and the story and media markers |
+| `events.cljs` | Boot, stories, steps, flight targets, warm-up and the attract-screen tour, bookmarks, feature taps, Reset map, idle reset |
+| `subs.cljs` | Kiosk subscriptions (story, step, media, markers, legends, Reset map) |
+| `views.cljs`, `map/views.cljs` | Layout (story list, story card, media card, legend card, Reset map, "Still there?", attract screen), the map, and the story and media markers |
 | `idle.cljs` | Inactivity timer; a playing video counts as activity. After 2 minutes without input (`prompt-after-ms`) "Still there?" is asked, with a bar running down for `prompt-ms` (5 s) before the kiosk goes idle; any input answers it, and its scrim takes that tap |
 | `inertia.cljs` | Leaflet's drag inertia: every flick glides, starting at the release speed (replaces `Map.Drag` `_onDragEnd`); a touch stops a glide |
 | `map/limits.cljs` | The kiosk's extent and zoom range, resisting drags and pinches past them and springing back in one move (replaces `Map.TouchZoom` `_onTouchMove` and `_onTouchEnd`, and the map's `_limitCenter`) |

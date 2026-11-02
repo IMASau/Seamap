@@ -40,6 +40,25 @@
   [db _]
   (get-in db [:kiosk :feature-html]))
 
+;; How far the map can be from where it landed and still count as there, in
+;; screen pixels (at zoom z the world is 256 * 2^z of them round).
+(def ^:private moved-px 4)
+
+(defn reset-map?
+  "Whether Reset map has anything to reset: the visitor has moved the map from
+  where it landed (`:start-view`), gone to a bookmark, or tapped a feature."
+  [db _]
+  (let [{:keys [bookmark feature-media feature-html start-view]} (:kiosk db)
+        {:keys [center zoom]} (:map db)]
+    (boolean
+     (or bookmark feature-media feature-html
+         (when (and start-view (seq center) zoom)
+           (let [px-per-deg (/ (* 256 (js/Math.pow 2 zoom)) 360)
+                 [lat lng]  center
+                 [lat0 lng0] (:center start-view)]
+             (or (> (js/Math.abs (- zoom (:zoom start-view))) 0.01)
+                 (> (* px-per-deg (max (js/Math.abs (- lat lat0)) (js/Math.abs (- lng lng0)))) moved-px))))))))
+
 (defn media-index [db _]
   (get-in db [:kiosk :media-index] 0))
 
