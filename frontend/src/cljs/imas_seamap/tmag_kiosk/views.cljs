@@ -285,6 +285,68 @@
          [:button.media-next {:aria-label "Next"
                               :on-click   #(re-frame/dispatch [:kiosk.media/select (mod (inc index) total)])} "›"]])]]))
 
+;;; Legends: the step's layers' keys, beside the story card. Drawn here rather
+;;; than with Seamap's `legend-display`, to size them in design units.
+
+(defn- legend-key [info]
+  (if (string? info)
+    ;; A legend graphic (eg WMS GetLegendGraphic): drawn at a design unit per
+    ;; pixel, so twice its size on the table, like the rest of the layout.
+    [:img.legend-graphic
+     {:src     info
+      :alt     ""
+      :on-load #(let [^js img (.-target %)]
+                  (.setProperty (.-style img) "--natural-w" (.-naturalWidth img)))}]
+    ;; Vector keys, [{:label :image}] or [{:label :style}]: a swatch and a label.
+    [:ul.legend-entries
+     (map-indexed
+      (fn [i {:keys [label image style]}]
+        ^{:key i}
+        [:li
+         [:span.legend-swatch (if image [:img {:src image :alt ""}] [:span {:style style}])]
+         [:span.legend-label (string/replace (str label) #"\\n" "\n")]])
+      info)]))
+
+(defn- fit-legends!
+  "Scales the keys down to fit the frame, only if they're larger than it, and
+  sizes the card to them: the card never scrolls. The keys are laid out at
+  their own size, which the transform doesn't change, so this doesn't feed
+  back into the observer."
+  [^js frame]
+  (let [^js card (.-firstChild frame)
+        ^js keys (.-firstChild card)
+        style    (js/getComputedStyle card)
+        chrome   #(transduce (map (fn [prop] (js/parseFloat (.getPropertyValue style prop)))) + %&)
+        w        (.-offsetWidth keys)
+        h        (.-offsetHeight keys)]
+    (when (and (pos? w) (pos? h))
+      (let [s (min 1
+                   (/ (- (.-clientWidth frame) (chrome "padding-left" "padding-right" "border-left-width" "border-right-width")) w)
+                   (/ (- (.-clientHeight frame) (chrome "padding-top" "padding-bottom" "border-top-width" "border-bottom-width")) h))]
+        (doto (.-style card)
+          (.setProperty "--legend-w" (str w "px"))
+          (.setProperty "--legend-h" (str h "px"))
+          (.setProperty "--legend-s" s))))))
+
+(defn- legend-card []
+  (let [observer (atom nil)
+        ;; Refitted as images load, and as the keys change from step to step.
+        frame!   (fn [^js frame]
+                   (some-> ^js @observer .disconnect)
+                   (reset! observer
+                           (when frame
+                             (doto (js/ResizeObserver. #(fit-legends! frame))
+                               (.observe frame)
+                               (.observe (.. frame -firstChild -firstChild))))))]
+    (fn []
+      (when-let [legends (seq @(re-frame/subscribe [:kiosk/legends]))]
+        [:div.legend-frame {:ref frame!}
+         [:section.legend-card
+          [:div.legend-keys
+           (for [{:keys [layer-id info]} legends]
+             ^{:key layer-id}
+             [:div.legend [legend-key info]])]]]))))
+
 ;;; Map chrome
 
 (defn- loading-notice []
@@ -386,6 +448,7 @@
            ;; The media card belongs to the steps.
            :step  [:<>
                    [story-card]
-                   [media-card]])
+                   [media-card]
+                   [legend-card]])
          [loading-notice]
          [attract-screen]]))))

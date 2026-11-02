@@ -63,6 +63,14 @@ what's still open. Keep it current: update it in the same change as the code it 
   `image_orig` before `url`, which is a web page on the iNaturalist layer; `latitude`/
   `longitude`; caption from `common_name` and `scientific_name`; `temperature` and `depth`
   as readings).
+- Each step's layers' legends are on a card at the bottom of the map against the story
+  card (`legend-card`), topmost layer first, without headings, once the step's flight has
+  landed (`:kiosk/legends`); a layer without a legend (or still loading it) is left out.
+  Legend graphics are drawn at a design unit per pixel. The legends are expected to be
+  made for the kiosk, so they show at their own size, up to 360 design units wide (wider
+  graphics shrink to it, text wraps) and half the screen tall; the keys are scaled down
+  to fit only if they're taller (`fit-legends!`). The card never scrolls. Not on the home
+  map.
 - Controls go where a hand reaches them, and the costly ones away from stray taps: the zoom
   control is bottom-left (a stray zoom is harmless), and Start again is a house icon at the
   left of the story card's Back/Next row, not in a screen corner.
@@ -278,8 +286,8 @@ what's still open. Keep it current: update it in the same change as the code it 
 |---|---|
 | `core.cljs` | Handler registration (the deployment's `config-handlers`), `init`, `warm_up_status()` |
 | `events.cljs` | Boot, stories, steps, flight targets, warm-up and the attract-screen tour, idle reset |
-| `subs.cljs` | Kiosk subscriptions (story, step, media, markers) |
-| `views.cljs`, `map/views.cljs` | Layout (story list, story card, media card, attract screen), the map, and the story and media markers |
+| `subs.cljs` | Kiosk subscriptions (story, step, media, markers, legends) |
+| `views.cljs`, `map/views.cljs` | Layout (story list, story card, media card, legend card, attract screen), the map, and the story and media markers |
 | `idle.cljs` | Inactivity timer (`timeout-ms`, 2 minutes); a playing video counts as activity |
 | `inertia.cljs` | Leaflet's drag inertia: every flick glides, starting at the release speed (replaces `Map.Drag` `_onDragEnd`); a touch stops a glide |
 | `map/limits.cljs` | The kiosk's extent and zoom range, resisting drags and pinches past them and springing back in one move (replaces `Map.TouchZoom` `_onTouchMove` and `_onTouchEnd`, and the map's `_limitCenter`) |
@@ -517,6 +525,5 @@ Items marked *(needs a person)* need a decision, access or hardware.
       added by a proxy, InPrivate: the copy took over after about 28 s on the first load,
       where the video had got to, and a reload took it from Cache Storage (one HEAD request,
       no download). The final video is to be made smaller.
-- [ ] Graphic map legend beside the story card.
 - [ ] Closing panel ("Take this story with you"), if stories gain a takeaway or QR code.
 - [ ] Idle countdown, if wanted (see Decisions).

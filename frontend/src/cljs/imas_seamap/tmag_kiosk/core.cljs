@@ -49,6 +49,10 @@
     :map.layers/lookup                    [:<- [:dbsubs.map/layers] msubs/map-layer-lookup]
     :map.layer/info                       subs/map-layer-info
     :map.layer/legend                     msubs/layer-legends
+    :map.layer/visible-layers-legends     [:<- [::msubs/visible-layers]
+                                           :<- [:map.layer/displayed-layers-lookup]
+                                           :<- [:map.layer/legend]
+                                           msubs/layer-visible-layers-legends]
     :map.layer/displayed-layers-lookup    [:<- [::msubs/enhanced-rich-layers]
                                            :<- [:dbsubs.map/layers]
                                            msubs/layer-displayed-layers-lookup]
@@ -67,6 +71,10 @@
     :kiosk/media-index                    tksubs/media-index
     :kiosk/media-markers                  tksubs/media-markers
     :kiosk/story-markers                  tksubs/story-markers
+    :kiosk/step-landed?                   tksubs/step-landed?
+    :kiosk/legends                        [:<- [:map.layer/visible-layers-legends]
+                                           :<- [:kiosk/step-landed?]
+                                           tksubs/legends]
     :kiosk/layers-loading?                [:<- [:dbsubs.map/active-layers]
                                            :<- [:dbsubs/layer-state-loading]
                                            tksubs/layers-loading?]

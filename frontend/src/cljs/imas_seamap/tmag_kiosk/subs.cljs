@@ -55,6 +55,23 @@
       (for [{:keys [id marker]} stories :when marker]
         (assoc marker :id id :selected? (= id story-id))))))
 
+(defn step-landed?
+  "Whether the current step's flight has landed, so its layers are on the
+  map. Not on the story's intro card, nor on the attract screen (behind it,
+  the tour applies steps)."
+  [db _]
+  (let [{:keys [landed-step step-index intro? attract?]} (:kiosk db)]
+    (and (= landed-step step-index) (not intro?) (not attract?))))
+
+(defn legends
+  "The legends for the legend card: those of the step's visible layers that
+  have one, topmost first, once its flight has landed (as for the media,
+  nothing is added mid-flight). A layer whose legend is loading, failed or
+  unsupported is left out rather than shown as a notice."
+  [[visible-layers-legends step-landed?] _]
+  (when step-landed?
+    (filter #(= :map.legend/loaded (:status %)) visible-layers-legends)))
+
 (defn attract? [db _]
   (get-in db [:kiosk :attract?]))
 

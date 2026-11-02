@@ -707,6 +707,78 @@
         &:active { transform: scale(.97); }
     }
 
+    // ── Legends: the step's layers' keys, beside the story card ─────────────
+    // Bottom-right of the map, against the story card and clear of the media
+    // card and the zoom control. The frame is the most room the card may
+    // take; keys larger than it are scaled down to fit (`fit-legends!`), so
+    // the card never scrolls. Keys made for the kiosk show at their own size.
+    $legend-max-w: u(360);
+    $legend-pad-x: u(18);
+    $legend-pad-y-top: u(16);
+    $legend-pad-y-bottom: u(16);
+    $legend-border: u(2);
+    .legend-frame {
+        position: absolute;
+        z-index: 20;
+        right: calc(var(--kiosk-story-card-w) + 2 * var(--kiosk-gutter));
+        bottom: calc(var(--kiosk-bezel-h) + var(--kiosk-gutter));
+        width: $legend-max-w;
+        height: 50%;
+        display: flex;
+        align-items: flex-end;
+        justify-content: flex-end;
+        pointer-events: none;
+    }
+    .legend-card {
+        position: relative;
+        flex: none;
+        box-sizing: content-box;
+        width: calc(var(--legend-w, 0px) * var(--legend-s, 1));
+        height: calc(var(--legend-h, 0px) * var(--legend-s, 1));
+        overflow: hidden;
+        padding: $legend-pad-y-top $legend-pad-x $legend-pad-y-bottom;
+        border: $legend-border solid rgba(25, 68, 82, .14);
+        border-radius: u(18);
+        background: rgba(255, 254, 250, .96);
+        box-shadow: $card-shadow;
+        pointer-events: auto;
+        animation: kiosk-media-in .3s ease-out both;
+    }
+    // Laid out at their own size (wrapping to the frame's width), then scaled.
+    .legend-keys {
+        position: absolute;
+        top: $legend-pad-y-top;
+        left: $legend-pad-x;
+        width: max-content;
+        max-width: calc(#{$legend-max-w} - 2 * (#{$legend-pad-x} + #{$legend-border}));
+        transform: scale(var(--legend-s, 1));
+        transform-origin: 0 0;
+    }
+    .legend + .legend { margin-top: u(14); }
+    .legend-graphic {
+        display: block;
+        width: calc(var(--natural-w, 0) * var(--kiosk-u));
+        max-width: 100%;
+    }
+    .legend-entries {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+
+        li { display: flex; align-items: center; gap: u(10); }
+        li + li { margin-top: u(6); }
+    }
+    .legend-swatch {
+        display: flex;
+        flex: none;
+        width: u(28);
+        height: u(20);
+
+        > * { box-sizing: border-box; width: 100%; height: 100%; }
+        img { object-fit: contain; }
+    }
+    .legend-label { font-size: u(15); line-height: 1.25; white-space: pre-line; }
+
     // ── Map chrome: loading notice ──────────────────────────────────────────
 
     .loading-notice {
