@@ -227,12 +227,15 @@ what's still open. Keep it current: update it in the same change as the code it 
     limits never move a landing (checked, when limits were per view, with a story whose
     limits left out its first step: the flight landed exactly, and home by flight and by idle
     reset landed exactly with the default limits back).
-  - Drags and pinches past the limits are held back by `resistance` (0.75: the map follows
-    the finger by a quarter), then spring back on release. Leaflet does this for drags
-    (`maxBoundsViscosity`); `install!` adds it for pinches, both zoom and centre (replaces
-    `Map.TouchZoom` `_onTouchMove`). Measured: a pinch asking for 1.28 levels past the min
-    zoom went 0.32 past; an off-centre pinch at the extent's edge went 1.55° past it, against
-    6.18° without resistance; a 2000 px drag past the edge moved the map 494 px.
+  - Drags and pinches past the limits are held back by `resistance` (0.9: the map follows
+    the finger by a tenth), then spring back on release, in one move (zoom and centre
+    together). Leaflet does this for drags (`maxBoundsViscosity`); `install!` adds it for
+    pinches, both zoom and centre (replaces `Map.TouchZoom` `_onTouchMove` and
+    `_onTouchEnd`). The map's `_limitCenter` limits against the extent widened for the zoom
+    it's going to, so a zoom out past the extent by the control or wheel is one move too.
+    Measured at 0.75 (before it was raised): a pinch asking for 1.28 levels past the min
+    zoom went 0.32 past; an off-centre pinch at the extent's edge went 1.55° past it,
+    against 6.18° without resistance; a 2000 px drag past the edge moved the map 494 px.
   - Where the extent is narrower than the screen at some zoom, it's widened to the screen
     there, about its own centre; Leaflet would otherwise hold the extent's centre at the
     screen's centre, so every drag sprang straight back.
@@ -279,7 +282,7 @@ what's still open. Keep it current: update it in the same change as the code it 
 | `views.cljs`, `map/views.cljs` | Layout (story list, story card, media card, attract screen), the map, and the story and media markers |
 | `idle.cljs` | Inactivity timer (`timeout-ms`, 2 minutes); a playing video counts as activity |
 | `inertia.cljs` | Leaflet's drag inertia: every flick glides, starting at the release speed (replaces `Map.Drag` `_onDragEnd`); a touch stops a glide |
-| `map/limits.cljs` | The kiosk's extent and zoom range, resisting drags and pinches past them (replaces `Map.TouchZoom` `_onTouchMove`) |
+| `map/limits.cljs` | The kiosk's extent and zoom range, resisting drags and pinches past them and springing back in one move (replaces `Map.TouchZoom` `_onTouchMove` and `_onTouchEnd`, and the map's `_limitCenter`) |
 | `map/tiers.cljs` | No grey map: the basemap and overlays load a ring beyond the screen; the basemap sits over a coarse copy (a wider ring) and a floor (the whole extent at its min zoom); overlays' coarse copies are hidden and show as placeholders; each step's surroundings are pinned; which tiles are on screen (replaces `GridLayer` `_getTiledPixelBounds`) |
 | `media_cache.cljs` | The attract video, fetched (CORS) once into a Blob and played from it, and put in Cache Storage for reloads (checked against the server's Last-Modified and Content-Length); streamed from its URL until then, or if the server won't allow it |
 | `tile_cache.cljs` | In-memory tile cache: Leaflet tiles fetched (CORS) into Blobs, LRU within `budget-bytes` (1 GB) but for pinned tiles (floors, steps' surroundings) and those shown, fetches ranked (on screen first), placeholders while fetching, plus a background prefetch queue |

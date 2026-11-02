@@ -24,9 +24,15 @@
   pinches: a pinch went freely past the zoom range and the extent, and jumped
   back on release. `install!` replaces `L.Map.TouchZoom`'s `_onTouchMove` with
   Leaflet's own, except that past the zoom range the zoom is held back, and
-  then past the extent the centre is, as a drag is. It patches the prototype
-  for the whole page, so only the kiosk installs it. `_onTouchMove` is
-  private: check it against this on a Leaflet upgrade (Seamap pins 1.9.0)."
+  then past the extent the centre is, as a drag is. On release, `_onTouchEnd`
+  is replaced too, so the map springs back into the zoom range and the extent
+  in one move (Leaflet's snaps the zoom, then pans in on moveend), and the
+  map's `_limitCenter` limits against the extent widened for the zoom it's
+  going to (`limit-center`), so a zoom out by the control or wheel past the
+  extent is one move too. They patch the prototype for the whole page, so only
+  the kiosk installs them. `_onTouchMove`, `_onTouchEnd` and `_limitCenter`
+  are private: check them against this on a Leaflet upgrade (Seamap pins
+  1.9.0)."
   (:require ["leaflet" :as L]
             [goog.object :as gobject]
             [re-frame.core :as re-frame]
@@ -35,7 +41,7 @@
 ;; How firmly a limit holds a drag or pinch past it, from 0 (not at all, until
 ;; the map springs back on release) to 1 (a wall): past a limit, the map
 ;; follows the finger by 1 - resistance. Also the map's `maxBoundsViscosity`.
-(def resistance 0.75)
+(def resistance 0.9)
 
 ;; The kiosk's limits, from `attach!`.
 (defonce ^:private kiosk-limits (atom nil))
@@ -148,6 +154,16 @@
 
 (defonce ^:private attached (js/WeakSet.))
 
+(defn- limit-center
+  "`L.Map`'s `_limitCenter`, against the extent widened for `zoom` rather than
+  `bounds` (Leaflet's `maxBounds`, widened for the current zoom). A zoom out
+  (the zoom control, the wheel, a pinch's end) then lands inside the extent in
+  one move, instead of zooming and then panning in on moveend."
+  [^js m center zoom bounds]
+  (let [e @extent]
+    (.call (.. L/default -Map -prototype -_limitCenter) m center zoom
+           (if (and bounds e) (bounds-at m e zoom) bounds))))
+
 (defn attach!
   "Gives the map the kiosk's `limits` (see the namespace doc), set by `apply!`,
   and keeps the extent widened to the screen as the map zooms and resizes."
@@ -155,6 +171,7 @@
   (reset! kiosk-limits limits)
   (when-not (.has attached m)
     (.add attached m)
+    (set! (.-_limitCenter m) (fn [center zoom bounds] (limit-center m center zoom bounds)))
     (.on m "zoomend resize" #(update-bounds! m))))
 
 ;;; Resisting pinches
@@ -222,9 +239,33 @@
                    #(._move m center zoom #js {:pinch true :round false} js/undefined)))
             (.preventDefault e)))))))
 
+(defn- on-touch-end
+  "`L.Map.TouchZoom.prototype._onTouchEnd`, except that the map's centre is
+  brought inside the extent along with its zoom into the range, in one move.
+  Leaflet's only limits the zoom, and the centre followed on moveend: two
+  moves, a zoom and then a pan."
+  [^js handler]
+  (if-not (and (.-_moved handler) (.-_zooming handler))
+    (set! (.-_zooming handler) false)
+    (let [^js m       (.-_map handler)
+          ^js options (.-options m)
+          zoom        (._limitZoom m (.-_zoom handler))
+          center      (._limitCenter m (.-_center handler) zoom (.-maxBounds options))]
+      (set! (.-_zooming handler) false)
+      (js/cancelAnimationFrame (.-_animRequest handler))
+      (.off (.-DomEvent L/default) js/document "touchmove" (.-_onTouchMove handler) handler)
+      (.off (.-DomEvent L/default) js/document "touchend touchcancel" (.-_onTouchEnd handler) handler)
+      ;; Pinch updates GridLayers' levels only when zoomSnap is off, so
+      ;; zoomSnap becomes noUpdate (as Leaflet's).
+      (if (.-zoomAnimation options)
+        (._animateZoom m center zoom true (.-zoomSnap options))
+        (._resetView m center zoom)))))
+
 (defonce ^:private installed? (atom false))
 
 (defn install! []
   (when (compare-and-set! installed? false true)
     (gobject/set (.. L/default -Map -TouchZoom -prototype) "_onTouchMove"
-                 (fn [e] (this-as handler (on-touch-move handler e))))))
+                 (fn [e] (this-as handler (on-touch-move handler e))))
+    (gobject/set (.. L/default -Map -TouchZoom -prototype) "_onTouchEnd"
+                 (fn [] (this-as handler (on-touch-end handler))))))
