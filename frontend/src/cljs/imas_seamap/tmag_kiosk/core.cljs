@@ -67,6 +67,7 @@
     :kiosk/step-index                     tksubs/step-index
     :kiosk/intro?                         tksubs/intro?
     :kiosk/attract?                       tksubs/attract?
+    :kiosk/still-there?                   tksubs/still-there?
     :kiosk/media                          tksubs/media
     :kiosk/media-index                    tksubs/media-index
     :kiosk/media-markers                  tksubs/media-markers
@@ -237,6 +238,8 @@
     :sm/featured-map                      [smevents/featured-map]
     :sm.featured-map/open                 [smevents/featured-map-open]
     :kiosk/idle                           [tkevents/go-idle]
+    :kiosk.idle/prompt                    tkevents/idle-prompt
+    :kiosk.idle/dismiss                   tkevents/idle-dismiss
     :kiosk.attract/exit                   [tkevents/attract-exit]
     :kiosk/warm-up                        [tkevents/warm-up]
     :kiosk.tour/start                     [tkevents/tour-start]

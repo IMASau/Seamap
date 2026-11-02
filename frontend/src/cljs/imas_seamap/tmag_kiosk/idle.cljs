@@ -3,12 +3,20 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.tmag-kiosk.idle
   "Watches for visitor input and dispatches `:kiosk/idle` once none has been
-  seen for `timeout-ms`. Input is tracked outside re-frame (pointer moves are
-  far too frequent to be events); see `imas-seamap.tmag-kiosk.events/go-idle`
-  for what going idle does."
+  seen for `timeout-ms`, asking \"Still there?\" (`:kiosk.idle/prompt`) for the
+  last `prompt-ms` of it; any input then answers it (`:kiosk.idle/dismiss`).
+  Input is tracked outside re-frame (pointer moves are far too frequent to be
+  events); see `imas-seamap.tmag-kiosk.events/go-idle` for what going idle
+  does."
   (:require [re-frame.core :as re-frame]))
 
-(def timeout-ms (* 2 60 1000))
+;; How long without input before "Still there?" is asked.
+(def ^:private prompt-after-ms (* 2 60 1000))
+
+;; How long "Still there?" is up before the kiosk goes idle.
+(def prompt-ms (* 5 1000))
+
+(def timeout-ms (+ prompt-after-ms prompt-ms))
 
 (def ^:private check-ms 1000)
 
@@ -18,17 +26,29 @@
 ;; performance.now is monotonic, so clock changes can't trigger (or stall) a reset.
 (defonce ^:private last-activity (atom (js/performance.now)))
 
+(defonce ^:private prompted? (atom false))
+
 (defn- record-activity [_]
-  (reset! last-activity (js/performance.now)))
+  (reset! last-activity (js/performance.now))
+  (when @prompted?
+    (reset! prompted? false)
+    (re-frame/dispatch [:kiosk.idle/dismiss])))
 
 (defn- check []
   ;; A visitor watching a video isn't touching anything.
   (when (some #(not (.-paused ^js %)) (array-seq (js/document.querySelectorAll "video")))
     (record-activity nil))
-  (when (>= (- (js/performance.now) @last-activity) timeout-ms)
-    ;; Count the reset itself as activity, so it fires once per idle period.
-    (record-activity nil)
-    (re-frame/dispatch [:kiosk/idle])))
+  (let [idle (- (js/performance.now) @last-activity)]
+    (cond
+      (>= idle timeout-ms)
+      ;; Count the reset itself as activity, so it fires once per idle period.
+      (do (reset! prompted? false)
+          (reset! last-activity (js/performance.now))
+          (re-frame/dispatch [:kiosk/idle]))
+
+      (and (not @prompted?) (>= idle prompt-after-ms))
+      (do (reset! prompted? true)
+          (re-frame/dispatch [:kiosk.idle/prompt])))))
 
 (defonce ^:private started? (atom false))
 

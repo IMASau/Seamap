@@ -816,6 +816,44 @@
     }
     @keyframes kiosk-spin { to { transform: rotate(360deg); } }
 
+    // ── Still there? Asked before going idle, over everything but the attract
+    // screen; the scrim takes the tap that answers it.
+    .still-there {
+        position: fixed;
+        inset: 0;
+        z-index: 9500;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(10, 30, 40, .45);
+        animation: kiosk-card-in .3s ease-out both;
+    }
+    .still-there-card {
+        width: u(460);
+        padding: u(36) u(40) u(32);
+        border-radius: u(24);
+        background: rgba(255, 254, 250, .98);
+        box-shadow: $card-shadow;
+        text-align: center;
+
+        h2 { margin: 0 0 u(10); font-size: u(40); font-weight: 800; line-height: 1.1; }
+        p { margin: 0 0 u(26); font-size: u(22); line-height: 1.35; }
+    }
+    .still-there-timer {
+        height: u(8);
+        overflow: hidden;
+        border-radius: u(4);
+        background: rgba(50, 90, 102, .15);
+
+        > div {
+            height: 100%;
+            background: var(--kiosk-purple);
+            transform-origin: 0 0;
+            animation: kiosk-still-there-run linear both; // duration from `idle/prompt-ms`
+        }
+    }
+    @keyframes kiosk-still-there-run { from { transform: scaleX(1); } to { transform: scaleX(0); } }
+
     // An ordinary browser window rather than the table: compact the same layout
     // for review instead of cropping a fixed 1920x1080 canvas. Use 1920x1080 for
     // acceptance on the hardware.

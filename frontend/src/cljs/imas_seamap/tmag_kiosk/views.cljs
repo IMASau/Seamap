@@ -15,6 +15,7 @@
             [imas-seamap.views :as views]
             [imas-seamap.tmag-kiosk.events :refer [one-column? attract-video-url]]
             [imas-seamap.tmag-kiosk.map.views :refer [map-component]]
+            [imas-seamap.tmag-kiosk.idle :as idle]
             [imas-seamap.tmag-kiosk.media-cache :as media-cache]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -403,6 +404,19 @@
                 :style     {:position "relative"} ; over the video
                 :on-click  #(re-frame/dispatch [:kiosk.attract/exit])}]]))
 
+(defn- still-there
+  "Asked before the kiosk goes idle, with a bar running down to it. Any input
+  answers it (see `imas-seamap.tmag-kiosk.idle`); the scrim takes the tap
+  that does, so it doesn't also act on what's underneath."
+  []
+  (when @(re-frame/subscribe [:kiosk/still-there?])
+    [:div.still-there
+     [:div.still-there-card
+      [:h2 "Still there?"]
+      [:p "Touch the screen to keep exploring."]
+      [:div.still-there-timer
+       [:div {:style {:animation-duration (str idle/prompt-ms "ms")}}]]]]))
+
 (defn- panel-morph
   "Between the wide story list and a story's narrow card, a blank panel that
   narrows or widens from one to the other, under the arriving card as it fades
@@ -451,4 +465,5 @@
                    [media-card]
                    [legend-card]])
          [loading-notice]
+         [still-there]
          [attract-screen]]))))

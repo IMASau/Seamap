@@ -168,7 +168,7 @@
   kept (applying any refresh that arrived mid-story); the open story is closed."
   [{:keys [pending-stories] :as kiosk}]
   (cond-> (dissoc kiosk :story-id :step-index :intro? :pending-stories :keep-view? :media-index :landed-step
-                  :feature-media :feature-query)
+                  :feature-media :feature-query :still-there?)
     pending-stories (assoc :stories pending-stories)))
 
 (declare prepare-flights home-target)
@@ -219,6 +219,16 @@
     (-> (re-boot cofx event)
         (assoc-in [:db :kiosk :attract?] true)
         (assoc :kiosk/cancel-flight true))))
+
+(defn idle-prompt
+  "Asks \"Still there?\" before going idle. Not over the attract screen, which
+  is where going idle leads."
+  [db _]
+  (cond-> db
+    (not (get-in db [:kiosk :attract?])) (assoc-in [:kiosk :still-there?] true)))
+
+(defn idle-dismiss [db _]
+  (update db :kiosk dissoc :still-there?))
 
 (defn attract-exit
   "Leaves the attract screen for the story list, ending the tour if it's under

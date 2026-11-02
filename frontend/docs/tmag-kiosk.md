@@ -287,8 +287,8 @@ what's still open. Keep it current: update it in the same change as the code it 
 | `core.cljs` | Handler registration (the deployment's `config-handlers`), `init`, `warm_up_status()` |
 | `events.cljs` | Boot, stories, steps, flight targets, warm-up and the attract-screen tour, idle reset |
 | `subs.cljs` | Kiosk subscriptions (story, step, media, markers, legends) |
-| `views.cljs`, `map/views.cljs` | Layout (story list, story card, media card, legend card, attract screen), the map, and the story and media markers |
-| `idle.cljs` | Inactivity timer (`timeout-ms`, 2 minutes); a playing video counts as activity |
+| `views.cljs`, `map/views.cljs` | Layout (story list, story card, media card, legend card, "Still there?", attract screen), the map, and the story and media markers |
+| `idle.cljs` | Inactivity timer; a playing video counts as activity. After 2 minutes without input (`prompt-after-ms`) "Still there?" is asked, with a bar running down for `prompt-ms` (5 s) before the kiosk goes idle; any input answers it, and its scrim takes that tap |
 | `inertia.cljs` | Leaflet's drag inertia: every flick glides, starting at the release speed (replaces `Map.Drag` `_onDragEnd`); a touch stops a glide |
 | `map/limits.cljs` | The kiosk's extent and zoom range, resisting drags and pinches past them and springing back in one move (replaces `Map.TouchZoom` `_onTouchMove` and `_onTouchEnd`, and the map's `_limitCenter`) |
 | `map/tiers.cljs` | No grey map: the basemap and overlays load a ring beyond the screen; the basemap sits over a coarse copy (a wider ring) and a floor (the whole extent at its min zoom); overlays' coarse copies are hidden and show as placeholders; each step's surroundings are pinned; which tiles are on screen (replaces `GridLayer` `_getTiledPixelBounds`) |
@@ -389,9 +389,10 @@ Items marked *(needs a person)* need a decision, access or hardware.
 
 ### Decisions *(needs a person)*
 
-- [ ] **Idle timeout:** set the real figure (now 2 minutes); configurable without a rebuild?
-- [ ] **Idle warning:** an "Are you still there?" countdown before the reset? (The prototype
-      has a 10-second one.)
+- [ ] **Idle timeout:** set the real figure (now 2 minutes, then 5 s of "Still there?");
+      configurable without a rebuild?
+- [x] **Idle warning:** "Still there?", with a 5-second countdown, after 2 minutes without
+      input (`idle.cljs`).
 - [ ] **Hidden start-up errors:** the attract screen covers Seamap's "Something went wrong"
       screen, so a failed start-up is only seen after Start exploring. Acceptable with a quiet
       reload on fatal error (below)?
@@ -526,4 +527,3 @@ Items marked *(needs a person)* need a decision, access or hardware.
       where the video had got to, and a reload took it from Cache Storage (one HEAD request,
       no download). The final video is to be made smaller.
 - [ ] Closing panel ("Take this story with you"), if stories gain a takeaway or QR code.
-- [ ] Idle countdown, if wanted (see Decisions).

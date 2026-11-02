@@ -75,6 +75,12 @@
 (defn attract? [db _]
   (get-in db [:kiosk :attract?]))
 
+(defn still-there?
+  "Whether to ask \"Still there?\": the kiosk is about to go idle (see
+  `imas-seamap.tmag-kiosk.idle`)."
+  [db _]
+  (get-in db [:kiosk :still-there?]))
+
 (defn layers-loading?
   "Whether any layer on the map is still loading. Only active layers count:
   one removed mid-load never reports that it finished."
