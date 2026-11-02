@@ -173,7 +173,7 @@
       ;; an issue where including the bbox, for the full region,
       ;; causes issues.  I don't think this was always the case, but
       ;; not investigating further)
-      (merge-in (when bounds {:query {:bbox (bounds->str:wfs bounds)}}))
+      (merge-in (when bounds {:query {:bbox (bounds->str:wfs 4326 bounds)}}))
       str))
 
 (defmethod download-link :wms [{:keys [server_url detail_layer layer_name bounding_box] :as _layer}
