@@ -669,9 +669,9 @@
         [tooltip icon dispatch]
         (cond
           (not downloadable-layers) ["No downloadable layers currently active" "widget" :map.layer.selection/enable]
-          selecting?            ["Cancel Selecting" "undo"   :map.layer.selection/disable]
-          region                ["Clear Selection"  "eraser" :map.layer.selection/clear]
-          :else                 ["Select Habitat Data"    "widget" :map.layer.selection/enable])]
+          selecting?            ["Cancel Selecting"            "undo"   :map.layer.selection/disable]
+          region                ["Clear Selection"             "eraser" :map.layer.selection/clear]
+          :else                 ["Select Data by Bounding Box" "widget" :map.layer.selection/enable])]
     [control-block-child
      {:on-click  #(re-frame/dispatch [dispatch])
       :tooltip   tooltip
