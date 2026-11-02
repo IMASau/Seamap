@@ -117,6 +117,22 @@
       [home-button]
       [:button.next-button {:on-click begin!} "Begin"]]]))
 
+(def ^:private safe-html
+  "A tapped feature's html (from a layer's data, not the kiosk's WordPress)
+  without scripts, embeds, forms or event handlers. Its links are inert, as
+  in all the narrative (tmag-kiosk.scss)."
+  (memoize
+   (fn [content]
+     (let [body (.-body (.parseFromString (js/DOMParser.) content "text/html"))]
+       (doseq [^js el (array-seq (.querySelectorAll body "script, style, link, meta, iframe, frame, object, embed, form, base"))]
+         (.remove el))
+       (doseq [^js el (array-seq (.querySelectorAll body "*"))
+               ^js attr (array-seq (.from js/Array (.-attributes el)))
+               :when (or (string/starts-with? (.toLowerCase (.-name attr)) "on")
+                         (re-find #"(?i)^\s*javascript:" (.-value attr)))]
+         (.removeAttribute el (.-name attr)))
+       (.-innerHTML body)))))
+
 (defn- copy [{step-title :title :keys [content]} class]
   [:div.story-copy {:class class}
    (when (seq step-title) [:h1 step-title])
@@ -141,9 +157,13 @@
            ^{:key (str "leaving-" i)} [copy s "leaving"])
          ^{:key index} [copy step (when (:first? @shown) "after-morph")]]))))
 
-(defn- story-card []
+(defn- story-card
+  "The step's card. A tapped feature with html (`:kiosk/feature-html`) takes
+  the copy's place."
+  []
   (let [{:keys [title image steps]} @(re-frame/subscribe [:kiosk/story])
         index      @(re-frame/subscribe [:kiosk/step-index])
+        feature    @(re-frame/subscribe [:kiosk/feature-html])
         last-step? (= index (dec (count steps)))]
     [:section.story-card
      ;; The story's picture behind its title, if it has one.
@@ -152,7 +172,9 @@
         [:img.eyebrow-image {:src image :alt ""}]
         [:span.eyebrow-title title]]
        [:div.eyebrow title])
-     [step-copy index (get steps index)]
+     (if feature
+       [step-copy (str "feature-" (:id feature)) {:content (safe-html (:html feature))}]
+       [step-copy index (get steps index)])
      ;; One continuous bar, not a segment per step, so it doesn't read as tabs.
      [:div.story-progress
       {:role "progressbar" :aria-valuemin 1 :aria-valuemax (count steps) :aria-valuenow (inc index)}
@@ -181,18 +203,12 @@
 (defn- video? [url]
   (boolean (re-find #"(?i)\.(mp4|m4v|webm|mov)(\?|$)" url)))
 
-;; Labels and units for known `overlay` readings; others show as authored.
-(def ^:private readings
-  {:temperature {:label "Temperature" :unit " °C" :decimals 1}
-   :depth       {:label "Depth" :unit " m" :decimals 0}})
-
+;; An `overlay` reading, label and value as authored: the overlay may hold
+;; anything.
 (defn- reading [[k v]]
-  (let [{:keys [label unit decimals]} (readings (keyword k))]
-    [:div.media-reading
-     [:span (or label (string/capitalize (string/replace (name k) #"[_-]" " ")))]
-     [:b (if (and (number? v) decimals)
-           (str (.toLocaleString v "en-AU" #js {:maximumFractionDigits decimals}) unit)
-           (str v))]]))
+  [:div.media-reading
+   [:span (name k)]
+   [:b (str v)]])
 
 (defn- clock [seconds]
   (let [s (js/Math.floor seconds)]

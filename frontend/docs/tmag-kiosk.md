@@ -52,17 +52,24 @@ what's still open. Keep it current: update it in the same change as the code it 
   the touch-sandbox project (below). Don't port the prototype's map interaction (drift
   detection, snap-back) or Seamap's own map tools (custom controls, scale, keyboard
   shortcuts, the feature-info popup).
-- Tapping a feature on a step's landed map puts its media in the media card in place of the
-  step's (`map-clicked`): every visible WMS layer under the tap is asked for its features as
-  JSON (GetFeatureInfo, `BUFFER` of 15 design units for a finger), and features with a photo
-  or video become media items, nearest the tap first. A tap that finds none leaves the card as it was; moving to
-  another step (or back to the intro) returns to the step's media. Tapping a media marker
-  only selects that item.
-- Feature properties are read as media items by `feature->media`: the story fields (`url`,
-  `lat`, `lon`, `caption`, `overlay`), or the KIOSK layers' current ones (`media_URL` or
-  `image_orig` before `url`, which is a web page on the iNaturalist layer; `latitude`/
-  `longitude`; caption from `common_name` and `scientific_name`; `temperature` and `depth`
-  as readings).
+- Tapping a feature on a step's landed map (`map-clicked`): every visible WMS layer under the
+  tap is asked for its features as JSON (GetFeatureInfo, `BUFFER` of 15 design units for a
+  finger). A feature can have several images and one html fragment. All the tapped
+  features' images fill the media card in place of the step's, nearest feature first; the
+  nearest feature with html takes the step copy's place in the story card. The buttons
+  don't change. Moving to another step (or back to the intro) returns to the step's copy
+  and media. A feature without images leaves the step's media; without html,
+  its copy. A tap that finds nothing changes nothing; a later tap's features replace an
+  earlier's. Tapping a media marker only selects that item.
+- The feature format is provisional (the common one isn't settled), read only by
+  `feature->info`: `images`, a list (or a JSON string of one) of {`url`, `caption`,
+  `overlay`, `lat`, `lon`}, all but `url` optional, and `html`. An image's place defaults to
+  the feature's (`lat`/`lon`, `latitude`/`longitude` or its point). `overlay` may hold any
+  readings: each shows as authored, its key as the label. Nothing else is read, so the
+  KIOSK layers' current properties (`media_url`, `common_name` and so on) show nothing
+  until their data is in this format. The html comes from layer data rather than the
+  kiosk's WordPress, so scripts, embeds, forms and event attributes are stripped
+  (`safe-html`); its links are inert, as in all the narrative.
 - Each step's layers' legends are on a card at the bottom of the map against the story
   card (`legend-card`), topmost layer first, without headings, once the step's flight has
   landed (`:kiosk/legends`); a layer without a legend (or still loading it) is left out.
@@ -285,7 +292,7 @@ what's still open. Keep it current: update it in the same change as the code it 
 | File | Role |
 |---|---|
 | `core.cljs` | Handler registration (the deployment's `config-handlers`), `init`, `warm_up_status()` |
-| `events.cljs` | Boot, stories, steps, flight targets, warm-up and the attract-screen tour, idle reset |
+| `events.cljs` | Boot, stories, steps, flight targets, warm-up and the attract-screen tour, feature taps, idle reset |
 | `subs.cljs` | Kiosk subscriptions (story, step, media, markers, legends) |
 | `views.cljs`, `map/views.cljs` | Layout (story list, story card, media card, legend card, "Still there?", attract screen), the map, and the story and media markers |
 | `idle.cljs` | Inactivity timer; a playing video counts as activity. After 2 minutes without input (`prompt-after-ms`) "Still there?" is asked, with a bar running down for `prompt-ms` (5 s) before the kiosk goes idle; any input answers it, and its scrim takes that tap |
@@ -443,10 +450,10 @@ Items marked *(needs a person)* need a decision, access or hardware.
       attribution somewhere on the kiosk. Markers close together overlap (Leaflet puts the
       lower one on screen on top); nothing spreads them apart yet.
 
-- [ ] Agree one property schema for the KIOSK feature layers' media (ideally the story
-      fields: `url`, `lat`, `lon`, `caption`, `overlay`), so `feature->media` can drop the
-      per-layer fallbacks. The VME layer has no captions; the iNaturalist layer has no
-      credit or licence field (its photos need attribution).
+- [ ] The common feature format (images and an html fragment) is being settled. Once it
+      is, change `feature->info` to read it (its provisional format is in Layout). Until
+      the layers' data is in it, tapping them shows nothing. The VME layer has no captions;
+      the iNaturalist layer has no credit or licence field (its photos need attribution).
 
 - [ ] The Seamounts story's shortcodes are borrowed from other story maps: its steps show
       Bass Strait while its media are at the Huon seamounts (about −44.3, 147.2), so most

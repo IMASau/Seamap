@@ -442,8 +442,14 @@
         overflow-y: auto;
         overscroll-behavior: contain;
 
-        p { margin: 0; max-width: 32em; font-size: u(18); line-height: 1.45; letter-spacing: -.01em; }
+        p, li { margin: 0; max-width: 32em; font-size: u(18); line-height: 1.45; letter-spacing: -.01em; }
         p + p { margin-top: 1.3em; }
+        // Headings and pictures in a tapped feature's html (`:kiosk/feature-html`).
+        h2, h3 { margin: 0 0 u(10); font-size: u(24); font-weight: 800; line-height: 1.2; }
+        h3 { font-size: u(20); }
+        * + h2, * + h3 { margin-top: u(20); }
+        ul, ol { margin: u(10) 0; padding-left: 1.3em; }
+        img { display: block; max-width: 100%; height: auto; margin: u(12) 0; border-radius: u(8); }
         b, strong { font-weight: 850; }
         a { color: inherit; pointer-events: none; text-decoration: none; }
     }

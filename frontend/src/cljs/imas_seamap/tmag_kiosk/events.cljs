@@ -2,7 +2,8 @@
 ;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.tmag-kiosk.events
-  (:require [ajax.core :as ajax]
+  (:require [clojure.string :as string]
+            [ajax.core :as ajax]
             [imas-seamap.db :as db]
             [imas-seamap.map.events :as mevents]
             [imas-seamap.map.utils :as map-utils]
@@ -168,7 +169,7 @@
   kept (applying any refresh that arrived mid-story); the open story is closed."
   [{:keys [pending-stories] :as kiosk}]
   (cond-> (dissoc kiosk :story-id :step-index :intro? :pending-stories :keep-view? :media-index :landed-step
-                  :feature-media :feature-query :still-there?)
+                  :feature-media :feature-html :feature-query :still-there?)
     pending-stories (assoc :stories pending-stories)))
 
 (declare prepare-flights home-target)
@@ -582,59 +583,60 @@
 (defn show-intro
   "Back from the first step to the intro card; the map stays put."
   [db _]
-  (update db :kiosk #(-> % (assoc :intro? true :media-index 0) (dissoc :feature-media :feature-query))))
+  (update db :kiosk #(-> % (assoc :intro? true :media-index 0) (dissoc :feature-media :feature-html :feature-query))))
 
 (defn go-to-step [{:keys [db]} [_ index]]
   (when (< -1 index (count (:steps (current-story db))))
-    {:db       (update db :kiosk #(-> % (assoc :step-index index :media-index 0) (dissoc :feature-media :feature-query)))
+    {:db       (update db :kiosk #(-> % (assoc :step-index index :media-index 0) (dissoc :feature-media :feature-html :feature-query)))
      :dispatch [:kiosk.step/apply-view]}))
 
-;;; Feature media. Tapping a step's map asks the layers under the tap for their
-;;; features (WMS GetFeatureInfo, as JSON); features carrying media fill the
-;;; media card in place of the step's own, until the visitor moves on. Only
-;;; once the step's flight has landed: elsewhere there's no media card.
+;;; Feature info. Tapping a step's map asks the layers under the tap for their
+;;; features (WMS GetFeatureInfo, as JSON). Their images fill the media card in
+;;; place of the step's own, nearest feature first, and the nearest feature
+;;; with html takes the step copy's place in the story card, until the visitor
+;;; moves on. Only once the step's flight has landed: elsewhere there's no
+;;; media card.
 
 ;; How far around a tap a feature counts as tapped, in design units (see
 ;; `--kiosk-u` in tmag-kiosk.scss): it's a finger, not a pointer.
 (def feature-tolerance 15)
 
-(def ^:private media-re #"(?i)\.(jpe?g|png|webp|gif|mp4|m4v|webm|mov)(\?|$)")
-
-(defn- parse-overlay [overlay]
-  (if (string? overlay)
-    (try (js->clj (js/JSON.parse overlay) :keywordize-keys true)
+(defn- parse-json
+  "A JSON property's value: GeoServer may hand nested values over as strings."
+  [v]
+  (if (string? v)
+    (try (js->clj (js/JSON.parse v) :keywordize-keys true)
          (catch :default _ nil))
-    overlay))
+    v))
 
-(defn feature->media
-  "A media item, in a story step's form ({:url :lat :lon :caption :overlay}),
-  from a GeoJSON feature, or nil if it carries no photo or video. Takes the
-  stories' own property names, or those of the KIOSK layers so far: the media
-  from `media_url`, `media_URL` or `image_orig` before `url` (the iNaturalist
-  layer's `url` is its web page); the place from `lat`/`lon`, `latitude`/
-  `longitude` or the feature's point; the caption from `caption`, or the
-  species' common and scientific names; readings from `overlay`, or
-  `temperature` and `depth`."
+(defn feature->info
+  "A tapped feature's {:lat :lon :images :html}, or nil if it has neither
+  images nor html. Images are media items in a story step's form ({:url :lat
+  :lon :caption :overlay}).
+
+  Provisional format (the common one isn't settled; this is the only place
+  it's read): `images`, a list (or a JSON string of one) of {url, caption,
+  overlay, lat, lon}, all but `url` optional; and `html`, a fragment for the
+  story card. An image's place defaults to the feature's: `lat`/`lon`,
+  `latitude`/`longitude` or its point."
   [{p :properties {:keys [type coordinates]} :geometry}]
-  (let [url  (some #(let [v (get p %)] (when (and (string? v) (re-find media-re v)) v))
-                   [:media_url :media_URL :image_orig :url])
-        [x y] (when (= "Point" type) coordinates)
-        lat  (or (:lat p) (:latitude p) y)
-        lon  (or (:lon p) (:longitude p) x)
-        {common :common_name sci :scientific_name} p]
-    (when url
-      {:url     url
-       :lat     lat
-       :lon     lon
-       :caption (or (:caption p)
-                    (cond (and common sci) (str common " (" sci ")")
-                          :else            (or common sci)))
-       :overlay (or (parse-overlay (:overlay p))
-                    (not-empty (select-keys p [:temperature :depth])))})))
+  (let [[x y]  (when (= "Point" type) coordinates)
+        lat    (or (:lat p) (:latitude p) y)
+        lon    (or (:lon p) (:longitude p) x)
+        images (->> (parse-json (:images p))
+                    (filter #(and (map? %) (string? (:url %)) (seq (:url %))))
+                    (mapv #(-> %
+                               (update :overlay parse-json)
+                               (update :lat (fnil identity lat))
+                               (update :lon (fnil identity lon)))))
+        html   (when (string? (:html p)) (not-empty (string/trim (:html p))))]
+    (when (or (seq images) html)
+      {:lat lat :lon lon :images images :html html})))
 
 (defn- feature-request
-  "GetFeatureInfo for `layer`'s features within `feature-tolerance` of the tap."
-  [layer {:keys [lat lng]} {:keys [size bounds]} request-id]
+  "GetFeatureInfo for `layer`'s features within `feature-tolerance` of the tap,
+  answered with `on-success` or `on-failure` (plus the response)."
+  [layer {:keys [lat lng]} {:keys [size bounds]} on-success on-failure]
   (let [{:keys [north south east west]} bounds
         ;; A 101px window round the tap, at the map's own scale.
         dx     (* 50 (/ (- east west) (:x size)))
@@ -659,32 +661,40 @@
                        :FEATURE_COUNT 50
                        :INFO_FORMAT   "application/json"}
      :response-format (ajax/json-response-format {:keywords? true})
-     :on-success      [:kiosk.features/loaded request-id]
-     :on-failure      [:kiosk.features/failed request-id]}))
+     :on-success      on-success
+     :on-failure      on-failure}))
+
+(defn- queryable-layers
+  "The WMS layers `db`'s map shows under `point` that can be asked for
+  features."
+  [db point]
+  (->> (map-utils/displayed-layers-under-point (map-utils/visible-layers (:map db)) point db)
+       (filter #(and (:server_url %) (re-find #"^wms" (name (or (:layer_type %) "")))))
+       (remove #(map-utils/is-insecure? (:server_url %)))))
 
 (defn map-clicked
   "The kiosk's `:map/clicked`: on a step whose map has landed, asks the WMS
   layers under the tap for their features."
   [{:keys [db]} [_ leaflet-props point]]
   (let [{:keys [story-id intro? landed-step step-index]} (:kiosk db)
-        layers     (->> (map-utils/displayed-layers-under-point (map-utils/visible-layers (:map db)) point db)
-                        (filter #(and (:server_url %) (re-find #"^wms" (name (or (:layer_type %) "")))))
-                        (remove #(map-utils/is-insecure? (:server_url %))))
+        layers     (queryable-layers db point)
         request-id (random-uuid)]
     (when (and story-id (not intro?) (= landed-step step-index) (seq layers))
-      {:db         (assoc-in db [:kiosk :feature-query] {:id request-id :remaining (count layers) :media [] :point point})
-       :http-xhrio (mapv #(feature-request % point leaflet-props request-id) layers)})))
+      {:db         (assoc-in db [:kiosk :feature-query] {:id request-id :remaining (count layers) :features [] :point point})
+       :http-xhrio (mapv #(feature-request % point leaflet-props
+                                           [:kiosk.features/loaded request-id] [:kiosk.features/failed request-id])
+                         layers)})))
 
 (defn- nearest-first
-  "`media` sorted by distance from `point` ({:lat :lng}), nearest first; those
-  without a place last."
-  [media {:keys [lat lng]}]
+  "`features` sorted by distance from `point` ({:lat :lng}), nearest first;
+  those without a place last."
+  [features {:keys [lat lng]}]
   (let [k (js/Math.cos (* lat (/ js/Math.PI 180)))]
-    (sort-by (fn [{mlat :lat mlon :lon}]
-               (if (and (number? mlat) (number? mlon))
-                 (+ (js/Math.pow (- mlat lat) 2) (js/Math.pow (* k (- mlon lng)) 2))
+    (sort-by (fn [{flat :lat flon :lon}]
+               (if (and (number? flat) (number? flon))
+                 (+ (js/Math.pow (- flat lat) 2) (js/Math.pow (* k (- flon lng)) 2))
                  js/Infinity))
-             media)))
+             features)))
 
 (defn- distinct-urls
   "`media` without repeats of a url (layers can share features), in order."
@@ -694,28 +704,39 @@
                   [#{} []]
                   media)))
 
+(defn- combined
+  "What tapped `features` show: all their images, nearest feature to `point`
+  first, and the nearest's html (of those with any)."
+  [features point]
+  (let [found (nearest-first features point)]
+    {:images (distinct-urls (mapcat :images found))
+     :html   (some :html found)}))
+
 (defn- features-in
-  "One layer's answer (`media`) to the tap `request-id`. Once all are in, any
-  media found fills the media card, nearest the tap first; none leaves it as it
-  was."
-  [db request-id media]
+  "One layer's answer (`features`, see `feature->info`) to the tap
+  `request-id`. Once all are in, the features found replace any tapped before:
+  their images fill the media card, and their html the story card's copy (see
+  `combined`). Without images the step's media stay; without html, its copy. A
+  tap that finds nothing leaves everything as it was."
+  [db request-id features]
   (if (not= request-id (get-in db [:kiosk :feature-query :id]))
     db ; an earlier tap, or the visitor has moved on
-    (let [db                (-> db
-                                (update-in [:kiosk :feature-query :remaining] dec)
-                                (update-in [:kiosk :feature-query :media] into media))
+    (let [db                   (-> db
+                                   (update-in [:kiosk :feature-query :remaining] dec)
+                                   (update-in [:kiosk :feature-query :features] into features))
           {:keys [remaining point]
-           found :media}    (get-in db [:kiosk :feature-query])]
+           found :features}    (get-in db [:kiosk :feature-query])
+          {:keys [images html]} (combined found point)]
       (cond
         (pos? remaining) db
-        (seq found)      (update db :kiosk #(-> %
-                                                (dissoc :feature-query)
-                                                (assoc :feature-media (distinct-urls (nearest-first found point))
-                                                       :media-index 0)))
+        (seq found)      (update db :kiosk #(cond-> (-> % (dissoc :feature-query :feature-media :feature-html)
+                                                         (assoc :media-index 0))
+                                              (seq images) (assoc :feature-media images)
+                                              html         (assoc :feature-html {:id request-id :html html})))
         :else            (update db :kiosk dissoc :feature-query)))))
 
 (defn features-loaded [db [_ request-id response]]
-  (features-in db request-id (keep feature->media (:features response))))
+  (features-in db request-id (keep feature->info (:features response))))
 
 (defn features-failed [db [_ request-id _response]]
   (features-in db request-id []))

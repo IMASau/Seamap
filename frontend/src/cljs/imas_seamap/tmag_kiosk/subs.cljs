@@ -27,6 +27,12 @@
       (or feature-media
           (get-in (tkevents/current-story db) [:steps step-index :media])))))
 
+(defn feature-html
+  "The tapped feature's html for the story card, in place of the step's copy:
+  {:id :html}, the id telling one tap's from the next."
+  [db _]
+  (get-in db [:kiosk :feature-html]))
+
 (defn media-index [db _]
   (get-in db [:kiosk :media-index] 0))
 

@@ -70,6 +70,7 @@
     :kiosk/still-there?                   tksubs/still-there?
     :kiosk/media                          tksubs/media
     :kiosk/media-index                    tksubs/media-index
+    :kiosk/feature-html                   tksubs/feature-html
     :kiosk/media-markers                  tksubs/media-markers
     :kiosk/story-markers                  tksubs/story-markers
     :kiosk/step-landed?                   tksubs/step-landed?
@@ -159,7 +160,7 @@
     :transect.plot/mouseout               events/transect-onmouseout
     :transect.plot/toggle-visibility      events/transect-visibility-toggle
     :map.feature/show                     mevents/show-popup
-    :map/clicked                          [tkevents/map-clicked] ; features' media to the media card, not Seamap's popup
+    :map/clicked                          [tkevents/map-clicked] ; features to the media and story cards, not Seamap's popup
     :kiosk.features/loaded                tkevents/features-loaded
     :kiosk.features/failed                tkevents/features-failed
     :map/feature-info-dispatcher          [mevents/feature-info-dispatcher]
