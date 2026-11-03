@@ -608,9 +608,12 @@
   {:dispatch-later {:ms stories-refresh-ms :dispatch [:kiosk.stories/load]}})
 
 ;; A story opens on its intro card (`:intro?`), with the map left home; Begin
-;; flies to its first step. Meanwhile that flight is prepared.
+;; flies to its first step. Meanwhile that flight is prepared. A feature
+;; tapped on the home map goes.
 (defn open-story [{:keys [db]} [_ story-id]]
-  (let [db         (update db :kiosk assoc :story-id story-id :step-index 0 :media-index 0 :intro? true)
+  (let [db         (update db :kiosk #(-> %
+                                          (assoc :story-id story-id :step-index 0 :media-index 0 :intro? true)
+                                          (dissoc :feature-media :feature-html :feature-query)))
         uncached   (->> (current-story db) story-shortcodes
                         (remove #(get-in db [:kiosk :save-states %])))
         prepare    (prepare-flights db)]
@@ -672,6 +675,17 @@
 
       :else
       {:db db})))
+
+(defn continue-feature
+  "Continue story (on a step) or Return to stories (on the home map), in place
+  of the story card's or list's buttons while a feature's html is showing:
+  back to the step's copy or the story list, and the step's media. From a
+  bookmark, the map flies back to the step too, as Reset map does; after a
+  tapped feature it stays put."
+  [{:keys [db] :as cofx} event]
+  (if (get-in db [:kiosk :bookmark])
+    (reset-map cofx event)
+    {:db (update db :kiosk #(-> % (assoc :media-index 0) (dissoc :feature-media :feature-html :feature-query)))}))
 
 (defn map-reset
   "Back at the step's view after Reset map: the flights on from it are made
@@ -743,9 +757,11 @@
 ;;; Feature info. Tapping a step's map asks the layers under the tap for their
 ;;; features (WMS GetFeatureInfo, as JSON). Their images fill the media card in
 ;;; place of the step's own, nearest feature first, and the nearest feature
-;;; with html takes the step copy's place in the story card, until the visitor
-;;; moves on or resets the map. Only once the step's flight has landed:
-;;; elsewhere there's no media card.
+;;; with html takes the step copy's place in the story card, with Continue
+;;; story for Back and Next, until the visitor moves on or resets the map.
+;;; Only once the step's flight has landed. The home map's features (eg the
+;;; marine parks) do the same with the story list: their html in its place,
+;;; with Return to stories, and their images in a media card.
 
 ;; How far around a tap a feature counts as tapped, in design units (see
 ;; `--kiosk-u` in tmag-kiosk.scss): it's a finger, not a pointer.
@@ -824,12 +840,17 @@
 
 (defn map-clicked
   "The kiosk's `:map/clicked`: on a step whose map has landed (or a bookmark's),
-  asks the WMS layers under the tap for their features."
+  or on the home map with the story list showing (not on its way home, nor
+  behind the attract screen), asks the WMS layers under the tap for their
+  features."
   [{:keys [db]} [_ leaflet-props point]]
-  (let [{:keys [story-id intro? landed-step step-index bookmark]} (:kiosk db)
+  (let [{:keys [story-id intro? landed-step step-index bookmark attract? homeward?]} (:kiosk db)
         layers     (queryable-layers db point)
         request-id (random-uuid)]
-    (when (and story-id (not intro?) (= landed-step step-index) (or (not bookmark) (:landed? bookmark)) (seq layers))
+    (when (and (if story-id
+                 (and (not intro?) (= landed-step step-index) (or (not bookmark) (:landed? bookmark)))
+                 (not (or attract? homeward?)))
+               (seq layers))
       {:db         (assoc-in db [:kiosk :feature-query] {:id request-id :remaining (count layers) :features [] :point point})
        :http-xhrio (mapv #(feature-request % point leaflet-props
                                            [:kiosk.features/loaded request-id] [:kiosk.features/failed request-id])

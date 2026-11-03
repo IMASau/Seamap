@@ -27,10 +27,15 @@
   :overlay}]. Only once its flight has landed: the media belongs to the place,
   and loading it (a video's first frame) mid-flight can cost a frame. None on
   the story's intro card. A tapped feature's media (or a bookmark's feature's,
-  once there) replaces the step's."
+  once there) replaces the step's. With no story open, a feature tapped on
+  the home map's."
   [db _]
-  (let [{:keys [landed-step step-index intro? feature-media]} (:kiosk db)]
-    (when (and (= landed-step step-index) (not intro?) (not (bookmark-flying? db)))
+  (let [{:keys [story-id landed-step step-index intro? feature-media]} (:kiosk db)]
+    (cond
+      (not story-id)
+      feature-media
+
+      (and (= landed-step step-index) (not intro?) (not (bookmark-flying? db)))
       (or feature-media
           (get-in (tkevents/current-story db) [:steps step-index :media])))))
 
@@ -66,11 +71,17 @@
   "The map's media markers: those of the step whose map is showing, which
   lags the story card by a flight; `:selected` is the item in the media card,
   once the map has caught up. None on the story's intro card. On the way to a
-  bookmark, still the step's, until the map's there."
+  bookmark, still the step's, until the map's there. With no story open, a
+  feature tapped on the home map's."
   [db _]
-  (let [{:keys [landed-step step-index media-index intro? feature-media]} (:kiosk db)
+  (let [{:keys [story-id landed-step step-index media-index intro? feature-media]} (:kiosk db)
         flying? (bookmark-flying? db)]
-    (when (and landed-step (not intro?))
+    (cond
+      (not story-id)
+      (when feature-media
+        {:media feature-media :selected (or media-index 0)})
+
+      (and landed-step (not intro?))
       {:media    (or (when-not flying? feature-media) (get-in (tkevents/current-story db) [:steps landed-step :media]))
        :selected (when (and (= landed-step step-index) (not flying?)) (or media-index 0))})))
 

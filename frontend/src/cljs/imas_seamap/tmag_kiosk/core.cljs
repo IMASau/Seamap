@@ -263,6 +263,7 @@
     :kiosk/start-again                    [tkevents/start-again]
     :kiosk.media/select                   tkevents/select-media
     :kiosk.step/reset-map                 [tkevents/reset-map]
+    :kiosk.feature/continue               [tkevents/continue-feature]
     :kiosk.step/map-reset                 [tkevents/map-reset]
     :kiosk.bookmark/go                    [tkevents/go-to-bookmark]
     :kiosk.bookmark/apply-layers          [tkevents/apply-bookmark-layers]

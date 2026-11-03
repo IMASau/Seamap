@@ -32,42 +32,64 @@
 ;;; Browse: no story open. A card per story: a band of its picture with the read
 ;;; time on it, then its title and summary.
 
-(defn- story-list
+(declare safe-html)
+
+(defn- story-cards
   "One or two columns of story cards (see `one-column?`), in three rows while
   a column has up to three cards (so three fill it), and four for four.
   Stories are nil until they've loaded, and may load as none."
+  [stories columns]
+  [:div.browse-story-list
+   {:style {"--browse-rows" (-> (count stories) (/ columns) js/Math.ceil (max 3) (min 4))}}
+   (cond
+     (seq stories)
+     (for [{:keys [id title summary image read-time marker]} stories]
+       ^{:key id}
+       [:button.browse-story
+        {:on-click #(re-frame/dispatch [:kiosk.story/open id])}
+        [:span.browse-story-image
+         (if image
+           [:img {:src image :alt ""}]
+           [:span.story-thumb-fallback])]
+        ;; As on its marker, to match them up.
+        (when-let [icon (:icon marker)]
+          [:span.story-icon [:img {:src icon :alt ""}]])
+        [:span.browse-story-copy
+         [:b title]
+         [:span.summary (html->text summary)]
+         (when read-time [:small.read-time read-time " min"])]])
+
+     (some? stories)
+     [:p.browse-loading "No stories yet."]
+
+     :else
+     [:p.browse-loading [:span.spinner] "Loading stories…"])])
+
+(defn- story-list
+  "The story list (`story-cards`). A feature tapped on the home map shows as in
+  a story: its html in place of the list, and Return to stories (also there
+  for a feature with only images, which show in the media card)."
   []
-  (let [stories @(re-frame/subscribe [:kiosk/stories])
-        columns (if (one-column? stories) 1 2)]
+  (let [stories  @(re-frame/subscribe [:kiosk/stories])
+        feature  @(re-frame/subscribe [:kiosk/feature-html])
+        media?   (seq @(re-frame/subscribe [:kiosk/media]))
+        columns  (if (one-column? stories) 1 2)]
     [:section.browse-card
-     {:class (when (= columns 1) "one-column")}
+     ;; A feature's html in the story card's width (`panel-morph`).
+     {:class [(when (or feature (= columns 1)) "one-column") (when feature "feature")]}
      [:div.eyebrow "Island to Ice"]
-     [:h1 "Choose a story"]
-     [:div.browse-story-list
-      {:style {"--browse-rows" (-> (count stories) (/ columns) js/Math.ceil (max 3) (min 4))}}
-      (cond
-        (seq stories)
-        (for [{:keys [id title summary image read-time marker]} stories]
-          ^{:key id}
-          [:button.browse-story
-           {:on-click #(re-frame/dispatch [:kiosk.story/open id])}
-           [:span.browse-story-image
-            (if image
-              [:img {:src image :alt ""}]
-              [:span.story-thumb-fallback])]
-           ;; As on its marker, to match them up.
-           (when-let [icon (:icon marker)]
-             [:span.story-icon [:img {:src icon :alt ""}]])
-           [:span.browse-story-copy
-            [:b title]
-            [:span.summary (html->text summary)]
-            (when read-time [:small.read-time read-time " min"])]])
-
-        (some? stories)
-        [:p.browse-loading "No stories yet."]
-
-        :else
-        [:p.browse-loading [:span.spinner] "Loading stories…"])]]))
+     (if feature
+       ^{:key (:id feature)}
+       [:div.story-copy
+        [:div.narrative [html (safe-html (:html feature))]]]
+       [:<>
+        [:h1 "Choose a story"]
+        [story-cards stories columns]])
+     (when (or feature media?)
+       [:div.story-actions
+        [:button.next-button
+         {:on-click #(re-frame/dispatch [:kiosk.feature/continue])}
+         "Return to stories"]])]))
 
 ;;; Story: one open. It starts on an intro card, in the story card's place.
 
@@ -179,8 +201,10 @@
          ^{:key index} [copy step (when (:first? @shown) "after-morph")]]))))
 
 (defn- story-card
-  "The step's card. A tapped feature with html (`:kiosk/feature-html`) takes
-  the copy's place (Reset map, `reset-map-button`, puts the step's back)."
+  "The step's card. A tapped feature's html (`:kiosk/feature-html`, or a
+  bookmark's feature's) takes the copy's place, and Continue story takes Back
+  and Next's, to return to the step's copy (see
+  `imas-seamap.tmag-kiosk.events/continue-feature`)."
   []
   (let [{:keys [title image steps]} @(re-frame/subscribe [:kiosk/story])
         index      @(re-frame/subscribe [:kiosk/step-index])
@@ -203,19 +227,25 @@
        [:div.progress-fill {:style {:width (str (* 100 (/ (inc index) (count steps))) "%")}}]]
       [:div.step-number (inc index) " / " (count steps)]]
      ;; Start again leftmost, with Back between it and Next, the most tapped.
-     [:div.story-actions
-      [home-button]
-      ;; Back from the first step is back to the intro card.
-      [:button.back-button
-       {:on-click #(if (zero? index)
-                     (with-view-transition (fn [] (re-frame/dispatch-sync [:kiosk.story/intro])))
-                     (re-frame/dispatch [:kiosk.step/go (dec index)]))}
-       "‹ Back"]
-      [:button.next-button
-       {:on-click #(re-frame/dispatch (if last-step?
-                                        [:kiosk/start-again]
-                                        [:kiosk.step/go (inc index)]))}
-       (if last-step? "Finish" "Next ›")]]]))
+     (if feature
+       [:div.story-actions
+        [home-button]
+        [:button.next-button
+         {:on-click #(re-frame/dispatch [:kiosk.feature/continue])}
+         "Continue story"]]
+       [:div.story-actions
+        [home-button]
+        ;; Back from the first step is back to the intro card.
+        [:button.back-button
+         {:on-click #(if (zero? index)
+                       (with-view-transition (fn [] (re-frame/dispatch-sync [:kiosk.story/intro])))
+                       (re-frame/dispatch [:kiosk.step/go (dec index)]))}
+         "‹ Back"]
+        [:button.next-button
+         {:on-click #(re-frame/dispatch (if last-step?
+                                          [:kiosk/start-again]
+                                          [:kiosk.step/go (inc index)]))}
+         (if last-step? "Finish" "Next ›")]])]))
 
 (defn- reset-map-button
   "Reset map, above the zoom control on every step: puts the map (and the
@@ -465,47 +495,62 @@
       [:div.still-there-timer
        [:div {:style {:animation-duration (str idle/prompt-ms "ms")}}]]]]))
 
+(defn- panel-morph-step
+  "The panel's next state (see `panel-morph`) for the card now showing:
+  `mode` is :browse, :feature (a feature tapped on the home map, in the
+  story card's width) or :story, and `wide?` whether its card is the wide
+  story list's. A change of mode starts a transition: `:to` is to-wide,
+  to-narrow or, with nothing to resize, to-same."
+  [{prev :mode prev-wide? :wide? :as state} mode wide?]
+  (cond-> (assoc state :mode mode :wide? wide?)
+    (and prev (not= prev mode))
+    (-> (update :n inc)
+        (assoc :to (cond (= prev-wide? wide?) "to-same" wide? "to-wide" :else "to-narrow")))))
+
 (defn- panel-morph
-  "Between the wide story list and a story's narrow card, a blank panel that
-  narrows or widens from one to the other, under the arriving card as it fades
-  in. It's empty, so animating its width is cheap enough to run during a flight
-  (going home). Between a one-column list and a story it stays the same width,
-  just keeping the map from showing through as the card fades in. Keyed by
-  transition, so each restarts its animation; once done it's invisible."
-  [_mode _wide-list?]
-  (let [state (atom {:mode nil :n 0})]
-    (fn [mode wide-list?]
-      (let [{prev :mode} @state]
-        (when (and prev (not= prev mode))
-          (swap! state #(-> % (update :n inc) (assoc :to (cond (not wide-list?) "to-same"
-                                                                (= mode :browse) "to-wide"
-                                                                :else            "to-narrow")))))
-        (swap! state assoc :mode mode)
-        (let [{:keys [n to]} @state]
-          (when (pos? n)
-            ^{:key n} [:div.panel-morph {:class to}]))))))
+  "Between the wide story list and a narrow card (a story's, or a feature's
+  tapped on the home map), a blank panel that narrows or widens from one to
+  the other, under the arriving card as it fades in. It's empty, so animating
+  its width is cheap enough to run during a flight (going home). Between cards
+  of the same width it stays that width, just keeping the map from showing
+  through as the card fades in. Keyed by transition, so each restarts its
+  animation; once done it's invisible."
+  [{:keys [n to]}]
+  (when (pos? n)
+    ^{:key n} [:div.panel-morph {:class to}]))
 
 (defn layout-app []
   ;; The intro card fades in only when it arrives from the story list; back
   ;; from the first step, it morphs in instead (see `with-view-transition`).
   (let [screen    (atom nil)
-        arriving? (atom false)]
+        arriving? (atom false)
+        morph     (atom {:n 0})]
     (fn []
-      (let [story? (some? @(re-frame/subscribe [:kiosk/story]))
-            intro? @(re-frame/subscribe [:kiosk/intro?])
-            wide?  (not (one-column? @(re-frame/subscribe [:kiosk/stories])))
-            now    (cond (not story?) :list intro? :intro :else :step)]
+      (let [story?   (some? @(re-frame/subscribe [:kiosk/story]))
+            intro?   @(re-frame/subscribe [:kiosk/intro?])
+            feature? (and (not story?) (some? @(re-frame/subscribe [:kiosk/feature-html])))
+            wide?    (and (not story?) (not feature?) (not (one-column? @(re-frame/subscribe [:kiosk/stories]))))
+            now      (cond (not story?) :list intro? :intro :else :step)]
         (when (not= now @screen)
           (reset! arriving? (and (= now :intro) (= @screen :list)))
           (reset! screen now))
+        (swap! morph panel-morph-step (cond story? :story feature? :feature :else :browse) wide?)
         [:div#main-wrapper.seamap.kiosk-player
-         {:class [(when story? "story-mode") (when-not wide? "same-width")]}
+         ;; `same-width`: the arriving card needs no resize, so fades in at once.
+         {:class [(when story? "story-mode")
+                  (when (if-let [to (:to @morph)] (= to "to-same") (not wide?)) "same-width")]}
          [:div#content-wrapper
           [map-component]]
          [views/loading-display]
-         [panel-morph (if story? :story :browse) wide?]
+         [panel-morph @morph]
          (case now
-           :list  [story-list]
+           ;; Keyed, so a feature's card fades in over the panel as a story's
+           ;; does, and the list's back again.
+           :list  [:<>
+                   ^{:key feature?} [story-list]
+                   ;; Only for a feature tapped on the home map.
+                   (when (seq @(re-frame/subscribe [:kiosk/media]))
+                     [media-card])]
            :intro [intro-card {:arriving? @arriving?}]
            ;; The media card belongs to the steps.
            :step  [:<>

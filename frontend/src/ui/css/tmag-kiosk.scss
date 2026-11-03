@@ -227,6 +227,12 @@
             .browse-story-list { grid-template-columns: minmax(0, 1fr); }
         }
     }
+    // A feature tapped on the home map: its html in the list's place, then
+    // Return to stories at the foot, as a story card's buttons are.
+    .browse-card {
+        > .story-copy { flex: 1; }
+        > .story-actions { flex-shrink: 0; margin-top: u(16); }
+    }
     // Room for 8 stories without scrolling, in two columns of four. Three
     // rows fill with five or six stories (or three in one column), and fewer
     // keep that size (`--browse-rows`, from `story-list`). A ninth wouldn't show.
