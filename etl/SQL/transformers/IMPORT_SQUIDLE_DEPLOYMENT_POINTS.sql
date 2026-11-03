@@ -38,16 +38,21 @@ BEGIN
         DECLARE @CAMPAIGN_ID nvarchar(255)
         DECLARE @COLOR nvarchar(255)
         DECLARE @DEP_MIN nvarchar(255)
-        DECLARE @DEP_MAX nvarchar(255)            
+        DECLARE @DEP_MAX nvarchar(255)  
+        DECLARE @ALT_MIN nvarchar(255)
+        DECLARE @ALT_MAX nvarchar(255)              
+        DECLARE @TIMESTAMP_START nvarchar(255)   
+        DECLARE @TIMESTAMP_END nvarchar(255)                
         DECLARE @PLATFORM_NAME nvarchar(255)
         DECLARE @PLATFORM_KEY nvarchar(255)
         DECLARE @PLATFORM_ID nvarchar(255)
-        DECLARE @URL nvarchar(255)
         DECLARE @POINT nvarchar(255)
         DECLARE @DATE nvarchar(255)
         DECLARE @MEDIA_COUNT nvarchar(255)
+        DECLARE @POSE_COUNT nvarchar(255)            
         DECLARE @TOTAL_ANNOTATION_COUNT nvarchar(255)
         DECLARE @PUBLIC_ANNOTATION_COUNT nvarchar(255)
+        DECLARE @URL nvarchar(255)            
         DECLARE @GEOM geometry
 
 
@@ -56,22 +61,27 @@ BEGIN
         DECLARE @destCAMPAIGN_ID numeric(9, 0)
         DECLARE @destPLATFORM_ID numeric(9, 0)
         DECLARE @destDEP_MIN float
-        DECLARE @destDEP_MAX float            
+        DECLARE @destDEP_MAX float    
+        DECLARE @destALT_MIN float
+        DECLARE @destALT_MAX float  
+        DECLARE @destTIMESTAMP_START datetime2(0)   
+        DECLARE @destTIMESTAMP_END datetime2(0)            
         DECLARE @destDATE date
         DECLARE @destMEDIA_COUNT int
+        DECLARE @destPOSE_COUNT int            
         DECLARE @destTOTAL_ANNOTATION_COUNT int
         DECLARE @destPUBLIC_ANNOTATION_COUNT int
 
 
         DECLARE cSQUIDLEDATA CURSOR LOCAL FOR
-            SELECT FID, ID, [KEY], NAME, CAMPAIGN_NAME, CAMPAIGN_KEY, CAMPAIGN_ID, COLOR, DEP_MIN, DEP_MAX, PLATFORM_NAME, PLATFORM_KEY, PLATFORM_ID, URL,
-                   POINT, [DATE], MEDIA_COUNT, TOTAL_ANNOTATION_COUNT, PUBLIC_ANNOTATION_COUNT, GEOM
+            SELECT FID, ID, [KEY], NAME, CAMPAIGN_NAME, CAMPAIGN_KEY, CAMPAIGN_ID, COLOR, DEP_MIN, DEP_MAX, ALT_MIN, ALT_MAX, TIMESTAMP_START, TIMESTAMP_END, PLATFORM_NAME, PLATFORM_KEY, PLATFORM_ID,
+                   POINT, [DATE], MEDIA_COUNT, POSE_COUNT, TOTAL_ANNOTATION_COUNT, PUBLIC_ANNOTATION_COUNT, URL, GEOM
             FROM EXTRACT_SQUIDLE_DEPLOYMENT_POINTS ;
 
         OPEN cSQUIDLEDATA
 
-        FETCH NEXT FROM cSQUIDLEDATA INTO @FID, @ID, @KEY, @NAME, @CAMPAIGN_NAME, @CAMPAIGN_KEY, @CAMPAIGN_ID, @COLOR, @DEP_MIN, @DEP_MAX, @PLATFORM_NAME, @PLATFORM_KEY, @PLATFORM_ID, @URL,
-                        @POINT, @DATE, @MEDIA_COUNT, @TOTAL_ANNOTATION_COUNT, @PUBLIC_ANNOTATION_COUNT, @GEOM
+        FETCH NEXT FROM cSQUIDLEDATA INTO @FID, @ID, @KEY, @NAME, @CAMPAIGN_NAME, @CAMPAIGN_KEY, @CAMPAIGN_ID, @COLOR, @DEP_MIN, @DEP_MAX, @ALT_MIN, @ALT_MAX, @TIMESTAMP_START, @TIMESTAMP_END, @PLATFORM_NAME, @PLATFORM_KEY, @PLATFORM_ID,
+                        @POINT, @DATE, @MEDIA_COUNT, @POSE_COUNT, @TOTAL_ANNOTATION_COUNT, @PUBLIC_ANNOTATION_COUNT, @URL, @GEOM
         WHILE @@FETCH_STATUS = 0
         BEGIN
 
@@ -80,21 +90,26 @@ BEGIN
             SET @destCAMPAIGN_ID = TRY_PARSE(@CAMPAIGN_ID as NUMERIC(9,0))
             SET @destPLATFORM_ID = TRY_PARSE(@PLATFORM_ID as NUMERIC(9,0))
             SET @destDEP_MIN = TRY_PARSE(@DEP_MIN as FLOAT)
-            SET @destDEP_MAX = TRY_PARSE(@DEP_MAX as FLOAT)            
+            SET @destDEP_MAX = TRY_PARSE(@DEP_MAX as FLOAT)   
+            SET @destALT_MIN = TRY_PARSE(@ALT_MIN as FLOAT)
+            SET @destALT_MAX = TRY_PARSE(@ALT_MAX as FLOAT)  
+            SET @destTIMESTAMP_START = TRY_CONVERT(datetime2(0), @TIMESTAMP_START);
+            SET @destTIMESTAMP_END = TRY_CONVERT(datetime2(0), @TIMESTAMP_END);
             SET @destDATE = TRY_PARSE(@DATE as DATE)
             SET @destMEDIA_COUNT = TRY_PARSE(@MEDIA_COUNT as INT)
+            SET @destPOSE_COUNT = TRY_PARSE(@POSE_COUNT as INT)            
             SET @destTOTAL_ANNOTATION_COUNT = TRY_PARSE(@TOTAL_ANNOTATION_COUNT as INT)
             SET @destPUBLIC_ANNOTATION_COUNT = TRY_PARSE(@PUBLIC_ANNOTATION_COUNT as INT)
             IF @GEOM IS NOT NULL
                 SET @GEOM.STSrid = 3112
 
         INSERT INTO TRANSFORM_SQUIDLE_DEPLOYMENT_POINTS
-               (ID,geom,[key],name,campaign_name,campaign_key,campaign_id,color,dep_min,dep_max,platform_name,platform_key,platform_id,url,[date],media_count,total_annotation_count,public_annotation_count)
+               (ID,geom,[key],name,campaign_name,campaign_key,campaign_id,color,dep_min,dep_max,alt_min,alt_max,timestamp_start,timestamp_end,platform_name,platform_key,platform_id,[date],media_count,pose_count,total_annotation_count,public_annotation_count,url)
          VALUES
-               (@destID, @GEOM, @KEY, @NAME, @CAMPAIGN_NAME, @CAMPAIGN_KEY, @destCAMPAIGN_ID, @COLOR, @destDEP_MIN, @destDEP_MAX, @PLATFORM_NAME, @PLATFORM_KEY, @destPLATFORM_ID, @URL, @DATE, @destMEDIA_COUNT, @destTOTAL_ANNOTATION_COUNT, @destPUBLIC_ANNOTATION_COUNT)
+               (@destID, @GEOM, @KEY, @NAME, @CAMPAIGN_NAME, @CAMPAIGN_KEY, @destCAMPAIGN_ID, @COLOR, @destDEP_MIN, @destDEP_MAX, @destALT_MIN, @destALT_MAX, @destTIMESTAMP_START, @destTIMESTAMP_END, @PLATFORM_NAME, @PLATFORM_KEY, @destPLATFORM_ID, @destDATE, @destMEDIA_COUNT, @destPOSE_COUNT, @destTOTAL_ANNOTATION_COUNT, @destPUBLIC_ANNOTATION_COUNT, @URL)
 
-            FETCH NEXT FROM cSQUIDLEDATA INTO @FID, @ID, @KEY, @NAME, @CAMPAIGN_NAME, @CAMPAIGN_KEY, @CAMPAIGN_ID, @COLOR, @DEP_MIN, @DEP_MAX, @PLATFORM_NAME, @PLATFORM_KEY, @PLATFORM_ID, @URL,
-                        @POINT, @DATE, @MEDIA_COUNT, @TOTAL_ANNOTATION_COUNT, @PUBLIC_ANNOTATION_COUNT, @GEOM
+            FETCH NEXT FROM cSQUIDLEDATA INTO @FID, @ID, @KEY, @NAME, @CAMPAIGN_NAME, @CAMPAIGN_KEY, @CAMPAIGN_ID, @COLOR, @DEP_MIN, @DEP_MAX, @ALT_MIN, @ALT_MAX, @TIMESTAMP_START, @TIMESTAMP_END, @PLATFORM_NAME, @PLATFORM_KEY, @PLATFORM_ID,
+                        @POINT, @DATE, @MEDIA_COUNT, @POSE_COUNT, @TOTAL_ANNOTATION_COUNT, @PUBLIC_ANNOTATION_COUNT, @URL, @GEOM
         END
 
         CLOSE cSQUIDLEDATA

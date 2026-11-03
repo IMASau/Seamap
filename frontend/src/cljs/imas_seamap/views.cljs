@@ -3,23 +3,31 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.views
   (:require [clojure.string :as string]
-            [re-frame.core :as re-frame]
-            [reagent.core :as reagent]
-            [imas-seamap.blueprint :as b :refer [use-hotkeys]]
-            [imas-seamap.interop.react :refer [css-transition-group css-transition container-dimensions use-memo]]
-            [imas-seamap.map.views :refer [map-component]]
-            [imas-seamap.map.layer-views :refer [layer-card layer-catalogue-node layer-control legend-display]]
-            [imas-seamap.state-of-knowledge.views :refer [state-of-knowledge floating-state-of-knowledge-pill floating-boundaries-pill floating-zones-pill]]
-            [imas-seamap.story-maps.views :refer [featured-maps featured-map-drawer]]
-            [imas-seamap.plot.views :refer [transect-display-component]]
-            [imas-seamap.utils :refer [handler-fn handler-dispatch first-where append-query-params] :include-macros true]
-            [imas-seamap.components :as components]
-            [imas-seamap.map.subs :as msubs]
-            [imas-seamap.map.utils :refer [download-type->str layer-search-keywords]]
-            [imas-seamap.fx :refer [show-message]]
             [goog.string :as gstring]
             [goog.string.format]
-            #_[debux.cs.core :refer [dbg] :include-macros true]))
+            [imas-seamap.blueprint :as b :refer [use-hotkeys]]
+            [imas-seamap.components :as components]
+            [imas-seamap.fx :refer [show-message]]
+            [imas-seamap.interop.react :refer [container-dimensions
+                                               css-transition
+                                               css-transition-group use-memo]]
+            [imas-seamap.map.layer-views :refer [layer-card
+                                                 layer-catalogue-node
+                                                 layer-control legend-display]]
+            [imas-seamap.map.utils :refer [download-type->str
+                                           layer-downloadable?
+                                           layer-search-keywords]]
+            [imas-seamap.map.views :refer [map-component]]
+            [imas-seamap.plot.views :refer [transect-display-component]]
+            [imas-seamap.state-of-knowledge.views :refer [floating-boundaries-pill
+                                                          floating-state-of-knowledge-pill
+                                                          floating-zones-pill
+                                                          state-of-knowledge]]
+            [imas-seamap.story-maps.views :refer [featured-map-drawer
+                                                  featured-maps]]
+            [imas-seamap.utils :refer [append-query-params handler-dispatch] :include-macros true]
+            [re-frame.core :as re-frame]
+            [reagent.core :as reagent]))
 
 (defn- ->query-selector
   "Normalises selectors for helper-overlay into a form for use with
@@ -524,10 +532,11 @@
          [:p.download-instructions
           "Downloading implies acceptance of all citation and usage requirements."])])))
 
-(defn- download-menu [{:keys [title disabled? bbox] {:keys [download_format] :as layer} :layer}]
+(defn- download-menu
   "Download menu for layers.
    Layers with the WFS download format will have GeoTIFF, SHP, and CSV available, while WCS will only have GeoTIFF available.
    Assumption for now that WFS and WCS are the only download formats that need to be supported."
+  [{:keys [title disabled? bbox] {:keys [download_format] :as layer} :layer}]
   [b/popover {:position           b/BOTTOM
               :disabled           disabled?
               :popover-class-name "bp3-minimal"
@@ -582,7 +591,7 @@
 
 (defn info-card []
   (let [layer-info       @(re-frame/subscribe [:map.layer/info])
-        {:keys [metadata_url category download_format] :as layer} (:layer layer-info)
+        {:keys [download_format] :as layer} (:layer layer-info)
         title            (or (get-in layer-info [:layer :name]) "Layer Information")
         {:keys [region]} @(re-frame/subscribe [:map.layer.selection/info])]
     [b/dialogue {:title    title
@@ -670,6 +679,7 @@
    {:on-click #(re-frame/dispatch [:map.print/start])
     :tooltip  "Export Map As Image"
     :id       "print-control"
+    :tooltip  "Export Map at Current Size"
     :icon     "media"}])
 
 (defn transect-control []
@@ -687,22 +697,21 @@
 
 (defn region-control []
   (let [{:keys [selecting? region]} @(re-frame/subscribe [:map.layer.selection/info])
-        habitat-layers? (->>
-                         @(re-frame/subscribe [:map/layers])
-                         :visible-layers
-                         (filter #(= (:category %) :habitat))
+        downloadable-layers (->>
+                         @(re-frame/subscribe [:dbsubs.map/active-layers])
+                         (filter layer-downloadable?)
                          seq boolean)
         [tooltip icon dispatch]
         (cond
-          (not habitat-layers?) ["No habitat layers currently active" "widget" :map.layer.selection/enable]
-          selecting?            ["Cancel Selecting" "undo"   :map.layer.selection/disable]
-          region                ["Clear Selection"  "eraser" :map.layer.selection/clear]
-          :else                 ["Select Habitat Data"    "widget" :map.layer.selection/enable])]
+          (not downloadable-layers) ["No downloadable layers currently active" "widget" :map.layer.selection/enable]
+          selecting?            ["Cancel Selecting"            "undo"   :map.layer.selection/disable]
+          region                ["Clear Selection"             "eraser" :map.layer.selection/clear]
+          :else                 ["Select Data by Bounding Box" "widget" :map.layer.selection/enable])]
     [control-block-child
      {:on-click  #(re-frame/dispatch [dispatch])
       :tooltip   tooltip
       :icon      icon
-      :disabled? (not habitat-layers?)
+      :disabled? (not downloadable-layers)
       :id        "select-control"}]))
 
 (defn leaflet-control-button [{:keys [on-click tooltip icon id]}]
@@ -1292,7 +1301,7 @@
       {:id "print-control" :helperText "Export current map view as an image"}
       {:id "omnisearch-control" :helperText "Search all available layers in catalogue"}
       {:id "transect-control" :helperText "Draw a transect (habitat data) or take a measurement"}
-      {:id "select-control" :helperText "Select a region for download (habitat data)"}
+      {:id "select-control" :helperText "Select a region for download"}
       {:id "share-control" :helperText "Create a shareable URL for current map view"}
       {:id "reset-control" :helperText "Reset the application back to its initial state"}
       {:id "shortcuts-control" :helperText "View keyboard shortcuts"}

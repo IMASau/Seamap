@@ -43,10 +43,9 @@
     (scale-distance s1 s2 remainder-pct)))
 
 (defn feature-info [db [_ map-id]]
-  (let [{:keys [status location had-insecure? responses] :as feature} (utils/get-independent-map-state db map-id [:feature])]
+  (let [{:keys [status location responses] :as feature} (utils/get-independent-map-state db map-id [:feature])]
     (if feature
       {:has-info?     true
-       :had-insecure? had-insecure?
        :status        status
        :responses     responses
        :location      ((juxt :lat :lng) location)

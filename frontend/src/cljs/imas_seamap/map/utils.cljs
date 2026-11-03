@@ -187,7 +187,7 @@
       ;; an issue where including the bbox, for the full region,
       ;; causes issues.  I don't think this was always the case, but
       ;; not investigating further)
-      (merge-in (when bounds {:query {:bbox (bounds->str:wfs bounds)}}))
+      (merge-in (when bounds {:query {:bbox (bounds->str:wfs 4326 bounds)}}))
       str))
 
 (defmethod download-link :wms [{:keys [server_url detail_layer layer_name bounding_box] :as _layer}
@@ -224,7 +224,11 @@
                        :compression "DEFLATE"
                        :format      (type->format-str download-type)
                        :coverageId (or detail_layer layer_name)})
-        (str (when bounds (str "&subset=Lat(" south "," north ")&subset=Long(" west "," east ")")))))) ; Add bounds params if provided. Can't be part of query dict because 'subset' param is used twice.
+        ;; Add bounds params if provided. Can't be part of query dict because 'subset' param is used twice.
+        (str (when bounds
+               (str "&subset=Lat(" south "," north ")"
+                    "&subset=Long(" west "," east ")"
+                    "&subsettingCRS=EPSG:4326"))))))
 
 (defmethod download-link :thredds-http
   [{:keys [server_url] :as _layer} _bounds _download-type _api-url-base _time]
@@ -947,7 +951,7 @@
     (re-find search-re (layer-search-keywords categories layer))
     false))
 
-;;; Seamap is hosted under https, meaning the browser will block ajax
-;;; (ie, getfeatureinfo) requests to plain http URLs.  Servers still
-;;; using http need specil handling:
-(defn is-insecure? [url] (-> url string/lower-case (string/starts-with? "http:")))
+(defn layer-downloadable?
+  "Predicate for if a layer supports downloading"
+  [{:keys [download_format] :as _layer}]
+  (not (string/blank? download_format)))
