@@ -156,13 +156,24 @@
         :map.layer.download/geotiff-thredds-wcs "GeoTIFF"}
        type-key))
 
-(defmulti download-link (fn [_layer _bounds download-type _api-url-base _time] (type->servertype download-type)))
+(defmulti download-link
+  "Build the download URL for a layer.  Dispatches on the server type for the
+   download-type.  `opts` is a map of
+     :api-url-base  base url for the seamap backend (used for clipped shapefiles)
+     :time          ISO time string (used for Thredds GeoTIFFs)
+     :cql-filter    current CQL filter for the layer, or nil; applied to vector
+                    (WFS/WMS) downloads only, since coverage services don't
+                    support CQL.  Note the clipped-shapefile backend endpoint
+                    doesn't support it either."
+  (fn [_layer _bounds download-type _opts] (type->servertype download-type)))
 
-(defmethod download-link :api [{:keys [id] :as layer} bounds download-type api-url-base _time]
+(defmethod download-link :api [{:keys [id] :as layer} bounds download-type {:keys [api-url-base] :as opts}]
   ;; At the moment we still use geoserver for CSV downloads (all), and
   ;; shp downloads of the entire data, ie when bounds arg is nil.
+  ;; FIXME: the backend habitat/subset endpoint has no CQL support, so a
+  ;; clipped shapefile ignores any active :cql-filter.
   (if-not bounds
-    ((get-method download-link :wfs) layer bounds download-type)
+    ((get-method download-link :wfs) layer bounds download-type opts)
     (let [base-url (str api-url-base "habitat/subset/")
           bounds-arg (->> bounds (bounds->projected #(project-coords % "EPSG:3112")) (bounds->str:wfs 3112))]
       (-> (url/url base-url)
@@ -174,8 +185,7 @@
 (defmethod download-link :wfs [{:keys [server_url detail_layer layer_name] :as _layer}
                                bounds
                                download-type
-                               _api-url-base
-                               _time]
+                               {:keys [cql-filter] :as _opts}]
   (-> (url/url server_url)
       (assoc :query {:service      "wfs"
                      :version      "1.1.0"
@@ -188,13 +198,13 @@
       ;; causes issues.  I don't think this was always the case, but
       ;; not investigating further)
       (merge-in (when bounds {:query {:bbox (bounds->str:wfs 4326 bounds)}}))
+      (merge-in (when cql-filter {:query {:cql_filter cql-filter}}))
       str))
 
 (defmethod download-link :wms [{:keys [server_url detail_layer layer_name bounding_box] :as _layer}
                                bounds
                                download-type
-                               _api-url-base
-                               _time]
+                               {:keys [cql-filter] :as _opts}]
   ;; Crude ratio calculations for approximating image dimensions (note, bbox could be param or layer extent):
   (let [{:keys [north south east west] :as bounds} (or bounds bounding_box)
         ratio (/ (- north south) (- east west))
@@ -210,12 +220,13 @@
                        :width       width
                        :height      (int (* ratio width))
                        :layers      (or detail_layer layer_name)})
+        (merge-in (when cql-filter {:query {:cql_filter cql-filter}}))
         str)))
+
 (defmethod download-link :wcs [{:keys [server_url detail_layer layer_name bounding_box] :as _layer}
                                bounds
                                download-type
-                               _api-url-base
-                               _time]
+                               _opts]
   (let [{:keys [north south east west]} bounds]
     (-> (url/url server_url)
         (assoc :query {:service     "WCS"
@@ -231,7 +242,7 @@
                     "&subsettingCRS=EPSG:4326"))))))
 
 (defmethod download-link :thredds-http
-  [{:keys [server_url] :as _layer} _bounds _download-type _api-url-base _time]
+  [{:keys [server_url] :as _layer} _bounds _download-type _opts]
   (->
    (string/replace server_url "/wms/" "/fileServer/")
    url/url
@@ -241,8 +252,7 @@
   [{:keys [server_url detail_layer layer_name] :as _layer}
    bounds
    download-type
-   _api-url-base
-   time]
+   {:keys [time] :as _opts}]
   (-> (url/url (string/replace server_url "/wms/" "/wcs/"))
       (assoc :query (merge
                      {:service     "WCS"
