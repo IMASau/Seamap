@@ -18,6 +18,7 @@
                                            layer-downloadable?
                                            layer-search-keywords]]
             [imas-seamap.map.views :refer [map-component]]
+            [imas-seamap.map.subs :as msubs]
             [imas-seamap.plot.views :refer [transect-display-component]]
             [imas-seamap.state-of-knowledge.views :refer [floating-boundaries-pill
                                                           floating-state-of-knowledge-pill
@@ -679,7 +680,6 @@
    {:on-click #(re-frame/dispatch [:map.print/start])
     :tooltip  "Export Map As Image"
     :id       "print-control"
-    :tooltip  "Export Map at Current Size"
     :icon     "media"}])
 
 (defn transect-control []
