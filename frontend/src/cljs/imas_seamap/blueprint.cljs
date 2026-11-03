@@ -14,6 +14,8 @@
 
 (def button-group    (reagent/adapt-react-class Blueprint/ButtonGroup))
 
+(def callout         (reagent/adapt-react-class Blueprint/Callout))
+
 (def card            (reagent/adapt-react-class Blueprint/Card))
 
 (def clipped-text    (reagent/adapt-react-class Blueprint/Text))
