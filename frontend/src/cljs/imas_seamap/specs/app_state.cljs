@@ -337,7 +337,7 @@
 
 ;;; Site Configuration
 (s/def ::site-configuration
-  (s/map-of keyword? string?))
+  (s/map-of keyword? (s/nilable string?)))
 
 ;;; display
 (s/def :display.mouse-pos/x number?)
