@@ -182,7 +182,7 @@
   (s/keys :req-un [:map.rich-layers.rich-layer.alternate-view/layer
                    :map.rich-layers.rich-layer.alternate-view/sort_key]))
 (s/def :map.rich-layers.rich-layer/alternate-views
-  (s/coll-of :map.rich-layers.rich-layer/alternate-views :kind vector?))
+  (s/coll-of :map.rich-layers.rich-layer/alternate-view :kind vector?))
 (s/def :map.rich-layers.rich-layer.timeline1/layer :map.layer/id)
 (s/def :map.rich-layers.rich-layer.timeline1/value number?)
 (s/def :map.rich-layers.rich-layer.timeline1/label string?)
