@@ -32,7 +32,7 @@
 (s/def :map.layer/name string?)
 (s/def :map.layer/server_url string?)
 (s/def :map.layer/legend_url (s/nilable string?))
-(s/def :map.layer/layer_name string?)
+(s/def :map.layer/layer_name (s/nilable string?)) ; not all formats have a layer-name
 (s/def :map.layer/detail_layer (s/nilable string?))
 (s/def :map.layer/category :map.category/name)
 (s/def :map.layer.bounding_box/west  float?)
