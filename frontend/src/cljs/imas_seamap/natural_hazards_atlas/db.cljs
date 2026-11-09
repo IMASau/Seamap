@@ -65,6 +65,7 @@
                      :right-sidebars        []
                      :open-pill             nil
                      :outage-message-open?  false
+                     :side-by-side          {:active? false :split-ratio 50}
                      :split-layer-range-value nil
                      :split-layer-container-x nil
                      :current-time            nil
