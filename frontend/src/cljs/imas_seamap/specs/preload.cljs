@@ -2,7 +2,8 @@
 ;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.specs.preload
-  (:require [re-frame.db :refer [app-db]]
+  (:require [re-frame.core :as re-frame]
+            [re-frame.db :refer [app-db]]
             [cljs.spec.alpha :as s]
             [cljs.spec.test.alpha :as stest]
             [imas-seamap.specs.app-state]
@@ -28,4 +29,30 @@
       (js/console.error e)))
   true)
 
-(set-validator! app-db validate-state)
+(defn- validate-on-change [_ _ old new]
+  (when-not (identical? old new)
+    (validate-state new)))
+
+(defn enable-validation! []
+  (js/console.info ::enabling-app-db-validation)
+  (validate-state @app-db)
+  (add-watch app-db ::validate validate-on-change))
+
+(defn disable-validation! []
+  (remove-watch app-db ::validate))
+
+;; The app-db starts out invalid and passes through many transitional states
+;; during boot, so validating from the outset just floods the console.  Every
+;; boot flow (plain, hash-state and save-state, across all app variants) halts
+;; on :ui/hide-loading, so treat that as "boot complete" and only start
+;; validating then.  :boot and :re-boot put the db back into a transitional
+;; state, so switch validation off again until the flow finishes.
+(re-frame/reg-global-interceptor
+ (re-frame/->interceptor
+  :id    ::toggle-validation
+  :after (fn [context]
+           (case (first (re-frame/get-coeffect context :event))
+             (:boot :re-boot) (disable-validation!)
+             :ui/hide-loading (enable-validation!)
+             nil)
+           context)))
