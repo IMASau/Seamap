@@ -56,7 +56,8 @@
                                                             :show-layers?   false}}}
    :site-configuration nil
    :story-maps      {:featured-maps []
-                     :featured-map  nil}
+                     :featured-map  nil
+                     :open?         false}
    :layer-state     {:loading-state {}
                      :tile-count    {}
                      :error-count   {}

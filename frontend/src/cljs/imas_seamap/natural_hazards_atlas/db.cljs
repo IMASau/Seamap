@@ -32,7 +32,8 @@
                                        :download nil}}
    :site-configuration nil
    :story-maps      {:featured-maps []
-                     :featured-map  nil}
+                     :featured-map  nil
+                     :open?         false}
    :data-in-region  {:data     nil
                      :query-id nil}
    :layer-state     {:loading-state {}
