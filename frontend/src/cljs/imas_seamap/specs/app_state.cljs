@@ -457,7 +457,7 @@
 (s/def :state-of-knowledge.statistics.bathymetry.result/mapped_percentage (s/nilable number?))
 (s/def :state-of-knowledge.statistics.bathymetry.result/total_percentage number?)
 (s/def :state-of-knowledge.statistics.bathymetry/result
-  (s/keys :req-un [:state-of-knowledge.statistics.bathymetry.result/category
+  (s/keys :req-un [:state-of-knowledge.statistics.bathymetry.result/resolution
                    :state-of-knowledge.statistics.bathymetry.result/rank
                    :state-of-knowledge.statistics.bathymetry.result/area
                    :state-of-knowledge.statistics.bathymetry.result/mapped_percentage
