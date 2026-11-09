@@ -395,11 +395,11 @@
 
 (s/def :state-of-knowledge.boundaries/active-boundary-layer (s/nilable :map/layer))
 
-(s/def :state-of-knowledge.boundaries.amp/active-network map?)
-(s/def :state-of-knowledge.boundaries.amp/active-park map?)
-(s/def :state-of-knowledge.boundaries.amp/active-zone map?)
-(s/def :state-of-knowledge.boundaries.amp/active-zone-iucn map?)
-(s/def :state-of-knowledge.boundaries.amp/active-zone-id map?)
+(s/def :state-of-knowledge.boundaries.amp/active-network (s/nilable map?))
+(s/def :state-of-knowledge.boundaries.amp/active-park (s/nilable map?))
+(s/def :state-of-knowledge.boundaries.amp/active-zone (s/nilable map?))
+(s/def :state-of-knowledge.boundaries.amp/active-zone-iucn (s/nilable map?))
+(s/def :state-of-knowledge.boundaries.amp/active-zone-id (s/nilable map?))
 
 (s/def :state-of-knowledge.boundaries/amp
   (s/keys :req-un [:state-of-knowledge.boundaries.amp/active-network
@@ -408,22 +408,24 @@
                    :state-of-knowledge.boundaries.amp/active-zone-iucn
                    :state-of-knowledge.boundaries.amp/active-zone-id]))
 
-(s/def :state-of-knowledge.boundaries.imcra/active-provincial-bioregion map?)
-(s/def :state-of-knowledge.boundaries.imcra/active-mesoscale-bioregion map?)
+(s/def :state-of-knowledge.boundaries.imcra/active-provincial-bioregion (s/nilable map?))
+(s/def :state-of-knowledge.boundaries.imcra/active-mesoscale-bioregion (s/nilable map?))
 
 (s/def :state-of-knowledge.boundaries/imcra
   (s/keys :req-un [:state-of-knowledge.boundaries.imcra/active-provincial-bioregion
                    :state-of-knowledge.boundaries.imcra/active-mesoscale-bioregion]))
 
-(s/def :state-of-knowledge.boundaries.meow/active-realm map?)
-(s/def :state-of-knowledge.boundaries.meow/active-province map?)
-(s/def :state-of-knowledge.boundaries.meow/active-ecoregion map?)
+(s/def :state-of-knowledge.boundaries.meow/active-realm (s/nilable map?))
+(s/def :state-of-knowledge.boundaries.meow/active-province (s/nilable map?))
+(s/def :state-of-knowledge.boundaries.meow/active-ecoregion (s/nilable map?))
 
 (s/def :state-of-knowledge.boundaries/meow
   (s/keys :req-un [:state-of-knowledge.boundaries.meow/active-realm
                    :state-of-knowledge.boundaries.meow/active-province
                    :state-of-knowledge.boundaries.meow/active-ecoregion]))
 
+;;; TODO: each of the amp/imcra/meow boundaries don't currently
+;;; specify the :boundaries key they each have.
 (s/def :state-of-knowledge/boundaries
   (s/keys :req-un [:state-of-knowledge.boundaries/active-boundary
                    :state-of-knowledge.boundaries/active-boundary-layer
@@ -537,7 +539,8 @@
 (s/def :state-of-knowledge/open? boolean?)
 (s/def ::state-of-knowledge
   (s/keys :req-un [:state-of-knowledge/boundaries
-                   :state-of-knowledge/statistics]))
+                   :state-of-knowledge/statistics]
+          :opt-un [:state-of-knowledge/region-reports]))
 
 
 ;; story-maps
