@@ -176,7 +176,7 @@
 ;; ones (so each is kept when switching between historic and projected data).
 (def historic-time-periods
   [{:id "all"      :name "All"         :start-year nil  :end-year nil  :display-year nil}
-   {:id "baseline" :name "Baseline"    :start-year 1994 :end-year 2013 :display-year 2004}])
+   {:id "baseline" :name "Baseline"    :start-year 1995 :end-year 2014 :display-year 2005}])
 
 (defn current-view-time-periods
   "Time periods available for the current view: historic or projected."
