@@ -50,6 +50,7 @@
                                       [:current-view :selected-seasonal-data-id]
                                       [:current-view :is-historic?]
                                       [:current-view :selected-time-period-id]
+                                      [:current-view :selected-historic-time-period-id]
                                       (utils/independent-map-state-path :map-2 [:display :current-time])
                                       (utils/independent-map-state-path :map-2 [:current-view :selected-cmip-phase-id])
                                       (utils/independent-map-state-path :map-2 [:current-view :selected-model-id])
@@ -57,6 +58,7 @@
                                       (utils/independent-map-state-path :map-2 [:current-view :selected-seasonal-data-id])
                                       (utils/independent-map-state-path :map-2 [:current-view :is-historic?])
                                       (utils/independent-map-state-path :map-2 [:current-view :selected-time-period-id])
+                                      (utils/independent-map-state-path :map-2 [:current-view :selected-historic-time-period-id])
                                       :autosave?])
                        (assoc :map pruned-map)
                        (assoc :story-maps pruned-story-maps)
@@ -107,6 +109,7 @@
                  [:current-view :selected-scenario-id]
                  [:current-view :selected-seasonal-data-id]
                  [:current-view :selected-time-period-id]
+                 [:current-view :selected-historic-time-period-id]
                  [:current-view :is-historic?]
                  (utils/independent-map-state-path :map-2 [:display :current-time])
                  (utils/independent-map-state-path :map-2 [:display :load-time])
@@ -116,6 +119,7 @@
                  (utils/independent-map-state-path :map-2 [:current-view :selected-seasonal-data-id])
                  (utils/independent-map-state-path :map-2 [:current-view :is-historic?])
                  (utils/independent-map-state-path :map-2 [:current-view :selected-time-period-id])
+                 (utils/independent-map-state-path :map-2 [:current-view :selected-historic-time-period-id])
                  :legend-ids
                  :opacity-ids
                  :autosave?
@@ -167,6 +171,20 @@
    {:id "short"    :name "Near-future" :start-year 2020 :end-year 2039 :display-year 2030}
    {:id "medium"   :name "Mid-future"  :start-year 2050 :end-year 2069 :display-year 2060}
    {:id "long"     :name "Far-future"  :start-year 2080 :end-year 2099 :display-year 2090}])
+
+;; Historic data has its own time periods, selected independently of the projected
+;; ones (so each is kept when switching between historic and projected data).
+(def historic-time-periods
+  [{:id "all"      :name "All"         :start-year nil  :end-year nil  :display-year nil}
+   {:id "baseline" :name "Baseline"    :start-year 1994 :end-year 2013 :display-year 2004}])
+
+(defn current-view-time-periods
+  "Time periods available for the current view: historic or projected."
+  ([db] (current-view-time-periods db nil))
+  ([db map-id]
+   (if (utils/get-independent-map-state db map-id [:current-view :is-historic?])
+     historic-time-periods
+     time-periods)))
 
 ; Extracted function from a sub so that it can be used (sparingly) in events.
 (defn current-view-selected-cmip-phase
@@ -236,10 +254,11 @@
   "Time period to analyze the hazard data"
   ([db] (current-view-selected-time-period db nil))
   ([db map-id]
-   (let [selected-time-period-id (utils/get-independent-map-state db map-id [:current-view :selected-time-period-id])
-         is-historic?            (utils/get-independent-map-state db map-id [:current-view :is-historic?])
-         selected-time-period-id (if is-historic? "all" selected-time-period-id)
-         selected-time-period    (first-where #(= (:id %) selected-time-period-id) time-periods)]
+   (let [is-historic?            (utils/get-independent-map-state db map-id [:current-view :is-historic?])
+         selected-time-period-id (if is-historic?
+                                   (or (utils/get-independent-map-state db map-id [:current-view :selected-historic-time-period-id]) "baseline") ; default, in case a state has none
+                                   (utils/get-independent-map-state db map-id [:current-view :selected-time-period-id]))
+         selected-time-period    (first-where #(= (:id %) selected-time-period-id) (current-view-time-periods db map-id))]
      (assert selected-time-period (str "Selected time period id " selected-time-period-id " not found in time periods list"))
      selected-time-period)))
 

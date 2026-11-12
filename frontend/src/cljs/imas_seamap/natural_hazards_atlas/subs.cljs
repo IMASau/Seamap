@@ -62,9 +62,10 @@
   (nhatutils/current-view-is-historic? db map-id))
 
 (defn current-view-time-periods
-  "List of time periods available to analyze the hazard data."
-  [_db _]
-  nhatutils/time-periods)
+  "List of time periods available to analyze the hazard data (historic or
+   projected, depending on the current view)."
+  [db [_ map-id]]
+  (nhatutils/current-view-time-periods db map-id))
 
 (defn current-view-selected-time-period
   "Time period to analyze the hazard data"

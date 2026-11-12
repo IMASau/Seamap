@@ -85,6 +85,7 @@
                    :selected-scenario-id      nil
                    :selected-seasonal-data-id nil
                    :selected-time-period-id   "medium"
+                   :selected-historic-time-period-id "baseline"
                    :is-historic?              false}
    :autosave?       false
    :config          {:url-paths {:site-configuration    "siteconfiguration/"
