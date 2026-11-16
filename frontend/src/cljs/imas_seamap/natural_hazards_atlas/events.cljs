@@ -534,7 +534,7 @@
   "Indicates whether the current view is for historic data."
   [{:keys [db]} [_ is-historic? map-id]]
   (let [db                      (utils/assoc-independent-map-state db map-id [:current-view :is-historic?] is-historic?)
-        {:keys [db dispatch-n]} (sync-time-to-time-period db map-id)] ; historic data is always "all", but projected data may be fixed to a display year
+        {:keys [db dispatch-n]} (sync-time-to-time-period db map-id)] ; historic and projected data have separate time periods, either of which may be fixed to a display year
     {:db db
      :dispatch-n (into dispatch-n [[:maybe-autosave] (refresh-feature-info db)])}))
 
@@ -545,8 +545,12 @@
    currently selected time isn't avaliable in the new period, reset to the first
    available time in the range."
   [{:keys [db]} [_ {time-period-id :id :as time-period} map-id]]
-  (assert (some #{time-period-id} (map :id nhatutils/time-periods)) (str "Selected time period " time-period " is not a valid option"))
-  (let [db                      (utils/assoc-independent-map-state db map-id [:current-view :selected-time-period-id] time-period-id)
+  (assert (some #{time-period-id} (map :id (nhatutils/current-view-time-periods db map-id))) (str "Selected time period " time-period " is not a valid option"))
+  (let [is-historic?            (nhatutils/current-view-is-historic? db map-id)
+        db                      (utils/assoc-independent-map-state
+                                 db map-id
+                                 [:current-view (if is-historic? :selected-historic-time-period-id :selected-time-period-id)]
+                                 time-period-id)
         {:keys [db dispatch-n]} (sync-time-to-time-period db map-id)]
     {:db db
      :dispatch-n (conj dispatch-n [:maybe-autosave])}))
