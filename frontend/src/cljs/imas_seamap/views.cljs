@@ -537,7 +537,7 @@
   "Download menu for layers.
    Layers with the WFS download format will have GeoTIFF, SHP, and CSV available, while WCS will only have GeoTIFF available.
    Assumption for now that WFS and WCS are the only download formats that need to be supported."
-  [{:keys [title disabled? bbox] {:keys [download_format] :as layer} :layer}]
+  [{:keys [title disabled? bbox cql-filter] {:keys [download_format] :as layer} :layer}]
   [b/popover {:position           b/BOTTOM
               :disabled           disabled?
               :popover-class-name "bp3-minimal"
@@ -550,42 +550,48 @@
                                 :on-click (handler-dispatch [:map.layer/download
                                                              layer
                                                              bbox
-                                                             :map.layer.download/geotiff-wms])}])
+                                                             :map.layer.download/geotiff-wms
+                                                             cql-filter])}])
                 (when (= download_format :map.layer.download-format/wfs)
                   [b/menu-item {:text     "SHP File"
                                 :label    (reagent/as-element [b/icon {:icon "polygon-filter"}])
                                 :on-click (handler-dispatch [:map.layer/download
                                                              layer
                                                              bbox
-                                                             :map.layer.download/shp])}])
+                                                             :map.layer.download/shp
+                                                             cql-filter])}])
                 (when (= download_format :map.layer.download-format/wfs)
                   [b/menu-item {:text     "CSV"
                                 :label    (reagent/as-element [b/icon {:icon "th"}])
                                 :on-click (handler-dispatch [:map.layer/download
                                                              layer
                                                              bbox
-                                                             :map.layer.download/csv])}])
+                                                             :map.layer.download/csv
+                                                             cql-filter])}])
                 (when (= download_format :map.layer.download-format/wcs)
                   [b/menu-item {:text     "GeoTIFF"
                                 :label    (reagent/as-element [b/icon {:icon "globe"}])
                                 :on-click (handler-dispatch [:map.layer/download
                                                              layer
                                                              bbox
-                                                             :map.layer.download/geotiff-wcs])}])
+                                                             :map.layer.download/geotiff-wcs
+                                                             cql-filter])}])
                 (when (= download_format :map.layer.download-format/thredds-wcs)
                   [b/menu-item {:text     "NetCDF"
                                 :label    (reagent/as-element [b/icon {:icon "doughnut-chart"}])
                                 :on-click (handler-dispatch [:map.layer/download
                                                              layer
                                                              bbox
-                                                             :map.layer.download/netcdf-thredds-http])}])
+                                                             :map.layer.download/netcdf-thredds-http
+                                                             cql-filter])}])
                 (when (= download_format :map.layer.download-format/thredds-wcs)
                       [b/menu-item {:text     "GeoTIFF"
                                     :label    (reagent/as-element [b/icon {:icon "globe"}])
                                     :on-click (handler-dispatch [:map.layer/download
                                                                  layer
                                                                  bbox
-                                                                 :map.layer.download/geotiff-thredds-wcs])}])])}
+                                                                 :map.layer.download/geotiff-thredds-wcs
+                                                                 cql-filter])}])])}
    [b/button {:text       title
               :disabled   disabled?
               :right-icon "caret-down"}]])
@@ -593,6 +599,7 @@
 (defn info-card []
   (let [layer-info       @(re-frame/subscribe [:map.layer/info])
         {:keys [download_format] :as layer} (:layer layer-info)
+        cql-filter       (:cql-filter layer-info)
         title            (or (get-in layer-info [:layer :name]) "Layer Information")
         {:keys [region]} @(re-frame/subscribe [:map.layer.selection/info])]
     [b/dialogue {:title    title
@@ -612,18 +619,23 @@
           :description "Unable to load metadata record.  Please try again later."
           :icon        "error"}]
 
-        [metadata-record layer-info])]
-     
+        [metadata-record layer-info])
+      (when (and download_format cql-filter)
+        [b/callout {:icon "filter" :intent b/INTENT-PRIMARY}
+         "Downloads will include only the data matching this layer's current filter."])]
+
      [:div.bp3-dialog-footer
       [:div.bp3-dialog-footer-actions
        (when download_format
          [:<>
-          [download-menu {:title     "Download Selection..."
-                          :layer     layer
-                          :disabled? (nil? region)
-                          :bbox      region}]
-          [download-menu {:title "Download All..."
-                          :layer layer}]])
+          [download-menu {:title      "Download Selection..."
+                          :layer      layer
+                          :disabled?  (nil? region)
+                          :bbox       region
+                          :cql-filter cql-filter}]
+          [download-menu {:title      "Download All..."
+                          :layer      layer
+                          :cql-filter cql-filter}]])
        [b/button
         {:text       "Close"
          :auto-focus true
@@ -631,8 +643,11 @@
          :on-click   #(re-frame/dispatch [:map.layer/close-info])}]]]]))
 
 (defn download-component []
-  (let [{:keys [display-link link bbox download-type download-layer]} @(re-frame/subscribe [:download/info])
-        type-str (download-type->str download-type)]
+  (let [{:keys [display-link link bbox download-type download-layer cql-filter]} @(re-frame/subscribe [:download/info])
+        type-str (download-type->str download-type)
+        ;; Clipped shapefiles go via the backend subset endpoint, which can't
+        ;; apply a CQL filter (see download-link :api):
+        filtered? (and cql-filter (not (and bbox (= download-type :map.layer.download/shp))))]
     [b/dialogue
      {:is-open   display-link
       :title     (str "Download " type-str)
@@ -643,7 +658,10 @@
        {:href     link
         :target   "_blank"
         :on-click #(re-frame/dispatch [:download-click {:link link :layer download-layer :type type-str}])}
-       "Click here to download " (when bbox "region ") "as " type-str]]
+       "Click here to download " (when bbox "region ") "as " type-str (when filtered? " (filtered)")]
+      (when (and cql-filter (not filtered?))
+        [b/callout {:icon "warning-sign" :intent b/INTENT-WARNING :style {:margin-top "10px"}}
+         "Note: the layer's current filter is not applied to clipped shapefile downloads."])]
      [:div.bp3-dialog-footer
       [:div.bp3-dialog-footer-actions
        [b/button

@@ -674,7 +674,7 @@
       (when will-request? {:dispatch-n (concat requests-1 requests-2)})
       (when-not will-request? {:dispatch [:map/got-featureinfo request-id point nil nil nil []]})))) ; shows "no data" popup
 
-(defn download-show-link [db [_ layer bounds download-type]]
+(defn download-show-link [db [_ layer bounds download-type cql-filter]]
   (let [api-url-base (get-in db [:config :url-base :api-url-base])
         time         (mutils/ms-to-iso (get-in db [:display :current-time])) ; time is necessary for GeoTIFF of Thredds layers. Without image x-axis is lat and y-axis is time, with x-axis is lon and y-axis is lat
         
@@ -690,10 +690,13 @@
         displayed-layer (get layer-displayed-layers-lookup layer)]
     (update-in
      db [:map :controls :download]
-     merge {:link         (mutils/download-link displayed-layer bounds download-type api-url-base time)
+     merge {:link         (mutils/download-link displayed-layer bounds download-type {:api-url-base api-url-base
+                                                                                      :time         time
+                                                                                      :cql-filter   cql-filter})
             :layer        layer
             :type         download-type
             :bbox         bounds
+            :cql-filter   cql-filter
             :display-link true})))
 
 (defn destroy-popup

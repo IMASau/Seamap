@@ -444,8 +444,14 @@
     dont-show-again? (assoc :cookie/set {:name :seen-welcome :value true}))) ; Can't do a simple :cookie/set `:value dont-show-again?` because that sets the value of the cookie to "false" instead of false, which is truthy. Better to only set the cookie if we are given a value.
 
 (defn layer-show-info [{:keys [db]} [_ layer]]
-  (let [{:keys [metadata_url] :as displayed-layer}
-        (rich-layer->displayed-layer layer (mutils/db->ctx db))]
+  ;; `layer` is the catalogue layer; the card displays the rich-layer's
+  ;; currently-displayed layer, but the CQL filter is keyed off the
+  ;; catalogue layer so we resolve it here (and snapshot it on the card)
+  ;; while we still have it.
+  (let [ctx        (mutils/db->ctx db)
+        cql-filter (mutils/layer->cql-filter layer ctx)
+        {:keys [metadata_url] :as displayed-layer}
+        (rich-layer->displayed-layer layer ctx)]
     ;; This regexp: has been relaxed slightly; it used to be a strict
     ;; UUIDv4 matcher, but is now case-insensitive and just looks for 32
     ;; alpha-nums with optional hyphens. I assume this is from records
@@ -456,9 +462,9 @@
        :http-xhrio {:method          :get
                     :uri             (-> displayed-layer :metadata_url geonetwork-force-xml)
                     :response-format (ajax/text-response-format)
-                    :on-success      [:map.layer/update-metadata displayed-layer]
+                    :on-success      [:map.layer/update-metadata displayed-layer cql-filter]
                     :on-failure      [:map.layer/metadata-error]}}
-      {:db (assoc-in db [:display :info-card :layer] displayed-layer)})))
+      {:db (assoc-in db [:display :info-card] {:layer displayed-layer :cql-filter cql-filter})})))
 
 ;; (xml/alias-uri 'mcp "http://schemas.aodn.org.au/mcp-2.0")
 ;; (xml/alias-uri 'gmd "http://www.isotc211.org/2005/gmd")
@@ -469,7 +475,7 @@
 ;;; manually... except that the mcp namespace would wind up with a
 ;;; single file 0.cljs, which is invalid.  So we just do it the long
 ;;; way.
-(defn layer-receive-metadata [db [_ layer raw-response]]
+(defn layer-receive-metadata [db [_ layer cql-filter raw-response]]
   (let [zipped           (-> raw-response xml/parse-str zip/xml-zip)
         constraints      (zx/xml1-> zipped
                                     :xmlns.http%3A%2F%2Fstandards.iso.org%2Fiso%2F19115%2F-3%2Fmdb%2F2.0/MD_Metadata
@@ -505,6 +511,7 @@
                          zx/text)]
     (assoc-in db [:display :info-card]
               {:layer        layer
+               :cql-filter   cql-filter
                :license-name license-name
                :license-link license-link
                :license-img  license-img
@@ -697,15 +704,18 @@
 (defn transect-onmouseout [db _]
   (assoc-in db [:transect :mouse-percentage] nil))
 
-(defn download-show-link [db [_ layer bounds download-type]]
+(defn download-show-link [db [_ layer bounds download-type cql-filter]]
   (let [api-url-base (get-in db [:config :url-base :api-url-base])
         time         (mutils/ms-to-iso (get-in db [:display :current-time]))] ; time is necessary for GeoTIFF of Thredds layers. Without image x-axis is lat and y-axis is time, with x-axis is lon and y-axis is lat
     (update-in
      db [:map :controls :download]
-     merge {:link         (download-link layer bounds download-type api-url-base time)
+     merge {:link         (download-link layer bounds download-type {:api-url-base api-url-base
+                                                                     :time         time
+                                                                     :cql-filter   cql-filter})
             :layer        layer
             :type         download-type
             :bbox         bounds
+            :cql-filter   cql-filter
             :display-link true})))
 
 (defn close-download-dialogue [db _]
