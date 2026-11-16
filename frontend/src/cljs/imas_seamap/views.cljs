@@ -13,12 +13,12 @@
                                                css-transition-group use-memo]]
             [imas-seamap.map.layer-views :refer [layer-card
                                                  layer-catalogue-node
-                                                 legend-display]]
-            [imas-seamap.map.subs :as msubs]
+                                                 layer-control legend-display]]
             [imas-seamap.map.utils :refer [download-type->str
                                            layer-downloadable?
                                            layer-search-keywords]]
             [imas-seamap.map.views :refer [map-component]]
+            [imas-seamap.map.subs :as msubs]
             [imas-seamap.plot.views :refer [transect-display-component]]
             [imas-seamap.state-of-knowledge.views :refer [floating-boundaries-pill
                                                           floating-state-of-knowledge-pill
@@ -109,6 +109,36 @@
     [:span.control.bp3-icon-large.bp3-icon-help.bp3-text-muted
      {:on-click #(re-frame/dispatch [:help-layer/open])}]]])
 
+(defn- set-summary-html!
+  "Ref callback body for rendering admin-authored summary HTML; links open in a
+   new tab unless the author specified a target."
+  [el html]
+  (when el
+    (set! (.-innerHTML el) html)
+    (let [hyperlinks (js/Array.prototype.slice.call (.getElementsByTagName el "a"))]
+      (doseq [hyperlink hyperlinks]
+        (when-not (.getAttribute hyperlink "target")
+          (.setAttribute hyperlink "target" "_blank"))))))
+
+(defn- grouping-info-card
+  "Dialog showing the summary of a catalogue grouping node (eg a data
+   classification)."
+  [{:keys [title summary]} on-close]
+  [b/dialogue {:title    title
+               :class    "info-card grouping-info-card"
+               :is-open  (boolean summary)
+               :on-close on-close}
+   [:div.bp3-dialog-body
+    [:div.metadata-record
+     [:div {:ref #(set-summary-html! % summary)}]]]
+   [:div.bp3-dialog-footer
+    [:div.bp3-dialog-footer-actions
+     [b/button
+      {:text       "Close"
+       :auto-focus true
+       :intent     b/INTENT-PRIMARY
+       :on-click   on-close}]]]])
+
 (defn- ->sort-by [sorting-info ordering-key]
   (let [name-key-mapping (get sorting-info ordering-key)]
     ;; Sort by key first, then name (ie, return vector of [key name])
@@ -117,13 +147,14 @@
 (defn- layers->nodes
   "group-ordering is the category keys to order by, eg [:organisation :data_category]"
   [layers [ordering & ordering-remainder :as group-ordering] sorting-info expanded-states id-base
-   layer-props open-all? tma?]
+   layer-props open-all? tma? on-info]
   (for [[val layer-subset] (sort-by (->sort-by sorting-info ordering) (group-by ordering layers))
-        ;; sorting-info maps category key -> label -> [sort-key,id].
+        ;; sorting-info maps category key -> label -> [sort-key,id,display-name,summary].
         ;; We use the id for a stable node-id:
         :let [sorting-id (get-in sorting-info [ordering val 1])
               id-str (str id-base "|" sorting-id)
               display-name (get-in sorting-info [ordering val 2])
+              summary (get-in sorting-info [ordering val 3])
               expanded? (or (get expanded-states id-str false) open-all?)]]
     {:id id-str
      :label (reagent/as-element
@@ -133,13 +164,19 @@
                 :size  "22px"
                 :class (str "bp3-tree-node-caret" (when expanded? " bp3-tree-node-caret-open"))}]
               [b/clipped-text {:ellipsize true}
-               (or display-name "Ungrouped")]])
+               (or display-name "Ungrouped")]
+              (when (seq summary)
+                [:div.layer-controls.grouping-controls
+                 [layer-control
+                  {:tooltip  "Info"
+                   :icon     "info-sign"
+                   :on-click #(on-info {:title display-name :summary summary})}]])])
      :isExpanded expanded?
      :hasCaret   false
      :className  (-> ordering name (string/replace "_" "-"))
      :childNodes (concat
                   (if (seq ordering-remainder)
-                    (layers->nodes layer-subset (rest group-ordering) sorting-info expanded-states id-str layer-props open-all? tma?)
+                    (layers->nodes layer-subset (rest group-ordering) sorting-info expanded-states id-str layer-props open-all? tma? on-info)
                     (map-indexed
                      (fn [i layer]
                        (layer-catalogue-node
@@ -167,10 +204,14 @@
                    (let [{:keys [childNodes id]} (js->clj node :keywordize-keys true)]
                      (when (seq childNodes)
                        ;; If we have children, toggle expanded state, else add to map
-                       (re-frame/dispatch [:ui.catalogue/toggle-node catid id]))))]
+                       (re-frame/dispatch [:ui.catalogue/toggle-node catid id]))))
+        grouping-info (reagent/atom nil)
+        on-info #(reset! grouping-info %)]
     (fn [_catid layers ordering id layer-props open-all? tma?]
      [:div.tab-body {:id id}
-      [b/tree {:contents (layers->nodes layers ordering @sorting-info @expanded-states id layer-props open-all? tma?)
+      ;; Rendered outside the tree so clicks in the dialog don't bubble to tree nodes
+      [grouping-info-card @grouping-info #(reset! grouping-info nil)]
+      [b/tree {:contents (layers->nodes layers ordering @sorting-info @expanded-states id layer-props open-all? tma? on-info)
                :onNodeCollapse on-close
                :onNodeExpand on-open
                :onNodeClick on-click
@@ -441,14 +482,7 @@
        (when (seq metadata_summary)
          [:div
           [:h3 "About"]
-          [:p
-           {:ref
-            #(when %
-               (set! (.-innerHTML %) metadata_summary)
-               (let [hyperlinks (js/Array.prototype.slice.call (.getElementsByTagName % "a"))]
-                 (doseq [hyperlink hyperlinks]
-                   (when-not (.getAttribute hyperlink "target")
-                     (.setAttribute hyperlink "target" "_blank")))))}]])
+          [:p {:ref #(set-summary-html! % metadata_summary)}]])
 
        (when (seq constraints)
          [:div
@@ -488,11 +522,12 @@
             [:img.metadata-img {:src license-img}])
           [:a {:href license-link :target "_blank"} license-name]])
        
-       [:a
-        {:href     metadata_url
-         :target   "_blank"
-         :on-click #(re-frame/dispatch [:map.layer/metadata-click {:link metadata_url :layer layer}])}
-        "Click here for the full metadata record."]
+       (when (seq metadata_url)
+         [:a
+          {:href     metadata_url
+           :target   "_blank"
+           :on-click #(re-frame/dispatch [:map.layer/metadata-click {:link metadata_url :layer layer}])}
+          "Click here for the full metadata record."])
        
        (when (= category :habitat)
          [:p.download-instructions
@@ -502,7 +537,7 @@
   "Download menu for layers.
    Layers with the WFS download format will have GeoTIFF, SHP, and CSV available, while WCS will only have GeoTIFF available.
    Assumption for now that WFS and WCS are the only download formats that need to be supported."
-  [{:keys [title disabled? bbox] {:keys [download_format] :as layer} :layer}]
+  [{:keys [title disabled? bbox cql-filter] {:keys [download_format] :as layer} :layer}]
   [b/popover {:position           b/BOTTOM
               :disabled           disabled?
               :popover-class-name "bp3-minimal"
@@ -515,42 +550,48 @@
                                 :on-click (handler-dispatch [:map.layer/download
                                                              layer
                                                              bbox
-                                                             :map.layer.download/geotiff-wms])}])
+                                                             :map.layer.download/geotiff-wms
+                                                             cql-filter])}])
                 (when (= download_format :map.layer.download-format/wfs)
                   [b/menu-item {:text     "SHP File"
                                 :label    (reagent/as-element [b/icon {:icon "polygon-filter"}])
                                 :on-click (handler-dispatch [:map.layer/download
                                                              layer
                                                              bbox
-                                                             :map.layer.download/shp])}])
+                                                             :map.layer.download/shp
+                                                             cql-filter])}])
                 (when (= download_format :map.layer.download-format/wfs)
                   [b/menu-item {:text     "CSV"
                                 :label    (reagent/as-element [b/icon {:icon "th"}])
                                 :on-click (handler-dispatch [:map.layer/download
                                                              layer
                                                              bbox
-                                                             :map.layer.download/csv])}])
+                                                             :map.layer.download/csv
+                                                             cql-filter])}])
                 (when (= download_format :map.layer.download-format/wcs)
                   [b/menu-item {:text     "GeoTIFF"
                                 :label    (reagent/as-element [b/icon {:icon "globe"}])
                                 :on-click (handler-dispatch [:map.layer/download
                                                              layer
                                                              bbox
-                                                             :map.layer.download/geotiff-wcs])}])
+                                                             :map.layer.download/geotiff-wcs
+                                                             cql-filter])}])
                 (when (= download_format :map.layer.download-format/thredds-wcs)
                   [b/menu-item {:text     "NetCDF"
                                 :label    (reagent/as-element [b/icon {:icon "doughnut-chart"}])
                                 :on-click (handler-dispatch [:map.layer/download
                                                              layer
                                                              bbox
-                                                             :map.layer.download/netcdf-thredds-wcs])}])
+                                                             :map.layer.download/netcdf-thredds-http
+                                                             cql-filter])}])
                 (when (= download_format :map.layer.download-format/thredds-wcs)
                       [b/menu-item {:text     "GeoTIFF"
                                     :label    (reagent/as-element [b/icon {:icon "globe"}])
                                     :on-click (handler-dispatch [:map.layer/download
                                                                  layer
                                                                  bbox
-                                                                 :map.layer.download/geotiff-thredds-wcs])}])])}
+                                                                 :map.layer.download/geotiff-thredds-wcs
+                                                                 cql-filter])}])])}
    [b/button {:text       title
               :disabled   disabled?
               :right-icon "caret-down"}]])
@@ -558,6 +599,7 @@
 (defn info-card []
   (let [layer-info       @(re-frame/subscribe [:map.layer/info])
         {:keys [download_format] :as layer} (:layer layer-info)
+        cql-filter       (:cql-filter layer-info)
         title            (or (get-in layer-info [:layer :name]) "Layer Information")
         {:keys [region]} @(re-frame/subscribe [:map.layer.selection/info])]
     [b/dialogue {:title    title
@@ -577,18 +619,23 @@
           :description "Unable to load metadata record.  Please try again later."
           :icon        "error"}]
 
-        [metadata-record layer-info])]
-     
+        [metadata-record layer-info])
+      (when (and download_format cql-filter)
+        [b/callout {:icon "filter" :intent b/INTENT-PRIMARY}
+         "Downloads will include only the data matching this layer's current filter."])]
+
      [:div.bp3-dialog-footer
       [:div.bp3-dialog-footer-actions
        (when download_format
          [:<>
-          [download-menu {:title     "Download Selection..."
-                          :layer     layer
-                          :disabled? (nil? region)
-                          :bbox      region}]
-          [download-menu {:title "Download All..."
-                          :layer layer}]])
+          [download-menu {:title      "Download Selection..."
+                          :layer      layer
+                          :disabled?  (nil? region)
+                          :bbox       region
+                          :cql-filter cql-filter}]
+          [download-menu {:title      "Download All..."
+                          :layer      layer
+                          :cql-filter cql-filter}]])
        [b/button
         {:text       "Close"
          :auto-focus true
@@ -596,8 +643,11 @@
          :on-click   #(re-frame/dispatch [:map.layer/close-info])}]]]]))
 
 (defn download-component []
-  (let [{:keys [display-link link bbox download-type download-layer]} @(re-frame/subscribe [:download/info])
-        type-str (download-type->str download-type)]
+  (let [{:keys [display-link link bbox download-type download-layer cql-filter]} @(re-frame/subscribe [:download/info])
+        type-str (download-type->str download-type)
+        ;; Clipped shapefiles go via the backend subset endpoint, which can't
+        ;; apply a CQL filter (see download-link :api):
+        filtered? (and cql-filter (not (and bbox (= download-type :map.layer.download/shp))))]
     [b/dialogue
      {:is-open   display-link
       :title     (str "Download " type-str)
@@ -608,7 +658,10 @@
        {:href     link
         :target   "_blank"
         :on-click #(re-frame/dispatch [:download-click {:link link :layer download-layer :type type-str}])}
-       "Click here to download " (when bbox "region ") "as " type-str]]
+       "Click here to download " (when bbox "region ") "as " type-str (when filtered? " (filtered)")]
+      (when (and cql-filter (not filtered?))
+        [b/callout {:icon "warning-sign" :intent b/INTENT-WARNING :style {:margin-top "10px"}}
+         "Note: the layer's current filter is not applied to clipped shapefile downloads."])]
      [:div.bp3-dialog-footer
       [:div.bp3-dialog-footer-actions
        [b/button
@@ -643,8 +696,8 @@
 (defn print-control []
   [control-block-child
    {:on-click #(re-frame/dispatch [:map.print/start])
+    :tooltip  "Export Map As Image"
     :id       "print-control"
-    :tooltip  "Export Map at Current Size"
     :icon     "media"}])
 
 (defn transect-control []
@@ -889,7 +942,9 @@
        ^{:key (str id)}
        [side-by-side-views-pill rich-layer])]))
 
-(defn layers-search-omnibar []
+(defn layers-search-omnibar
+  "Optionally takes the layers to search; defaults to all catalogue layers."
+  [& [layers]]
   (let [categories @(re-frame/subscribe [:map/categories-map])
         open?      @(re-frame/subscribe [:layers-search-omnibar/open?])
         {:keys [sorted-layers]} @(re-frame/subscribe [:map/layers])]
@@ -897,7 +952,7 @@
      {:placeholder  "Search Layers..."
       :isOpen       open?
       :onClose      #(re-frame/dispatch [:layers-search-omnibar/close])
-      :items        sorted-layers
+      :items        (or layers sorted-layers)
       :onItemSelect #(re-frame/dispatch [:map/add-layer-from-omnibar %])
       :keyfns
       {:id          :id

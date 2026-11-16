@@ -6,11 +6,10 @@
             [reagent.core :as reagent]
             [re-frame.core :as re-frame]
             [imas-seamap.blueprint :as b]
-            [imas-seamap.utils :refer [copy-text handler-dispatch create-shadow-dom-element format-number] :include-macros true]
+            [imas-seamap.utils :refer [create-shadow-dom-element format-number] :include-macros true]
             [imas-seamap.map.subs :as msubs]
-            [imas-seamap.map.utils :refer [bounds->geojson download-type->str map->bounds bounds->map]]
+            [imas-seamap.map.utils :refer [bounds->geojson map->bounds bounds->map]]
             [imas-seamap.interop.leaflet :as leaflet]
-            [goog.string :as gstring]
             ["esri-leaflet-renderers"]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 
@@ -138,22 +137,41 @@
             (.appendChild element (create-shadow-dom-element response)))
           (re-frame/dispatch [:map/set-popup-dimensions (popup-dimensions element)])))}]))
 
-(defn popup [{:keys [has-info? responses location status show?] :as _feature-info}]
+(defn- leaflet-popup
+  "A Leaflet popup whose props are created once, when the component mounts.
+
+   react-leaflet's Popup closes and reopens the Leaflet popup (remounting its
+   contents) whenever its position prop changes by reference, and rebinds its
+   event handlers whenever they change by reference. Reagent converts the props to
+   new JS objects every render, so if built each render, every change to the
+   popup contents (eg a refreshed value) would make the popup flicker. The popup
+   is keyed on location and status, so these props don't change for its lifetime."
+  [{:keys [location status map-id popup-id]} & _children]
+  (let [position       (clj->js location)
+        event-handlers (clj->js
+                        ;; Leaflet's built-in close button ("x") closes the popup without telling us,
+                        ;; leaving app-state thinking it's still open. Pass this popup's identity so
+                        ;; destroy-popup can ignore remove events from popups that are merely being
+                        ;; replaced (eg the "waiting" spinner unmounting when results arrive).
+                        ;; map-id says which map the popup is on, for apps with independent maps:
+                        {:remove #(re-frame/dispatch [:map/popup-closed popup-id map-id])})]
+    (fn [_props & children]
+      (into
+       [leaflet/popup
+        {:position      position
+         :max-width     "100%"
+         :auto-pan      false
+         :class         (when (= status :feature-info/waiting) "waiting")
+         :eventHandlers event-handlers}]
+       children))))
+
+(defn popup [{:keys [has-info? responses location status show? map-id] :as _feature-info}]
   (when (and show? has-info?)
     ;; Key forces creation of new node; otherwise it's closed but not reopened with new content:
     (let [popup-id (str location status)]
       ^{:key popup-id}
-      [leaflet/popup
-       {:position location
-        :max-width "100%"
-        :auto-pan false
-        :class (when (= status :feature-info/waiting) "waiting")
-        ;; Leaflet's built-in close button ("x") closes the popup without telling us,
-        ;; leaving app-state thinking it's still open. Pass this popup's identity so
-        ;; destroy-popup can ignore remove events from popups that are merely being
-        ;; replaced (eg the "waiting" spinner unmounting when results arrive):
-        :eventHandlers {:remove #(re-frame/dispatch [:map/popup-closed popup-id])}}
-
+      [leaflet-popup
+       {:location location :status status :map-id map-id :popup-id popup-id}
        ^{:key (str status responses)} [popup-contents {:status status :responses responses}]])))
 
 (defn distance-tooltip []
@@ -171,7 +189,7 @@
 (defmulti layer-component (comp :layer_type :displayed-layer))
 
 (defmethod layer-component :wms
-  [{:keys [boundary-filter layer-opacities layer cql-filter] {:keys [hazardlayer]} :layer {:keys [server_url layer_name style]} :displayed-layer}]
+  [{:keys [boundary-filter layer-opacities layer cql-filter] {:keys [server_url layer_name style hazardlayer]} :displayed-layer}]
   [leaflet/wms-layer
    (merge
     {:url              server_url
@@ -277,27 +295,28 @@
     (when cql-filter {:cql_filter cql-filter}))])
 
 (defmethod layer-component :wms-timeseries
-  [{:keys [boundary-filter layer-opacities layer cql-filter] {:keys [hazardlayer]} :layer {:keys [server_url layer_name style]} :displayed-layer}]
-  [leaflet/wms-timeseries-layer
-   (merge
-    {:url              server_url
-     :layers           layer_name
-     :eventHandlers
-     {:loading       on-load-start
-      :tileloadstart on-tile-load-start
-      :tileerror     on-tile-error
-      :load          on-load-end} ; sometimes results in tile query errors: https://github.com/PaulLeCam/react-leaflet/issues/626
-     :transparent      true
-     :opacity          (/ (layer-opacities layer) 100)
-     :tiled            true
-     :format           "image/png"}
-    (when style {:styles style})
-    (when boundary-filter (boundary-filter layer))
-    (when cql-filter {:cql_filter cql-filter}) (when hazardlayer
-      {:styles (str "default-scalar/" (:color_palette hazardlayer))
-       :colorscalerange (str (:color_scale_range_min hazardlayer) "," (:color_scale_range_max hazardlayer))
-       :abovemaxcolor (:above_max_color hazardlayer)
-       :belowmincolor (:below_min_color hazardlayer)}))])
+  [{:keys [boundary-filter layer-opacities layer cql-filter] {:keys [server_url layer_name style hazardlayer]} :displayed-layer}]
+  (let [{:keys [color-scale-range-min color-scale-range-max]} (when hazardlayer @(re-frame/subscribe [:map.layers.hazard-layers/color-scale-range layer]))] ; sub is only registered in Natural Hazards Atlas
+    [leaflet/wms-timeseries-layer
+     (merge
+      {:url              server_url
+       :layers           layer_name
+       :eventHandlers
+       {:loading       on-load-start
+        :tileloadstart on-tile-load-start
+        :tileerror     on-tile-error
+        :load          on-load-end} ; sometimes results in tile query errors: https://github.com/PaulLeCam/react-leaflet/issues/626
+       :transparent      true
+       :opacity          (/ (layer-opacities layer) 100)
+       :tiled            true
+       :format           "image/png"}
+      (when style {:styles style})
+      (when boundary-filter (boundary-filter layer))
+      (when cql-filter {:cql_filter cql-filter})
+      (when hazardlayer
+        {:colorscalerange (str color-scale-range-min "," color-scale-range-max)
+         :abovemaxcolor (:above_max_color hazardlayer)
+         :belowmincolor (:below_min_color hazardlayer)}))]))
 
 (defmethod layer-component :wmts
   [{:keys [layer-opacities layer] {:keys [server_url layer_name]} :displayed-layer}]
@@ -405,43 +424,52 @@
          [basemap-layer-component base-layer]])
       (:layers active-base-layer))]))
 
-(defn catalogue-layers []
+(defn catalogue-layers [{:keys [map-id]}]
   (let [{:keys [visible-layers rich-layers-by-layer-id]} @(re-frame/subscribe [:map/layers])
         rich-layer-fn               #(get rich-layers-by-layer-id (:id %))
         opacities                   @(re-frame/subscribe [::msubs/layer-opacities])
         cql-filters                 @(re-frame/subscribe [::msubs/cql-filters])
         layer-opacities             #(get opacities (:id %) 100)
         cql-filter-fn               #(get cql-filters (:id %))
-        displayed-layers-lookup     @(re-frame/subscribe [:map.layer/displayed-layers-lookup])
+        ;; Only include map-id in the query when there is one, so the single-map
+        ;; case shares its cached subscription with the other consumers of
+        ;; [:map.layer/displayed-layers-lookup]:
+        displayed-layers-lookup     @(re-frame/subscribe (if map-id
+                                                           [:map.layer/displayed-layers-lookup map-id]
+                                                           [:map.layer/displayed-layers-lookup]))
         {:keys [active-base-layer]} @(re-frame/subscribe [:map/base-layers])
         boundary-filter             @(re-frame/subscribe [:sok/boundary-layer-filter])]
     [:<>
      (map-indexed
       (fn [i layer]
         (let [rich-layer (rich-layer-fn layer)
-              {:keys [id server_url] :as displayed-layer} (get displayed-layers-lookup layer)
+              {:keys [id server_url layer_name] :as displayed-layer} (get displayed-layers-lookup layer)
               z-index (+ i 1 (count (:layers active-base-layer)))]
           ;; If there's a visible split layer (i.e. side-by-side comparison), then we want to
           ;; display two panes (left and right) for the two layers, and the side-by-side
           ;; control for sliding between the two layers.
           ;; If there's only one layer, then we render a single pane and layer.
-          ^{:key (str id server_url z-index)}
+          ^{:key (str id server_url layer_name z-index)}
           [:<>
-           (if (:side-by-side-views-selected rich-layer)
-             [side-by-side-layer
-              {:layer           layer
-               :boundary-filter boundary-filter
-               :layer-opacities layer-opacities
-               :cql-filter-fn   cql-filter-fn
-               :z-index         z-index
-               :rich-layer-fn   rich-layer-fn}]
-             [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index z-index}}
-              [layer-component
-               {:layer           layer
-                :displayed-layer displayed-layer
-                :boundary-filter boundary-filter
-                :layer-opacities layer-opacities
-                :cql-filter      (cql-filter-fn layer)}]])]))
+           ;; A layer without a server URL has nothing to display (e.g. a Natural Hazards
+           ;; Atlas hazard layer with no dataset for the current view), and Leaflet
+           ;; would request the missing URL as "null".
+           (when server_url
+             (if (:side-by-side-views-selected rich-layer)
+               [side-by-side-layer
+                {:layer           layer
+                 :boundary-filter boundary-filter
+                 :layer-opacities layer-opacities
+                 :cql-filter-fn   cql-filter-fn
+                 :z-index         z-index
+                 :rich-layer-fn   rich-layer-fn}]
+               [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index z-index}}
+                [layer-component
+                 {:layer           layer
+                  :displayed-layer displayed-layer
+                  :boundary-filter boundary-filter
+                  :layer-opacities layer-opacities
+                  :cql-filter      (cql-filter-fn layer)}]]))]))
       visible-layers)]))
 
 (defn map-component []

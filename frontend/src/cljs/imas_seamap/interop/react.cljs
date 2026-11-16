@@ -22,3 +22,4 @@
 ;; (def sidebar-tab (reagent/adapt-react-class Tab))
 
 (def use-memo react/useMemo)
+(def use-effect react/useEffect)

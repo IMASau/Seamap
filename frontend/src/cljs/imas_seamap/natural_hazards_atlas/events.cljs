@@ -4,7 +4,8 @@
 (ns imas-seamap.natural-hazards-atlas.events
   (:require [ajax.core :as ajax]
             [imas-seamap.natural-hazards-atlas.db :as db]
-            [imas-seamap.utils :refer [copy-text merge-in ids->layers first-where]]
+            [imas-seamap.utils :as utils :refer [copy-text merge-in ids->layers first-where]]
+            [imas-seamap.map.events :as mevents]
             [imas-seamap.map.utils :as mutils :refer [init-layer-legend-status init-layer-opacities rich-layer->displayed-layer]]
             [imas-seamap.natural-hazards-atlas.utils :as nhatutils]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
@@ -274,6 +275,14 @@
      :local-storage/remove
      {:name :seamap-app-state}}))
 
+(defn load-hash-state
+  [{:keys [db]} [_ hash-code]]
+  (let [db (merge-in db (nhatutils/parse-state hash-code))]
+    (merge
+     {:db db}
+     (when (and hash-code (not= hash-code "null"))
+       {:dispatch [:map/update-map-view (assoc (:map db) :instant? true)]}))))
+
 (defn initialise-layers
   "Like imas-seamap.events/initialise-layers, but we don't dispatch requests for
    region reports or state of knowledge data."
@@ -402,16 +411,35 @@
       :value (nhatutils/encode-state db)}
      :put-hash   ""}))
 
+(defn side-by-side-active?
+  "Whether the side-by-side maps are currently active.
+   True will show the split maps and divider, false will hide them and show a
+   single map.
+
+   Duplicates the current view for :map-2 (hardcoded) so that it is independently
+   controlled from the default single map."
+  [{:keys [db]} [_ active?]]
+  (let [current-view (get db :current-view)
+        current-time (get-in db [:display :current-time])]
+    {:db
+     (->
+      db
+      (assoc-in [:display :side-by-side :active?] active?)
+      (utils/assoc-independent-map-state :map-2 [:current-view] current-view)
+      (utils/assoc-independent-map-state :map-2 [:display :load-time] current-time)) ; time that is set after time dimension loads (if this is the first time the time dimension has loaded)
+     :dispatch-n
+     [[:maybe-autosave]
+      [:map.time/pause]
+      [:map.time/current-time current-time :map-2]]}))
+
 (defn current-view-update-cmip-phases
   "From the REST API, update the CMIP phases the user can select in the current
    view.
 
    Update the selected CMIP phase to be the first in the list, if no selected phase
    exists."
-  [{:keys [db]} [_ cmip-phases]]
-  (let [selected-cmip-phase-id (get-in db [:current-view :selected-cmip-phase-id])]
-    {:db (assoc-in db [:current-view :cmip-phases] cmip-phases)
-     :dispatch (when-not selected-cmip-phase-id [:current-view/selected-cmip-phase (first cmip-phases)])}))
+  [db [_ cmip-phases]]
+  (assoc-in db [:current-view :cmip-phases] cmip-phases))
 
 (defn current-view-update-models
   "From the REST API, update the scientific models the user can select in the
@@ -419,104 +447,146 @@
 
    Update the selected model to be the first in the list, if no selected model
    exists."
-  [{:keys [db]} [_ models]]
-  (let [selected-model-id (get-in db [:current-view :selected-model-id])]
-    {:db (assoc-in db [:current-view :models] models)
-     :dispatch (when-not selected-model-id [:current-view/selected-model (first models)])}))
+  [db [_ models]]
+  (assoc-in db [:current-view :models] models))
 
 (defn current-view-update-scenarios
   "From the REST API, update the scenarios the user can select in the current view.
 
    Update the selected scenario to be the first in the list, if no selected
    scenario exists."
-  [{:keys [db]} [_ scenarios]]
-  (let [selected-scenario-id (get-in db [:current-view :selected-scenario-id])]
-    {:db (assoc-in db [:current-view :scenarios] scenarios)
-     :dispatch (when-not selected-scenario-id [:current-view/selected-scenario (first scenarios)])}))
+  [db [_ scenarios]]
+  (assoc-in db [:current-view :scenarios] scenarios))
 
 (defn current-view-update-seasonal-datas
   "From the REST API, update the seasons the user can select in the current view.
 
    Update the selected season to be the first in the list, if no selected season
    exists."
-  [{:keys [db]} [_ seasonal-datas]]
-  (let [selected-seasonal-data-id (get-in db [:current-view :selected-seasonal-data-id])]
-    {:db (assoc-in db [:current-view :seasonal-datas] seasonal-datas)
-     :dispatch (when-not selected-seasonal-data-id [:current-view/selected-seasonal-data (first seasonal-datas)])}))
+  [db [_ seasonal-datas]]
+  (assoc-in db [:current-view :seasonal-datas] seasonal-datas))
+
+(defn- refresh-feature-info
+  "If a feature info popup is open (or loading) on either map, returns an event to
+   re-query it at the same point, so its values match the newly displayed hazard
+   data after the current view changes. Either map's feature may be nil if that
+   map had no data at the point, so check both."
+  [db]
+  (let [{:keys [location leaflet-props]}
+        (or (utils/get-independent-map-state db nil [:feature])
+            (utils/get-independent-map-state db :map-2 [:feature]))]
+    (when (and location leaflet-props)
+      [:map/feature-info-dispatcher leaflet-props location {:keep-popup? true}])))
 
 (defn current-view-selected-cmip-phase
   "CMIP (Coupled Model Intercomparison Project) phase that organizes models and
    scenarios for analyzing hazard data."
-  [{:keys [db]} [_ {cmip-phase-id :id :as cmip-phase}]]
-  (let [cmip-phases (get-in db [:current-view :cmip-phases])]
+  [{:keys [db]} [_ {cmip-phase-id :id :as cmip-phase} map-id]]
+  (let [cmip-phases (get-in db [:current-view :cmip-phases])
+        db          (utils/assoc-independent-map-state db map-id [:current-view :selected-cmip-phase-id] cmip-phase-id)]
     (assert (some #{cmip-phase-id} (map :id cmip-phases)) (str "Selected CMIP phase " cmip-phase " is not a valid option"))
-    {:db (assoc-in db [:current-view :selected-cmip-phase-id] cmip-phase-id)
-     :dispatch [:maybe-autosave]}))
+    {:db db
+     :dispatch-n [[:maybe-autosave] (refresh-feature-info db)]}))
 
 (defn current-view-selected-model
   "Scientific model to analyze the hazard data"
-  [{:keys [db]} [_ {model-id :id :as model}]]
-  (let [models (get-in db [:current-view :models])]
+  [{:keys [db]} [_ {model-id :id :as model} map-id]]
+  (let [models (get-in db [:current-view :models])
+        db     (utils/assoc-independent-map-state db map-id [:current-view :selected-model-id] model-id)]
     (assert (some #{model-id} (map :id models)) (str "Selected model " model " is not a valid option"))
-    {:db (assoc-in db [:current-view :selected-model-id] model-id)
-     :dispatch [:maybe-autosave]}))
+    {:db db
+     :dispatch-n [[:maybe-autosave] (refresh-feature-info db)]}))
 
 (defn current-view-selected-scenario
   "Scientific scenario to analyze the hazard data"
-  [{:keys [db]} [_ {scenario-id :id :as scenario}]]
-  (let [scenarios (get-in db [:current-view :scenarios])]
+  [{:keys [db]} [_ {scenario-id :id :as scenario} map-id]]
+  (let [scenarios (get-in db [:current-view :scenarios])
+        db        (utils/assoc-independent-map-state db map-id [:current-view :selected-scenario-id] scenario-id)]
     (assert (some #{scenario-id} (map :id scenarios)) (str "Selected scenario " scenario " is not a valid option"))
-    {:db (assoc-in db [:current-view :selected-scenario-id] scenario-id)
-     :dispatch [:maybe-autosave]}))
+    {:db db
+     :dispatch-n [[:maybe-autosave] (refresh-feature-info db)]}))
 
 (defn current-view-selected-seasonal-data
   "Season to view the hazard data under"
-  [{:keys [db]} [_ {seasonal-data-id :id :as seasonal-data}]]
-  (let [seasonal-datas (get-in db [:current-view :seasonal-datas])]
+  [{:keys [db]} [_ {seasonal-data-id :id :as seasonal-data} map-id]]
+  (let [seasonal-datas (get-in db [:current-view :seasonal-datas])
+        db             (utils/assoc-independent-map-state db map-id [:current-view :selected-seasonal-data-id] seasonal-data-id)]
     (assert (some #{seasonal-data-id} (map :id seasonal-datas)) (str "Selected seasonal data " seasonal-data " is not a valid option"))
-    {:db (assoc-in db [:current-view :selected-seasonal-data-id] seasonal-data-id)
-     :dispatch [:maybe-autosave]}))
+    {:db db
+     :dispatch-n [[:maybe-autosave] (refresh-feature-info db)]}))
+
+(defn- sync-time-to-time-period
+  "Moves the map's time to suit its (newly) selected time period: periods with a
+   display year are fixed to that year with playback stopped; otherwise, if the
+   current time isn't available in the period, reset to the first available time
+   in its range."
+  [db map-id]
+  (let [{:keys [display-year] :as time-period} (nhatutils/current-view-selected-time-period db map-id)
+        current-time                           (utils/get-independent-map-state db map-id [:display :current-time])
+        available-times                        (utils/get-independent-map-state db map-id [:display :available-times])
+        time                                   (nhatutils/time-period-time time-period current-time available-times)]
+    {:db         (cond-> db
+                   time (utils/assoc-independent-map-state map-id [:display :load-time] time)) ; so the time is kept if timeDimension reloads its available times
+     :dispatch-n [(when display-year [:map.time/pause map-id])
+                  (when (and time (not= time current-time)) [:map.time/current-time time map-id])]}))
+
+(defn current-view-is-historic?
+  "Indicates whether the current view is for historic data."
+  [{:keys [db]} [_ is-historic? map-id]]
+  (let [db                      (utils/assoc-independent-map-state db map-id [:current-view :is-historic?] is-historic?)
+        {:keys [db dispatch-n]} (sync-time-to-time-period db map-id)] ; historic data is always "all", but projected data may be fixed to a display year
+    {:db db
+     :dispatch-n (into dispatch-n [[:maybe-autosave] (refresh-feature-info db)])}))
 
 (defn current-view-selected-time-period
   "Time period to analyze the hazard data.
 
-   If the currently selected time isn't avaliable in the new period, reset to the
-   first available time in the range."
-  [{:keys [db]} [_ {time-period-id :id :as time-period}]]
+   If the period has a display year, fix the time to that year. Otherwise, if the
+   currently selected time isn't avaliable in the new period, reset to the first
+   available time in the range."
+  [{:keys [db]} [_ {time-period-id :id :as time-period} map-id]]
   (assert (some #{time-period-id} (map :id nhatutils/time-periods)) (str "Selected time period " time-period " is not a valid option"))
-  (let [{:keys [start-year end-year]} (first-where  #(= (:id %) time-period-id) nhatutils/time-periods)
-        current-time                  (get-in db [:display :current-time])
-        available-times               (get-in db [:display :available-times])
-        current-time-in-range?        (nhatutils/time-in-range? current-time start-year end-year)
-        first-time-in-range           (first (filter #(nhatutils/time-in-range? % start-year end-year) available-times))]
-    {:db (assoc-in db [:current-view :selected-time-period-id] time-period-id)
-     :dispatch-n
-     [(when-not current-time-in-range? [:map.time/current-time first-time-in-range])
-      [:maybe-autosave]]}))
+  (let [db                      (utils/assoc-independent-map-state db map-id [:current-view :selected-time-period-id] time-period-id)
+        {:keys [db dispatch-n]} (sync-time-to-time-period db map-id)]
+    {:db db
+     :dispatch-n (conj dispatch-n [:maybe-autosave])}))
+
+(defn time-available-times
+  "The available times for the layers, driven by the timeDimension component.
+
+   Overrides imas-seamap.map.events/time-available-times so that the time set
+   after loading suits the selected time period (e.g. fixed to its display year),
+   since the period may have been selected before any times were available."
+  [{:keys [db]} [_ available-times map-id]]
+  (let [db          (utils/assoc-independent-map-state db map-id [:display :available-times] available-times)
+        load-time   (utils/get-independent-map-state db map-id [:display :load-time])
+        time-period (nhatutils/current-view-selected-time-period db map-id)]
+    {:db       db
+     :dispatch [:map.time/current-time (nhatutils/time-period-time time-period load-time available-times) map-id]}))
 
 (defn current-view-time-step-forward
   "Move forward one time step in the hazard data"
-  [{:keys [db]} _]
-  (let [available-times (get-in db [:display :available-times])
-        current-time    (get-in db [:display :current-time])
+  [{:keys [db]} [_ map-id]]
+  (let [available-times (utils/get-independent-map-state db map-id [:display :available-times])
+        current-time    (utils/get-independent-map-state db map-id [:display :current-time])
         current-index   (.indexOf available-times current-time)
         next-index      (mod (inc current-index) (count available-times))
         next-time       (nth available-times next-index)]
     (assert (seq available-times) "No available times to step through")
     (assert current-time "Current time is not set")
-    {:dispatch [:map.time/current-time next-time]}))
+    {:dispatch [:map.time/current-time next-time map-id]}))
 
 (defn current-view-time-step-backward
   "Move backward one time step in the hazard data"
-  [{:keys [db]} _]
-  (let [available-times (get-in db [:display :available-times])
-        current-time    (get-in db [:display :current-time])
+  [{:keys [db]} [_ map-id]]
+  (let [available-times (utils/get-independent-map-state db map-id [:display :available-times])
+        current-time    (utils/get-independent-map-state db map-id [:display :current-time])
         current-index   (.indexOf available-times current-time)
         prev-index      (mod (dec current-index) (count available-times))
         prev-time       (nth available-times prev-index)]
     (assert (seq available-times) "No available times to step through")
     (assert current-time "Current time is not set")
-    {:dispatch [:map.time/current-time prev-time]}))
+    {:dispatch [:map.time/current-time prev-time map-id]}))
 
 (defn feature-info-dispatcher
   "Takes a map click event, and dispatches :map/get-feature-info events for each
@@ -529,46 +599,179 @@
 
    Args:
    - leaflet-props: Current Leaflet map state (zoom, size, center, bounds, etc)
-   - point:         The lat lng and x y pixel coords of the clicked point"
-  [{:keys [db]} [_ leaflet-props point]]
-  (let [layers                        (get-in db [:map :layers])
+   - point:         The lat lng and x y pixel coords of the clicked point
+   - opts:
+     - keep-popup?: Re-querying an already open popup (eg the current view or time
+                    changed); keep showing the existing popup contents until the
+                    new responses replace them, instead of hiding it and showing
+                    a loading spinner."
+  [{:keys [db]} [_ leaflet-props point {:keys [keep-popup?]}]]
+  (let [layers                          (get-in db [:map :layers])
+        rich-layer-fn                   (mutils/rich-layer-fn db)
+        hazard-layers                   (nhatutils/hazard-layers layers)
+
+        selected-cmip-phase-1           (nhatutils/current-view-selected-cmip-phase db)
+        selected-model-1                (nhatutils/current-view-selected-model db)
+        selected-scenario-1             (nhatutils/current-view-selected-scenario db)
+        selected-seasonal-data-1        (nhatutils/current-view-selected-seasonal-data db)
+        is-historic?-1                  (nhatutils/current-view-is-historic? db)
+        layer-displayed-layers-lookup-1 (nhatutils/layer-displayed-layers-lookup layers rich-layer-fn hazard-layers selected-cmip-phase-1 selected-model-1 selected-scenario-1 selected-seasonal-data-1 is-historic?-1)
+
+        selected-cmip-phase-2           (nhatutils/current-view-selected-cmip-phase db :map-2)
+        selected-model-2                (nhatutils/current-view-selected-model db :map-2)
+        selected-scenario-2             (nhatutils/current-view-selected-scenario db :map-2)
+        selected-seasonal-data-2        (nhatutils/current-view-selected-seasonal-data db :map-2)
+        is-historic?-2                  (nhatutils/current-view-is-historic? db :map-2)
+        layer-displayed-layers-lookup-2 (nhatutils/layer-displayed-layers-lookup layers rich-layer-fn hazard-layers selected-cmip-phase-2 selected-model-2 selected-scenario-2 selected-seasonal-data-2 is-historic?-2)
+
+        request-id (gensym)
+
+        ;; Hazard layers with no dataset for the current view have no server URL, and aren't on the map to query
+        visible-layers-1 (filter :server_url (nhatutils/displayed-layers-under-point (mutils/visible-layers (:map db)) layer-displayed-layers-lookup-1 point db))
+        requests-1 ; requests for map 1
+        (->>
+         visible-layers-1
+         (map (fn [{:keys [info_format_type] :as layer}] [:map/get-feature-info info_format_type [layer] request-id leaflet-props point]))) ; 1 request per layer (per map)
+        visible-layers-2 (filter :server_url (nhatutils/displayed-layers-under-point (mutils/visible-layers (:map db)) layer-displayed-layers-lookup-2 point db))
+        requests-2 ; requests for map 2
+        (->>
+         visible-layers-2
+         (map (fn [{:keys [info_format_type] :as layer}] [:map/get-feature-info info_format_type [layer] request-id leaflet-props point :map-2]))) ; 1 request per layer (per map)
+
+        will-request? (and (seq requests-1) (seq requests-2)) ; will we request, or show "no data" popup?
+
+        ;; A map with no popup open still needs the waiting feature, as got-feature-info builds its feature from it
+        assoc-waiting-feature
+        (fn [db map-id]
+          (if (and keep-popup? (utils/get-independent-map-state db map-id [:feature]))
+            db
+            (utils/assoc-independent-map-state
+             db
+             map-id
+             [:feature]
+             {:status   :feature-info/waiting
+              :leaflet-props leaflet-props
+              :location point
+              :show?    false})))]
+    (merge
+     {:db
+      (-> db
+       (utils/assoc-independent-map-state
+        nil
+        [:feature-query]
+        {:request-id        request-id
+         :response-remain   (count requests-1)
+         :responses         []})
+       (assoc-waiting-feature nil)
+       (utils/assoc-independent-map-state
+        :map-2
+        [:feature-query]
+        {:request-id        request-id
+         :response-remain   (count requests-2)
+         :responses         []})
+       (assoc-waiting-feature :map-2))}
+      (when-not keep-popup? {:dispatch-later {:ms 300 :dispatch [:map.feature/show request-id]}})
+      (when will-request? {:dispatch-n (concat requests-1 requests-2)})
+      (when-not will-request? {:dispatch [:map/got-featureinfo request-id point nil nil nil []]})))) ; shows "no data" popup
+
+(defn download-show-link [db [_ layer bounds download-type cql-filter]]
+  (let [api-url-base (get-in db [:config :url-base :api-url-base])
+        time         (mutils/ms-to-iso (get-in db [:display :current-time])) ; time is necessary for GeoTIFF of Thredds layers. Without image x-axis is lat and y-axis is time, with x-axis is lon and y-axis is lat
+        
+        layers                        (get-in db [:map :layers])
         rich-layer-fn                 (mutils/rich-layer-fn db)
         hazard-layers                 (nhatutils/hazard-layers layers)
         selected-cmip-phase           (nhatutils/current-view-selected-cmip-phase db)
         selected-model                (nhatutils/current-view-selected-model db)
         selected-scenario             (nhatutils/current-view-selected-scenario db)
         selected-seasonal-data        (nhatutils/current-view-selected-seasonal-data db)
-        hazard-layer-slug             (nhatutils/current-view-hazard-layer-slug selected-cmip-phase selected-model selected-scenario selected-seasonal-data)
-        layer-displayed-layers-lookup (nhatutils/layer-displayed-layers-lookup layers rich-layer-fn hazard-layers hazard-layer-slug)
-        
-        visible-layers
-        (nhatutils/displayed-layers-under-point (mutils/visible-layers (:map db)) layer-displayed-layers-lookup point db)
-        request-id     (gensym)
+        is-historic?                  (nhatutils/current-view-is-historic? db)
+        layer-displayed-layers-lookup (nhatutils/layer-displayed-layers-lookup layers rich-layer-fn hazard-layers selected-cmip-phase selected-model selected-scenario selected-seasonal-data is-historic?)
+        displayed-layer (get layer-displayed-layers-lookup layer)]
+    (update-in
+     db [:map :controls :download]
+     merge {:link         (mutils/download-link displayed-layer bounds download-type {:api-url-base api-url-base
+                                                                                      :time         time
+                                                                                      :cql-filter   cql-filter})
+            :layer        layer
+            :type         download-type
+            :bbox         bounds
+            :cql-filter   cql-filter
+            :display-link true})))
 
-        ;; Requests used to be grouped by server URL, but has since been changed to be
-        ;; per-layer (many reasons, but the  triggering factor was separating the CQL
-        ;; filters per layer).
-        ;; We now generate just one :map/get-feature-info event per layer.
-        ;; :map/get-feature-info hasn't been updated to remove the multiple layers
-        ;; parameter, but sending in a vector of a single layer works fine.
-        requests       (map
-                        (fn [{:keys [info_format_type] :as layer}]
-                          [:map/get-feature-info info_format_type [layer] request-id leaflet-props point])
-                        visible-layers)
-        db             (assoc ;; Initialise marshalling-pen of data: how many in flight, and current best-priority response
-                        db
-                        :feature-query
-                        {:request-id        request-id
-                         :response-remain   (count requests)
-                         :responses         []}
-                        :feature
-                        {:status   :feature-info/waiting
-                         :leaflet-props leaflet-props
-                         :location point
-                         :show?    false})]
-    (merge
-     {:db db
-      :dispatch-later {:ms 300 :dispatch [:map.feature/show request-id]}}
-     (if (seq requests)
-       {:dispatch-n requests}
-       {:dispatch   [:map/got-featureinfo request-id point nil nil []]}))))
+(defn destroy-popup
+  "Overrides imas-seamap.map.events/destroy-popup to destroy the popups for both
+   side-by-side maps.
+
+   As with the base event, popup-id is only provided when Leaflet itself closed
+   the popup, and then the popups are only destroyed if the id still identifies
+   the feature of the map the popup is on (map-id); a stale popup unmounting must
+   not clobber the current features. Must be computed the same way as popup-id
+   in the popup view."
+  [{:keys [db]} [_ popup-id map-id]]
+  (let [{:keys [location status]} (utils/get-independent-map-state db map-id [:feature])]
+    (when (or (nil? popup-id)
+              (= popup-id (str ((juxt :lat :lng) location) status)))
+      {:db
+       (->
+        db
+        (utils/assoc-independent-map-state nil [:feature] nil)
+        (utils/assoc-independent-map-state :map-2 [:feature] nil))
+       :put-hash ""})))
+
+(defn add-layer
+  "Adds a layer to the list of active layers.
+   
+   Overrides imas-seamap.map.events/add-layer to disallow multiple hazard layers
+   from being active at a time, while also triggering a get-legend for layers
+   whenever they are activated (should be included in core Seamap?)
+   
+   Args:
+    - layer: Layer you wish to add to active layers
+    - target-layer (optional): If supplied, the new layer will be added just beneath
+      this layer in the active layers list."
+  [{:keys [db]} [_ layer target-layer]]
+  (let [{:keys [db dispatch-n]} (mevents/add-layer {:db db} [_ layer target-layer]) ; base event
+        db (if (:hazardlayer layer) ; if the added layer is a hazard layer, disable other hazard layers
+             (update-in
+              db [:map :active-layers]
+              (fn [active-layers] (->> active-layers (remove #(and (:hazardlayer %) (not= % layer))) vec)))
+             db)
+        dispatch-n (vec (conj dispatch-n [:map.layer/get-legend layer]))]
+    {:db         db
+     :dispatch-n dispatch-n}))
+
+(defn add-layer-from-omnibar
+  "Overrides imas-seamap.map.events/add-layer-from-omnibar to select the catalogue
+   tab the layer belongs to (hazards or supporting layers) and expand the
+   catalogue tree down to that layer."
+  [{:keys [db]} [_ layer]]
+  (let [[tab categories] (if (:hazardlayer layer)
+                           ["hazards" [:category :data_classification]]
+                           ["supporting-layers" [:data_classification]])]
+    {:db         (assoc-in db [:display :layers-search-omnibar] false)
+     :dispatch-n [[:map/add-layer layer]
+                  [:left-drawer/open]
+                  [:left-drawer/tab "catalogue"]
+                  [:ui.catalogue/select-tab :main tab]
+                  [:ui.catalogue/catalogue-add-nodes-to-layer :main layer tab categories]]}))
+
+(defn time-set-current-time
+  "Updates the current time in the app state and in the timeDimension component
+   (timeDimension is a component from the plugin that controls the timeseries
+   layers on the map).
+
+   Overrides imas-seamap.map.events/time-set-current-time to stop playback when it
+   reaches the end of the available times, and to refresh any open feature info
+   popup when the time changes (this event also fires on timeDimension's
+   \"timeload\" with the already-set time, which shouldn't re-query)."
+  [{:keys [db]} [_ current-time map-id]]
+  (let [time-changed?         (not= current-time (utils/get-independent-map-state db map-id [:display :current-time]))
+        {:keys [db dispatch]} (mevents/time-set-current-time {:db db} [_ current-time map-id])
+        time-available-times  (nhatutils/time-available-times db map-id)
+        is-last-time?         (= current-time (last time-available-times))]
+    {:db db
+     :dispatch-n
+     (cond-> [dispatch]
+       is-last-time? (conj [:map.time/pause map-id])
+       time-changed? (conj (refresh-feature-info db)))}))

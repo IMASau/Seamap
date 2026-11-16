@@ -52,6 +52,41 @@
     }
     &.natural-hazards-atlas-drawer {
         .bp3-drawer-header h4 { height: 100%; }
+
+        // Tabs take the remaining height, leaving the how-to banner at the bottom
+        > .drawer-children {
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            overflow-y: hidden;
+
+            > .left-drawer-tabs {
+                flex: 1;
+                min-height: 0;
+                height: unset;
+            }
+        }
+
+        .how-to-use-banner {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin: 12px;
+            padding: 10px 16px;
+            border-radius: 6px;
+            background-color: var(--tab-color);
+            color: white;
+            font-weight: 600;
+
+            .bp3-icon { color: inherit; }
+
+            &:hover {
+                background-color: var(--tab-color-selected);
+                color: white;
+                text-decoration: none;
+            }
+        }
     }
     .left-drawer-tabs {
         overflow-y: hidden;
@@ -183,6 +218,15 @@
                                 >.bp3-tree-node-caret {
                                     color: inherit;
                                 }
+
+                                >.bp3-text-overflow-ellipsis { min-width: 0; }
+
+                                // Right-aligned, and matches the grouping's text colour
+                                >.grouping-controls {
+                                    margin-left: auto;
+                                    padding-left: 6px;
+                                    .layer-control { color: inherit; }
+                                }
                             }
                         }
                     }
@@ -248,6 +292,15 @@
 
                         >.bp3-tree-node-caret {
                             color: inherit;
+                        }
+
+                        >.bp3-text-overflow-ellipsis { min-width: 0; }
+
+                        // Right-aligned, and matches the grouping's text colour
+                        >.grouping-controls {
+                            margin-left: auto;
+                            padding-left: 6px;
+                            .layer-control { color: inherit; }
                         }
                     }
                 }

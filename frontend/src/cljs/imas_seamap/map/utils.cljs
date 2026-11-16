@@ -26,13 +26,27 @@
   (let [projection (get projections crs)]
     (-> coords clj->js projection.forward js->clj)))
 
-(defn bounds->projected [project-fn {:keys [north south east west] :as _bounds}]
-  (let [[x0 y0] (project-fn [west south])
-        [x1 y1] (project-fn [east north])]
-    {:west  x0
-     :south y0
-     :east  x1
-     :north y1}))
+(def ^:private bounds-edge-samples 64)
+
+(defn bounds->projected
+  "Projected bounding box enclosing the lat/lng bounds. Projecting just
+  two corners isn't enough for curved projections such as EPSG:3112
+  (Lambert conformal conic), where the region's extent lies along its
+  edges, so we sample each edge and take the extremes."
+  [project-fn {:keys [north south east west] :as _bounds}]
+  (let [n      bounds-edge-samples
+        lerp   (fn [a b i] (+ a (/ (* (- b a) i) n)))
+        points (for [i (range (inc n))
+                     point [[(lerp west east i) south]
+                            [(lerp west east i) north]
+                            [west (lerp south north i)]
+                            [east (lerp south north i)]]]
+                 point)
+        [xs ys] (apply map vector (map project-fn points))]
+    {:west  (apply min xs)
+     :south (apply min ys)
+     :east  (apply max xs)
+     :north (apply max ys)}))
 
 (defn bounds->str:wms
   "Prepare a string suitable for use in the BBOX parameter for *WMS* queries.
@@ -123,14 +137,14 @@
                                  :map.layer.download/shp                 "shape-zip"
                                  :map.layer.download/geotiff-wms         "image/geotiff"
                                  :map.layer.download/geotiff-wcs         "image/geotiff"
-                                 :map.layer.download/netcdf-thredds-wcs  "NetCDF3"
+                                 :map.layer.download/netcdf-thredds-http "NetCDF3"
                                  :map.layer.download/geotiff-thredds-wcs "GeoTIFF"})
 
 (def ^:private type->servertype {:map.layer.download/csv         :wfs
                                  :map.layer.download/shp         :api
                                  :map.layer.download/geotiff-wms :wms
                                  :map.layer.download/geotiff-wcs :wcs
-                                 :map.layer.download/netcdf-thredds-wcs  :thredds-wcs
+                                 :map.layer.download/netcdf-thredds-http  :thredds-http
                                  :map.layer.download/geotiff-thredds-wcs :thredds-wcs})
 
 (defn download-type->str [type-key]
@@ -138,17 +152,28 @@
         :map.layer.download/shp                 "Shapefile"
         :map.layer.download/geotiff-wms         "GeoTIFF"
         :map.layer.download/geotiff-wcs         "GeoTIFF"
-        :map.layer.download/netcdf-thredds-wcs  "NetCDF"
+        :map.layer.download/netcdf-thredds-http "NetCDF"
         :map.layer.download/geotiff-thredds-wcs "GeoTIFF"}
        type-key))
 
-(defmulti download-link (fn [_layer _bounds download-type _api-url-base _time] (type->servertype download-type)))
+(defmulti download-link
+  "Build the download URL for a layer.  Dispatches on the server type for the
+   download-type.  `opts` is a map of
+     :api-url-base  base url for the seamap backend (used for clipped shapefiles)
+     :time          ISO time string (used for Thredds GeoTIFFs)
+     :cql-filter    current CQL filter for the layer, or nil; applied to vector
+                    (WFS/WMS) downloads only, since coverage services don't
+                    support CQL.  Note the clipped-shapefile backend endpoint
+                    doesn't support it either."
+  (fn [_layer _bounds download-type _opts] (type->servertype download-type)))
 
-(defmethod download-link :api [{:keys [id] :as layer} bounds download-type api-url-base _time]
+(defmethod download-link :api [{:keys [id] :as layer} bounds download-type {:keys [api-url-base] :as opts}]
   ;; At the moment we still use geoserver for CSV downloads (all), and
   ;; shp downloads of the entire data, ie when bounds arg is nil.
+  ;; FIXME: the backend habitat/subset endpoint has no CQL support, so a
+  ;; clipped shapefile ignores any active :cql-filter.
   (if-not bounds
-    ((get-method download-link :wfs) layer bounds download-type)
+    ((get-method download-link :wfs) layer bounds download-type opts)
     (let [base-url (str api-url-base "habitat/subset/")
           bounds-arg (->> bounds (bounds->projected #(project-coords % "EPSG:3112")) (bounds->str:wfs 3112))]
       (-> (url/url base-url)
@@ -160,8 +185,7 @@
 (defmethod download-link :wfs [{:keys [server_url detail_layer layer_name] :as _layer}
                                bounds
                                download-type
-                               _api-url-base
-                               _time]
+                               {:keys [cql-filter] :as _opts}]
   (-> (url/url server_url)
       (assoc :query {:service      "wfs"
                      :version      "1.1.0"
@@ -174,13 +198,13 @@
       ;; causes issues.  I don't think this was always the case, but
       ;; not investigating further)
       (merge-in (when bounds {:query {:bbox (bounds->str:wfs 4326 bounds)}}))
+      (merge-in (when cql-filter {:query {:cql_filter cql-filter}}))
       str))
 
 (defmethod download-link :wms [{:keys [server_url detail_layer layer_name bounding_box] :as _layer}
                                bounds
                                download-type
-                               _api-url-base
-                               _time]
+                               {:keys [cql-filter] :as _opts}]
   ;; Crude ratio calculations for approximating image dimensions (note, bbox could be param or layer extent):
   (let [{:keys [north south east west] :as bounds} (or bounds bounding_box)
         ratio (/ (- north south) (- east west))
@@ -196,12 +220,13 @@
                        :width       width
                        :height      (int (* ratio width))
                        :layers      (or detail_layer layer_name)})
+        (merge-in (when cql-filter {:query {:cql_filter cql-filter}}))
         str)))
+
 (defmethod download-link :wcs [{:keys [server_url detail_layer layer_name bounding_box] :as _layer}
                                bounds
                                download-type
-                               _api-url-base
-                               _time]
+                               _opts]
   (let [{:keys [north south east west]} bounds]
     (-> (url/url server_url)
         (assoc :query {:service     "WCS"
@@ -216,12 +241,18 @@
                     "&subset=Long(" west "," east ")"
                     "&subsettingCRS=EPSG:4326"))))))
 
+(defmethod download-link :thredds-http
+  [{:keys [server_url] :as _layer} _bounds _download-type _opts]
+  (->
+   (string/replace server_url "/wms/" "/fileServer/")
+   url/url
+   str))
+
 (defmethod download-link :thredds-wcs
   [{:keys [server_url detail_layer layer_name] :as _layer}
    bounds
    download-type
-   _api-url-base
-   time]
+   {:keys [time] :as _opts}]
   (-> (url/url (string/replace server_url "/wms/" "/wcs/"))
       (assoc :query (merge
                      {:service     "WCS"
@@ -310,9 +341,24 @@
               (get feature "properties"))])
           (get response "features"))])})))
 
+(defn hazard-layer-feature-info-response->display
+  [response layer]
+  (let [title      (:name layer)
+        units      (get-in layer [:hazardlayer :human_readable_units])
+        doc        (gxml/loadXml response)
+        value-node (first (gxml/selectNodes doc "/FeatureInfoResponse/Feature/FeatureInfo/value"))] ; no Feature element when there's no data at the point
+    (when value-node
+      {:body
+       (render-to-string
+        [:div
+         [:h4 title]
+         [:p (str (.-innerHTML value-node) " " units)]])})))
+
 (defmethod feature-info-response->display "text/xml"
   [{:keys [response _info-format layers]}]
-  (let [title (->> layers
+  (if (:hazardlayer (first layers))
+   (hazard-layer-feature-info-response->display response (first layers))
+   (let [title (->> layers
                    (map :name)
                    (interpose ", ")
                    (apply str))
@@ -372,7 +418,7 @@
                       [:a {:href value :target "_blank"} value]
                       value)]]))
               node.attributes)])
-          fields)])})))
+          fields)])}))))
 
 (defmethod feature-info-response->display :default
   [{:keys [_info-format _response _layers]}]

@@ -4,12 +4,15 @@
 (ns imas-seamap.natural-hazards-atlas.map.views
   (:require [reagent.core :as r]
             [re-frame.core :as re-frame]
-            [imas-seamap.map.subs :as msubs]
-            [imas-seamap.map.utils :refer [bounds->geojson map->bounds]]
+            [imas-seamap.map.utils :refer [bounds->geojson map->bounds] :as map-utils]
             [imas-seamap.map.views :as map-views]
             [imas-seamap.interop.leaflet :as leaflet]
             ["react-leaflet"]
             ["esri-leaflet-renderers"]))
+
+;; Matches LISTmap's restrictedExtent (EPSG:3857 14900000,-7500000 17810000,-4500000)
+(def ^:private max-bounds
+  (map->bounds {:west 133.849 :south -55.7054 :east 159.99 :north -34.4356}))
 
 (defn- divider
   "Vertical divider that can be dragged left and right to adjust the split ratio of
@@ -37,48 +40,6 @@
        :on-input #(re-frame/dispatch [:ui.side-by-side/split-ratio (js/parseFloat (.. % -target -value))])
        :style {:position "absolute" :left "-20px" :width "calc(100% + 40px)"}}]]))
 
-;; Proof-of-concept for having separate information in map B
-(defn map-b-layers
-  "Displays the same layers as map A, but hazard layers are always tuned to the SSP2 scenario."
-  []
-  (let [{:keys [visible-layers rich-layers-by-layer-id]} @(re-frame/subscribe [:map/layers])
-        rich-layer-fn               #(get rich-layers-by-layer-id (:id %))
-        opacities                   @(re-frame/subscribe [::msubs/layer-opacities])
-        cql-filters                 @(re-frame/subscribe [::msubs/cql-filters])
-        layer-opacities             #(get opacities (:id %) 100)
-        cql-filter-fn               #(get cql-filters (:id %))
-        displayed-layers-lookup     @(re-frame/subscribe [:map.layer/displayed-layers-lookup-map-b])
-        {:keys [active-base-layer]} @(re-frame/subscribe [:map/base-layers])
-        boundary-filter             @(re-frame/subscribe [:sok/boundary-layer-filter])]
-    [:<>
-     (map-indexed
-      (fn [i layer]
-        (let [rich-layer (rich-layer-fn layer)
-              {:keys [id server_url] :as displayed-layer} (get displayed-layers-lookup layer)
-              z-index (+ i 1 (count (:layers active-base-layer)))]
-          ;; If there's a visible split layer (i.e. side-by-side comparison), then we want to
-          ;; display two panes (left and right) for the two layers, and the side-by-side
-          ;; control for sliding between the two layers.
-          ;; If there's only one layer, then we render a single pane and layer.
-          ^{:key (str id server_url z-index)}
-          [:<>
-           (if (:side-by-side-views-selected rich-layer)
-             [map-views/side-by-side-layer
-              {:layer           layer
-               :boundary-filter boundary-filter
-               :layer-opacities layer-opacities
-               :cql-filter-fn   cql-filter-fn
-               :z-index         z-index
-               :rich-layer-fn   rich-layer-fn}]
-             [leaflet/pane {:name (str (random-uuid) (.now js/Date)) :style {:z-index z-index}}
-              [map-views/layer-component
-               {:layer           layer
-                :displayed-layer displayed-layer
-                :boundary-filter boundary-filter
-                :layer-opacities layer-opacities
-                :cql-filter      (cql-filter-fn layer)}]])]))
-      visible-layers)]))
-
 (defn map-component []
   (let [map-a                (r/atom nil)
         map-b                (r/atom nil)
@@ -97,7 +58,8 @@
        (when @map-b (.invalidateSize @map-b))))
     (fn []
       (let [{:keys [center zoom bounds]}                @(re-frame/subscribe [:map/props])
-            feature-info                                @(re-frame/subscribe [:map.feature/info])
+            feature-info-1                              @(re-frame/subscribe [:map.feature/info])
+            feature-info-2                              @(re-frame/subscribe [:map.feature/info :map-2])
             {:keys [query mouse-loc] :as transect-info} @(re-frame/subscribe [:transect/info])
             {:keys [region] :as region-info}            @(re-frame/subscribe [:map.layer.selection/info])
             show-time-slider?                           @(re-frame/subscribe [:map.time/show-time-slider?])
@@ -117,7 +79,9 @@
              :zoom                 zoom
              :zoomControl          true
              :minZoom              2
-             :keyboard             false ; handled externally
+             :maxBounds            max-bounds
+             :maxBoundsViscosity   1.0
+             :keyboard            false ; handled externally
              :close-popup-on-click false ; We'll handle that ourselves
              :ref                  #(do (reset! map-a %) (when % (re-frame/dispatch [:map/update-leaflet-map %])))} ; obtain a reference to the leaflet map in re-frame state, so we can call leaflet map methods from anywhere in the app
             (when (seq bounds) {:bounds (map->bounds bounds)}))
@@ -143,13 +107,14 @@
              [map-views/draw-region-control])
 
            [leaflet/coordinates-control
-            {:decimals 2
+            {:position "bottomleft"
+             :decimals 2
              :labelTemplateLat "{y}"
              :labelTemplateLng "{x}"
              :useLatLngOrder   true
              :enableUserInput  false}]
-           [leaflet/scale-factor-control {:position "bottomright"}]
-           [leaflet/scale-control {:position "bottomright"}]
+           [leaflet/scale-factor-control {:position "bottomleft"}]
+           [leaflet/scale-control {:position "bottomleft"}]
 
 
            (when show-time-slider?
@@ -166,15 +131,21 @@
 
            [map-views/distance-tooltip]
 
-           [map-views/popup feature-info]]]
+           [map-views/popup feature-info-1]]]
 
-         [:div
+         [:div.side-by-side-map-2
           {:style {:height "100%" :width (str (- 100 split-ratio) "%") :display (if side-by-side-active? "block" "none")}}
           [leaflet/map-container
-           {:style {:height "100%"}
-            :ref   #(reset! map-b %)}
+           {:style              {:height "100%"}
+            :maxBounds          max-bounds
+            :maxBoundsViscosity 1.0
+            :ref
+            (fn [leaflet-map]
+              (when (and leaflet-map (not= leaflet-map @map-b))
+                (reset! map-b leaflet-map)
+                (.on leaflet-map "click" #(re-frame/dispatch [:map/clicked (map-utils/leaflet-props %) (map-utils/mouseevent->coords %)]))))}
            [map-views/basemap-layers]
-           [map-b-layers]
+           [map-views/catalogue-layers {:map-id :map-2}]
 
            (when query
              [leaflet/geojson-layer {:data (clj->js query)}])
@@ -192,5 +163,27 @@
              [map-views/draw-transect-control])
            (when (:selecting? region-info)
              [map-views/draw-region-control])
+           
+           [leaflet/coordinates-control
+            {:position "bottomleft"
+             :decimals 2
+             :labelTemplateLat "{y}"
+             :labelTemplateLng "{x}"
+             :useLatLngOrder   true
+             :enableUserInput  false}]
+           [leaflet/scale-factor-control {:position "bottomleft"}]
+           [leaflet/scale-control {:position "bottomleft"}]
+           
+           (when show-time-slider?
+             [:f> leaflet/time-dimension-control
+              {:time-dimension
+               {:ref #(re-frame/dispatch [:map.time/time-dimension-ref % :map-2])        ; hardcoded second map ID
+                :defaultTime @(re-frame/subscribe [:map.time/current-time :map-2])}      ; ditto
+               :ref #(re-frame/dispatch [:map.time/time-dimension-control-ref % :map-2]) ; ditto
+               :auto-play false
+               :playerOptions
+               {:buffer 10
+                :transitionTime 500
+                :startOver true}}])
 
-           [map-views/popup feature-info]]]]))))
+           [map-views/popup feature-info-2]]]]))))

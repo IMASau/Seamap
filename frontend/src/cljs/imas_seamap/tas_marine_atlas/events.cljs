@@ -342,7 +342,6 @@
   ;; :active-base-layer
   [{:keys [db]} _]
   (let [{:keys [active active-base layers]} (:map db)
-        legend-ids    (:legend-ids db)
         startup-layers (get-in db [:map :keyed-layers :startup] [])
         active-layers (if active
                         (vec (ids->layers active (get-in db [:map :layers])))

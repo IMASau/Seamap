@@ -71,6 +71,18 @@ body.page-template-default.admin-bar #app {
     }
 }
 
+// Long summaries scroll within the body instead of growing past the window
+.grouping-info-card {
+    max-height: 90vh;
+    .bp3-dialog-body {
+        min-height: 0;
+        overflow-y: auto;
+        // Track blends into the dialog body (see blueprint-overrides .bp3-dialog-body);
+        // thumb is the body colour blended towards the body's text colour
+        scrollbar-color: color-mix(in srgb, var(--color-2), var(--color-7) 35%) var(--color-2);
+    }
+}
+
 .welcome-splash {
     .bp3-dialog-body {
         font-size: 16px;
@@ -804,11 +816,13 @@ input.leaflet-control-layers-selector[type="radio"] {
 }
 
 
-.css-b62m3t-container {
+.css-b62m3t-container,
+.css-3iigni-container {
 	.css-1s2u09g-control,
     .css-1pahdxg-control,
+    .css-1insrsq-control,
     .css-26l3qy-menu { border-radius: 0; }
-    .css-26l3qy-menu { z-index: 5;}
+    .css-26l3qy-menu { z-index: 8;}
     .css-1pahdxg-control,
     .css-1pahdxg-control:hover {
         border-color: hsl(0, 0%, 80%);
@@ -820,7 +834,13 @@ input.leaflet-control-layers-selector[type="radio"] {
 
 .current-view {
     padding: 12px 24px;
+    &.dark {
+        background-color: #eeebef;
+        #time-control { background-color: #eeebef; }
+    }
 }
+#side-by-side-toggle { padding: 12px 24px; }
+.current-view-no-data { margin: 12px 24px 0; width: auto; }
 
 .natural-hazards-atlas .leaflet-bar-timecontrol {
     display: none;
@@ -866,6 +886,25 @@ input.leaflet-control-layers-selector[type="radio"] {
         left: unset;
         right: $floating-menu-padding;
     }
+}
+
+// Similar styling for map legend to other controls
+.hazard-layer-legend {
+    border: 2px solid #777;
+    background-color: rgba(255, 255, 255, 0.5);
+    padding: 8px;
+    height: 457px;
+    width: 120px;
+    user-select: none;
+}
+// Bottom-right, so sit above the map attribution rather than covering it
+.leaflet-bottom.leaflet-right .hazard-layer-legend.leaflet-control { margin-bottom: 26px; }
+
+// Natural Hazards Atlas has its scale and coordinates controls bottom-left
+.natural-hazards-atlas {
+    .leaflet-bottom.leaflet-left .leaflet-control-scalefactor.leaflet-control { margin-left: 10px; }
+    // The second (side-by-side) map isn't underneath the left drawer, so its controls don't need to move clear of it
+    &.catalogue-open .side-by-side-map-2 .leaflet-left { left: 0; }
 }
 
 // Hide elements we don't want to see while the map is printing

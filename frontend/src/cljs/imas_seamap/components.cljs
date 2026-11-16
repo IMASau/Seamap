@@ -254,7 +254,7 @@
           (fn [i hotkey]
             ^{:key i}
             [b/hotkey hotkey])
-          hotkeys)]]])}))
+          (remove :hidden hotkeys))]]])}))
 
 
 (defn snap-slider

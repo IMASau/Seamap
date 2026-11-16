@@ -5,9 +5,10 @@
   (:require [goog.string.format]
             [imas-seamap.blueprint :as b :refer [use-hotkeys]]
             [imas-seamap.components :as components]
+            [imas-seamap.map.layer-views :refer [legend-display]]
             [imas-seamap.natural-hazards-atlas.map.views :refer [map-component]]
             [imas-seamap.map.subs :as msubs]
-            [imas-seamap.interop.react :refer [use-memo]]
+            [imas-seamap.interop.react :refer [use-memo use-effect]]
             [imas-seamap.story-maps.views :refer [featured-maps]]
             [imas-seamap.views :as views]
             [re-frame.core :as re-frame]
@@ -16,7 +17,8 @@
 (defn- welcome-dialogue []
   (let [dont-show-again? (reagent/atom false)]
    (fn []
-     (let [open? @(re-frame/subscribe [:welcome-layer/open?])]
+     (let [open? @(re-frame/subscribe [:welcome-layer/open?])
+           {:keys [wordpress-url-base]} @(re-frame/subscribe [:url-base])]
        [b/dialogue
         {:title
          (reagent/as-element
@@ -27,17 +29,18 @@
         [:div.bp3-dialog-body
          [:div.overview
           [:p "The Natural Hazards Atlas for Tasmania is an interactive platform developed by the University of Tasmania that brings together climate-driven natural hazards data, mapping and science communication to support disaster preparedness, resilience and informed decision-making across Tasmania."]
-          [:p "Explore the interactive map and visit " [:a {:href "https://nathaz-dev.its.utas.edu.au/" :target "_blank"} "here"] " to learn more about the atlas tools and features."]]]
+          [:p "Explore the interactive map and visit " [:a {:href wordpress-url-base :target "_blank"} "here"] " to learn more about the atlas tools and features."]]]
         [:div.bp3-dialog-footer
          [:div
           [:input
-           {:type     "checkbox"
-            :name     "dont-show-this-again"
-            :on-click #(reset! dont-show-again? (.. % -target -checked))
-            :checked  @dont-show-again?}]
+           {:type      "checkbox"
+            :id        "dont-show-this-again"
+            :name      "dont-show-this-again"
+            :on-change #(reset! dont-show-again? (.. % -target -checked))
+            :checked   @dont-show-again?}]
           [:label {:for "dont-show-this-again"} "Don't show this again"]]
          [b/button
-          {:text       "Get Started!"
+          {:text       "Get Started"
            :intent     b/INTENT-PRIMARY
            :auto-focus true
            :on-click   #(re-frame/dispatch [:welcome-layer/close @dont-show-again?])}]]]))))
@@ -65,7 +68,7 @@
         (cond
           selecting? ["Cancel Selecting"    "undo"   :map.layer.selection/disable]
           region     ["Clear Selection"     "eraser" :map.layer.selection/clear]
-          :else      ["Select Habitat Data" "widget" :map.layer.selection/enable])]
+          :else      ["Select Area of Interest" "widget" :map.layer.selection/enable])]
     [views/control-block-child
      {:on-click  #(re-frame/dispatch [dispatch])
       :tooltip   tooltip
@@ -132,138 +135,225 @@
   "Select the time period of the hazard data to view on the map.
    This is a half-baked implementation, because we haven't nailed-down what time
    periods span what years, and all the currently available data is historic."
-  []
-  (let [time-periods @(re-frame/subscribe [:current-view/time-periods])]
+  [{:keys [map-id]}]
+  (let [time-periods @(re-frame/subscribe [:current-view/time-periods])
+        is-historic? @(re-frame/subscribe [:current-view/is-historic? map-id])]
     [components/form-group
      {:label "Time Period"}
-     [components/select
-      {:value        @(re-frame/subscribe [:current-view/selected-time-period])
-       :options      time-periods
-       :onChange     #(re-frame/dispatch [:current-view/selected-time-period %])
-       :keyfns
-       {:id   :id
-        :text (fn [{:keys [name start-year end-year]}] (str name (when (and start-year end-year) (str " (" start-year "-" end-year ")"))))}}]]))
+     [:<>
+      [b/button-group
+       {:style {:margin-bottom "8px"}
+        :fill true}
+       [b/button
+        {:text     "Historic Data"
+         :on-click #(re-frame/dispatch [:current-view/is-historic? true map-id])
+         :active   is-historic?
+         :small true}]
+       [b/button
+        {:text     "Projected Data"
+         :on-click #(re-frame/dispatch [:current-view/is-historic? false map-id])
+         :active (not is-historic?)
+         :small true}]]
+      (when (not is-historic?)
+        [components/select
+         {:value        @(re-frame/subscribe [:current-view/selected-time-period map-id])
+          :options      time-periods
+          :onChange     #(re-frame/dispatch [:current-view/selected-time-period % map-id])
+          :keyfns
+          {:id   :id
+           :text (fn [{:keys [name display-year]}] (str name (when display-year (str " (" display-year ")"))))}}])]]))
 
 (defn- timeline-media-controls
   "Media-style controls to play through the timeline of hazard data."
-  []
-  (let [{:keys [is-playing? is-loading? can-step-forward? can-step-backward?]} @(re-frame/subscribe [:current-view/timeline-media-controls])]
-    [b/button-group
-     [b/button
-      {:icon "step-backward"
-       :disabled (not can-step-backward?)
-       :on-click #(re-frame/dispatch [:current-view.time/step-backward])}]
-     [b/button
-      {:icon (if is-playing? "pause" "play")
-       :on-click
-       (if is-playing?
-         #(re-frame/dispatch [:map.time/pause])
-         #(re-frame/dispatch [:map.time/play]))
-       :active is-playing?}]
-     [b/button
-      {:icon "step-forward"
-       :disabled (not can-step-forward?)
-       :on-click #(re-frame/dispatch [:current-view.time/step-forward])}]
-     [b/button
-      {:icon "tick-circle"
-       :loading is-loading?
-       :disabled true}]]))
+  [{:keys [map-id]}]
+  (let [{:keys [is-playing? is-loading? is-disabled? can-step-forward? can-step-backward?]} @(re-frame/subscribe [:current-view/timeline-media-controls map-id])]
+    [b/tooltip
+     {:content "Media controls are disabled while comparing maps"
+      :disabled (not is-disabled?)}
+     [b/button-group
+      [b/button
+       {:icon "step-backward"
+        :disabled (or (not can-step-backward?) is-disabled?)
+        :on-click #(re-frame/dispatch [:current-view.time/step-backward map-id])}]
+      [b/button
+       {:icon (if is-playing? "pause" "play")
+        :disabled is-disabled?
+        :on-click
+        (if is-playing?
+          #(re-frame/dispatch [:map.time/pause map-id])
+          #(re-frame/dispatch [:map.time/play map-id]))
+        :active is-playing?}]
+      [b/button
+       {:icon "step-forward"
+        :disabled (or (not can-step-forward?) is-disabled?)
+        :on-click #(re-frame/dispatch [:current-view.time/step-forward map-id])}]
+      [b/button
+       {:icon "tick-circle"
+        :loading is-loading?
+        :disabled true}]]]))
 
 (defn- timeline-slider
   "Slider to select the date (year) of data to view."
-  []
-  (let [available-times @(re-frame/subscribe [:map.time/available-times])
+  [{:keys [map-id]}]
+  (let [available-times @(re-frame/subscribe [:map.time/available-times map-id])
         label-renderer #(.getFullYear (js/Date. %))
         label-values [(first available-times) (last available-times)]
-        value @(re-frame/subscribe [:map.time/current-time])]
+        value @(re-frame/subscribe [:map.time/current-time map-id])]
     [components/snap-slider
      {:value     value
       :values    available-times
-      :on-change #(re-frame/dispatch [:map.time/current-time %])
+      :on-change #(re-frame/dispatch [:map.time/current-time % map-id])
       :label-values label-values
       :label-renderer label-renderer}]))
 
 (defn- timeline-select
   "Controls for selecting the time (year) of hazard data to view.
    Should only be shown if there are available times to select from."
-  []
+  [{:keys [map-id]}]
   [components/form-group
    {:label "Year"}
-   [:<>
-    [timeline-slider]
-    [timeline-media-controls]]])
+   (if (and @(re-frame/subscribe [:map.time/current-time map-id]) (seq @(re-frame/subscribe [:map.time/available-times map-id])))
+     [:<>
+      [timeline-slider {:map-id map-id}]
+      [timeline-media-controls {:map-id map-id}]]
+     [b/spinner])])
 
 (defn- current-view-analysis
-  []
-  [:div#current-view-analysis
-   {:style {:margin-bottom "8px"}}
-   [:div
-    {:style {:display "flex" :gap "8px" :margin-bottom "8px"}}
-    [:div {:style {:flex 1}}
-     [components/form-group {:label "CMIP"}
-      [components/select
-       {:value        @(re-frame/subscribe [:current-view/selected-cmip-phase])
-        :options      @(re-frame/subscribe [:current-view/cmip-phases])
-        :onChange     #(re-frame/dispatch [:current-view/selected-cmip-phase %])
-        :keyfns
-        {:id   :id
-         :text :display_name}}]]]
-    [:div {:style {:flex 1}}
-     [components/form-group {:label "Model"}
-      [components/select
-       {:value        @(re-frame/subscribe [:current-view/selected-model])
-        :options      @(re-frame/subscribe [:current-view/filtered-models])
-        :onChange     #(re-frame/dispatch [:current-view/selected-model %])
-        :keyfns
-        {:id   :id
-         :text :display_name}}]]]]
-   [:div {:style {:display "flex" :gap "8px" :margin-bottom "8px"}}
-    [:div {:style {:flex 1}}
-     [components/form-group
-      {:label "Scenario"}
-      [components/select
-       {:value        @(re-frame/subscribe [:current-view/selected-scenario])
-        :options      @(re-frame/subscribe [:current-view/filtered-scenarios])
-        :onChange     #(re-frame/dispatch [:current-view/selected-scenario %])
-        :keyfns
-        {:id   :id
-         :text :display_name}}]]]
-    [:div {:style {:flex 1}}
-     [components/form-group
-      {:label "Seasonal Data"}
-      [components/select
-       {:value        @(re-frame/subscribe [:current-view/selected-seasonal-data])
-        :options      @(re-frame/subscribe [:current-view/seasonal-datas])
-        :onChange     #(re-frame/dispatch [:current-view/selected-seasonal-data %])
-        :keyfns
-        {:id   :id
-         :text :display_name}}]]]]])
+  [{:keys [map-id]}]
+  (let [is-historic? @(re-frame/subscribe [:current-view/is-historic? map-id])]
+    [:div#current-view-analysis
+     {:style {:margin-bottom "8px"}}
+     [:div
+      {:style {:display "flex" :gap "8px" :margin-bottom "8px"}}
+      [:div {:style {:flex 1}}
+       [components/form-group {:label "CMIP"}
+        [components/select
+         {:value        @(re-frame/subscribe [:current-view/selected-cmip-phase map-id])
+          :options      @(re-frame/subscribe [:current-view/cmip-phases])
+          :onChange     #(re-frame/dispatch [:current-view/selected-cmip-phase % map-id])
+          :keyfns
+          {:id   :id
+           :text :display_name}}]]]
+      [:div {:style {:flex 1}}
+       [components/form-group {:label "Model"}
+        [components/select
+         {:value        @(re-frame/subscribe [:current-view/selected-model map-id])
+          :options      @(re-frame/subscribe [:current-view/models])
+          :onChange     #(re-frame/dispatch [:current-view/selected-model % map-id])
+          :keyfns
+          {:id   :id
+           :text :display_name}}]]]]
+     [:div {:style {:display "flex" :gap "8px" :margin-bottom "8px"}}
+      [:div {:style {:flex 1}}
+       [components/form-group
+        {:label "Scenario"}
+        [b/tooltip
+         {:content "Scenarios are only available for projected data"
+          :disabled (not is-historic?)
+          :class "bp3-fill"}
+         [components/select
+          {:value        @(re-frame/subscribe [:current-view/selected-scenario map-id])
+           :options      @(re-frame/subscribe [:current-view/scenarios])
+           :onChange     #(re-frame/dispatch [:current-view/selected-scenario % map-id])
+           :isDisabled   is-historic?
+           :keyfns
+           {:id   :id
+            :text :display_name}}]]]]
+      [:div {:style {:flex 1}}
+       [components/form-group
+        {:label "Seasonal Data"}
+        [components/select
+         {:value        @(re-frame/subscribe [:current-view/selected-seasonal-data map-id])
+          :options      @(re-frame/subscribe [:current-view/seasonal-datas])
+          :onChange     #(re-frame/dispatch [:current-view/selected-seasonal-data % map-id])
+          :keyfns
+          {:id   :id
+           :text :display_name}}]]]]]))
 
 (defn- side-by-side-toggle []
-  [:<>
-   [:input
-    {:type "checkbox"
-     :id "side-by-side-toggle"
-     :checked   @(re-frame/subscribe [:ui.side-by-side/active?])
-     :on-change #(re-frame/dispatch [:ui.side-by-side/active? (.. % -target -checked)])}]
-   [:label
-    {:for "side-by-side-toggle"}
-    "Compare Maps"]])
+  [:div#side-by-side-toggle
+   [b/checkbox
+    {:checked   @(re-frame/subscribe [:ui.side-by-side/active?])
+     :on-change #(re-frame/dispatch [:ui.side-by-side/active? (.. % -target -checked)])
+     :label     "Compare Maps"}]])
+
+(defn- current-view-map-controls
+  "Set of controls to select model, scenario, and time parameters.
+
+   Each parameter affects the map appearance and projection data."
+  [{:keys [map-id]}]
+  (let [{:keys [start-year end-year display-year]} @(re-frame/subscribe [:current-view/selected-time-period map-id])]
+    [:div
+     {:class (str "current-view " (when map-id "dark"))}
+     [current-view-analysis {:map-id map-id}]
+     [b/card {:id "time-control"}
+      [time-period-select {:map-id map-id}]
+      (cond
+        display-year ; time is fixed to the display year, so there's no year to select
+        [:div.bp3-text-small.bp3-text-muted
+         (str "This shows the average of the projected values for " start-year "-" end-year)]
+
+        (not @(re-frame/subscribe [:current-view/no-data? map-id])) ; no years to select from without data
+        [timeline-select {:map-id map-id}])]]))
+
+(defn- no-data-warning
+  "Warning banner for when the active hazard layer has no data for the options
+   selected in the current view, so nothing is displayed on the map."
+  []
+  (let [side-by-side-active? @(re-frame/subscribe [:ui.side-by-side/active?])
+        no-data-1?           @(re-frame/subscribe [:current-view/no-data?])
+        no-data-2?           (and side-by-side-active? @(re-frame/subscribe [:current-view/no-data? :map-2]))]
+    (when (or no-data-1? no-data-2?)
+      [:div.bp3-callout.bp3-intent-warning.bp3-icon-warning-sign.current-view-no-data
+       (str
+        "There is no data for the selected options"
+        (when side-by-side-active? ; say which map, since only one map's options are shown at a time
+          (cond
+            (and no-data-1? no-data-2?) " on either map"
+            no-data-1?                  " on Map 1"
+            :else                       " on Map 2")))])))
 
 (defn- current-view
-  "Layer configuration panel where model, scenario, and time parameters are
-   selected. Each parameter affects the map appearance and projection data."
+  "Control tab to select the current view of the hazard data.
+
+   The current view is defined by the CMIP phase, model, scenario, seasonal data,
+   and time period selected by the user.
+   
+   Side-by-side comparison can be enabled to compare two different current views."
   []
-  [:div.current-view
-   [current-view-analysis]
-   (when (and @(re-frame/subscribe [:map.time/current-time]) (seq @(re-frame/subscribe [:map.time/available-times])))
-     [b/card {:id "time-control"}
-      [time-period-select]
-      [timeline-select]])
-   [side-by-side-toggle]])
+  (let [selected-tab (reagent/atom "map-1")]
+    (fn []
+      (let [active-hazard-layer @(re-frame/subscribe [:map.layers/active-hazard-layer])]
+        (if active-hazard-layer ; only show controls when we have an active hazard layer, else show message to select a hazard layer
+          [:<> [no-data-warning]
+           (when @(re-frame/subscribe [:ui.side-by-side/active?])
+                 [b/button-group {:fill true}
+                  [b/button
+                   {:text     "Map 1"
+                    :on-click #(reset! selected-tab "map-1")
+                    :active   (= @selected-tab "map-1")}]
+                  [b/button
+                   {:text     "Map 2"
+                    :on-click #(reset! selected-tab "map-2")
+                    :active   (= @selected-tab "map-2")}]])
+           (if (and @(re-frame/subscribe [:ui.side-by-side/active?]) (= @selected-tab "map-2"))
+             [current-view-map-controls {:map-id :map-2}] ; hardcoded second map ID
+             [current-view-map-controls])
+           [side-by-side-toggle]]
+          [:div
+           [b/non-ideal-state
+            {:title       "No Data"
+             :description "Select a hazard layer to configure hazard parameters."
+             :icon        "info-sign"}]])))))
+
+;; Supporting layers are hidden until the client finalises the list. Set to true to
+;; restore the "Supporting Layers" catalogue tab and include supporting layers in
+;; the layer search omnibar.
+(def ^:private show-supporting-layers? false)
 
 (defn- layer-catalogue [catid layer-props tma?]
   (let [selected-tab @(re-frame/subscribe [:ui.catalogue/tab catid])
+        selected-tab (if show-supporting-layers? selected-tab "hazards") ; saved/shared state may still reference the hidden tab
         select-tab   #(re-frame/dispatch [:ui.catalogue/select-tab catid %1])
         open-all?    (>= (count @(re-frame/subscribe [:map.layers/filter])) 3)]
     [b/tabs {:selected-tab-id selected-tab
@@ -274,11 +364,20 @@
        :title "Hazards"
        :panel (reagent/as-element
                [views/layer-catalogue-tree catid @(re-frame/subscribe [:map.layers/filtered-hazard-layers]) [:category :data_classification] "hazards" layer-props open-all? tma?])}]
-     [b/tab
-      {:id    "supporting-layers"
-       :title "Supporting Layers"
-       :panel (reagent/as-element
-               [views/layer-catalogue-tree catid @(re-frame/subscribe [:map.layers/filtered-supporting-layers]) [:data_classification] "supporting-layers" layer-props open-all? tma?])}]]))
+     (when show-supporting-layers?
+       [b/tab
+        {:id    "supporting-layers"
+         :title "Supporting Layers"
+         :panel (reagent/as-element
+                 [views/layer-catalogue-tree catid @(re-frame/subscribe [:map.layers/filtered-supporting-layers]) [:data_classification] "supporting-layers" layer-props open-all? tma?])}])]))
+
+(defn- layers-search-omnibar
+  "Wraps imas-seamap.views/layers-search-omnibar, excluding supporting layers from
+   the search while they're hidden."
+  []
+  (if show-supporting-layers?
+    [views/layers-search-omnibar]
+    [views/layers-search-omnibar (filterv :hazardlayer (:sorted-layers @(re-frame/subscribe [:map/layers])))]))
 
 (defn- left-drawer-catalogue [tma?]
   (let [{:keys [active-layers visible-layers rich-layers-by-layer-id]} @(re-frame/subscribe [:map/layers])
@@ -288,6 +387,7 @@
         expanded-ids    @(re-frame/subscribe [::msubs/expanded-layers])
         layer-opacities @(re-frame/subscribe [::msubs/layer-opacities])]
     [:<>
+     [no-data-warning] ; a newly selected layer may have no data for the current view, with nothing else here to say why
      [views/layer-search-filter]
      [layer-catalogue :main
       {:active-layers  active-layers
@@ -302,9 +402,13 @@
 (defn- left-drawer []
   (let [open? @(re-frame/subscribe [:left-drawer/open?])
         tab   @(re-frame/subscribe [:left-drawer/tab])
-        {:keys [active-layers]} @(re-frame/subscribe [:map/layers])]
+        {:keys [active-layers]} @(re-frame/subscribe [:map/layers])
+        {:keys [wordpress-url-base]} @(re-frame/subscribe [:url-base])]
     [components/drawer
-     {:title [:div [:img {:src "img/Climate Futures + NHAT logo – COLOUR.png"}]]
+     {:title
+      [:div
+       [:a {:href wordpress-url-base}
+        [:img {:src "img/Climate_Futures_NHAT_logo_COLOUR.png"}]]]
       :position    "left"
       :size        "368px"
       :isOpen      open?
@@ -337,8 +441,20 @@
       [b/tab
        {:id    "current-view"
         :title (reagent/as-element
-                [b/tooltip {:content "Configure the map layers"} "Current View"])
-        :panel (reagent/as-element [current-view])}]]]))
+                [b/tooltip {:content "Configure the map layers"} "View Settings"])
+        :panel (reagent/as-element [current-view])}]]
+     [:a.how-to-use-banner
+      {:href   (str wordpress-url-base "resources/how-to-use-the-atlas/")
+       :target "_blank"}
+      [b/icon {:icon "help"}]
+      "Learn how to use the map"]]))
+
+(defn- hazard-layer-legend []
+  (let [active-hazard-layer @(re-frame/subscribe [:map.layers/active-hazard-layer])]
+    (when active-hazard-layer
+      (let [legend @(re-frame/subscribe [:map.layer/legend active-hazard-layer])]
+        [:div.leaflet-bottom.leaflet-right.leaflet-touch
+         [:div.hazard-layer-legend.leaflet-control [legend-display legend]]]))))
 
 (def hotkeys-combos
   (let [keydown-wrapper
@@ -350,6 +466,11 @@
     (clj->js
      [(keydown-wrapper
        {:label "Zoom In"                :combo "plus"}
+       [:map/zoom-in])
+      ;; Blueprint parses "plus" as shift+=, so also accept a bare "=".
+      ;; Hidden so the shortcuts dialog doesn't list Zoom In twice.
+      (keydown-wrapper
+       {:label "Zoom In"                :combo "=" :hidden true}
        [:map/zoom-in])
       (keydown-wrapper
        {:label "Zoom Out"               :combo "-"}
@@ -388,10 +509,32 @@
        {:label "Show Help Overlay"      :combo "h"}
        [:help-layer/toggle])])))
 
+(defn- text-input-target?
+  "Mirrors Blueprint's useHotkeys check, so hotkeys don't fire while typing."
+  [e]
+  (let [editable (some-> e .-target (.closest "input, textarea, [contenteditable=true]"))]
+    (and editable
+         (not (#{"checkbox" "radio"} (.-type editable)))
+         (not (.-readOnly editable)))))
+
+(defn- numpad-plus-keydown
+  "Numpad + has no Blueprint combo string (\"+\" always parses as shift+=), so
+   it's handled with a plain listener."
+  [e]
+  (when (and (= (.-code e) "NumpadAdd")
+             (not (or (.-ctrlKey e) (.-altKey e) (.-metaKey e)))
+             (not (text-input-target? e)))
+    (re-frame/dispatch [:map/zoom-in])))
+
 (defn layout-app []
   (let [hot-keys (use-memo (fn [] hotkeys-combos))
         ;; We don't need the results of this, just need to ensure it's called!
         _ #_{:keys [handle-keydown handle-keyup]} (use-hotkeys hot-keys)
+        _ (use-effect
+           (fn []
+             (js/document.addEventListener "keydown" numpad-plus-keydown)
+             #(js/document.removeEventListener "keydown" numpad-plus-keydown))
+           #js [])
         is-printing?       @(re-frame/subscribe [:map.print/is-printing?])
         catalogue-open?    @(re-frame/subscribe [:left-drawer/open?])
         right-drawer-open? (seq @(re-frame/subscribe [:ui/right-sidebar]))
@@ -399,7 +542,8 @@
     [:div#main-wrapper.natural-hazards-atlas
      {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open") (when loading? " loading") (when is-printing? " map-printing"))}
      [:div#content-wrapper
-      [map-component]]
+      [map-component]
+      [hazard-layer-legend]]
 
      ;; TODO: Update helper-overlay for new Seamap version (or remove?)
      [views/helper-overlay
@@ -424,7 +568,7 @@
       {:id "shortcuts-control" :helperText "View keyboard shortcuts"}
       {:id "overlay-control" :helperText "You are here!"}
       {:selector       ".bp3-tab-panel.catalogue>.bp3-tabs>.bp3-tab-list"
-       :helperText     "Filter by Hazard Layers or Supporting Layers"
+       :helperText     (if show-supporting-layers? "Filter by Hazard Layers or Supporting Layers" "Hazard Layers")
        :helperPosition "bottom"
        :padding        0}
       {:id             "current-view-analysis"
@@ -441,7 +585,7 @@
      [views/loading-display]
      [left-drawer]
      [views/right-drawer @(re-frame/subscribe [:ui/right-sidebar])]
-     [views/layers-search-omnibar]
+     [layers-search-omnibar]
      [custom-leaflet-controls]
      [:div.custom-leaflet-controls.leaflet-top.leaflet-right.leaflet-touch
       {:style {:font "12px/1.5 \"Helvetica Neue\", Arial, Helvetica, sans-serif"}} ; font style for Leaflet map-component - needs to be inherited into custom controls
