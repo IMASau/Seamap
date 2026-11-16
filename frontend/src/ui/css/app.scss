@@ -71,6 +71,18 @@ body.page-template-default.admin-bar #app {
     }
 }
 
+// Long summaries scroll within the body instead of growing past the window
+.grouping-info-card {
+    max-height: 90vh;
+    .bp3-dialog-body {
+        min-height: 0;
+        overflow-y: auto;
+        // Track blends into the dialog body (see blueprint-overrides .bp3-dialog-body);
+        // thumb is the body colour blended towards the body's text colour
+        scrollbar-color: color-mix(in srgb, var(--color-2), var(--color-7) 35%) var(--color-2);
+    }
+}
+
 .welcome-splash {
     .bp3-dialog-body {
         font-size: 16px;

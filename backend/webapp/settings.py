@@ -198,5 +198,6 @@ CSP_SCRIPT_SRC = ("'self'")
 CSP_STYLE_SRC = ("'self'", "'unsafe-inline'")
 
 TINYMCE_DEFAULT_CONFIG = {
-    'plugins': 'table',
+    'plugins': ['table', 'code'],
+    'toolbar': 'code',
 }

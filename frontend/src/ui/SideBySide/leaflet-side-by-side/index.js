@@ -178,6 +178,7 @@ const SideBySide = L.Control.extend({
     }
     if (map) {
       map.off("move", this._updateClip, this);
+      map.off("moveend", this.onRangeUpdated, this);
     }
   },
 })

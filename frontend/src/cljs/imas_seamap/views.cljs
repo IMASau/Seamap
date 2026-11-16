@@ -22,7 +22,30 @@
             [imas-seamap.dev.deployment-switcher :as dev-switcher]  ; Test harness
             [goog.string :as gstring]
             [goog.string.format]
-            #_[debux.cs.core :refer [dbg] :include-macros true]))
+            [imas-seamap.blueprint :as b :refer [use-hotkeys]]
+            [imas-seamap.components :as components]
+            [imas-seamap.fx :refer [show-message]]
+            [imas-seamap.interop.react :refer [container-dimensions
+                                               css-transition
+                                               css-transition-group use-memo]]
+            [imas-seamap.map.layer-views :refer [layer-card
+                                                 layer-catalogue-node
+                                                 layer-control legend-display]]
+            [imas-seamap.map.utils :refer [download-type->str
+                                           layer-downloadable?
+                                           layer-search-keywords]]
+            [imas-seamap.map.views :refer [map-component]]
+            [imas-seamap.map.subs :as msubs]
+            [imas-seamap.plot.views :refer [transect-display-component]]
+            [imas-seamap.state-of-knowledge.views :refer [floating-boundaries-pill
+                                                          floating-state-of-knowledge-pill
+                                                          floating-zones-pill
+                                                          state-of-knowledge]]
+            [imas-seamap.story-maps.views :refer [featured-map-drawer
+                                                  featured-maps]]
+            [imas-seamap.utils :refer [append-query-params handler-dispatch] :include-macros true]
+            [re-frame.core :as re-frame]
+            [reagent.core :as reagent]))
 
 (defn- ->query-selector
   "Normalises selectors for helper-overlay into a form for use with
@@ -103,6 +126,36 @@
     [:span.control.bp3-icon-large.bp3-icon-help.bp3-text-muted
      {:on-click #(re-frame/dispatch [:help-layer/open])}]]])
 
+(defn- set-summary-html!
+  "Ref callback body for rendering admin-authored summary HTML; links open in a
+   new tab unless the author specified a target."
+  [el html]
+  (when el
+    (set! (.-innerHTML el) html)
+    (let [hyperlinks (js/Array.prototype.slice.call (.getElementsByTagName el "a"))]
+      (doseq [hyperlink hyperlinks]
+        (when-not (.getAttribute hyperlink "target")
+          (.setAttribute hyperlink "target" "_blank"))))))
+
+(defn- grouping-info-card
+  "Dialog showing the summary of a catalogue grouping node (eg a data
+   classification)."
+  [{:keys [title summary]} on-close]
+  [b/dialogue {:title    title
+               :class    "info-card grouping-info-card"
+               :is-open  (boolean summary)
+               :on-close on-close}
+   [:div.bp3-dialog-body
+    [:div.metadata-record
+     [:div {:ref #(set-summary-html! % summary)}]]]
+   [:div.bp3-dialog-footer
+    [:div.bp3-dialog-footer-actions
+     [b/button
+      {:text       "Close"
+       :auto-focus true
+       :intent     b/INTENT-PRIMARY
+       :on-click   on-close}]]]])
+
 (defn- ->sort-by [sorting-info ordering-key]
   (let [name-key-mapping (get sorting-info ordering-key)]
     ;; Sort by key first, then name (ie, return vector of [key name])
@@ -111,13 +164,14 @@
 (defn- layers->nodes
   "group-ordering is the category keys to order by, eg [:organisation :data_category]"
   [layers [ordering & ordering-remainder :as group-ordering] sorting-info expanded-states id-base
-   layer-props open-all?]
+   layer-props open-all? on-info]
   (for [[val layer-subset] (sort-by (->sort-by sorting-info ordering) (group-by ordering layers))
-        ;; sorting-info maps category key -> label -> [sort-key,id].
+        ;; sorting-info maps category key -> label -> [sort-key,id,display-name,summary].
         ;; We use the id for a stable node-id:
         :let [sorting-id (get-in sorting-info [ordering val 1])
               id-str (str id-base "|" sorting-id)
               display-name (get-in sorting-info [ordering val 2])
+              summary (get-in sorting-info [ordering val 3])
               expanded? (or (get expanded-states id-str false) open-all?)]]
     {:id id-str
      :label (reagent/as-element
@@ -127,13 +181,19 @@
                 :size  "22px"
                 :class (str "bp3-tree-node-caret" (when expanded? " bp3-tree-node-caret-open"))}]
               [b/clipped-text {:ellipsize true}
-               (or display-name "Ungrouped")]])
+               (or display-name "Ungrouped")]
+              (when (seq summary)
+                [:div.layer-controls.grouping-controls
+                 [layer-control
+                  {:tooltip  "Info"
+                   :icon     "info-sign"
+                   :on-click #(on-info {:title display-name :summary summary})}]])])
      :isExpanded expanded?
      :hasCaret   false
      :className  (-> ordering name (string/replace "_" "-"))
      :childNodes (concat
                   (if (seq ordering-remainder)
-                    (layers->nodes layer-subset (rest group-ordering) sorting-info expanded-states id-str layer-props open-all?)
+                    (layers->nodes layer-subset (rest group-ordering) sorting-info expanded-states id-str layer-props open-all? on-info)
                     (map-indexed
                      (fn [i layer]
                        (layer-catalogue-node
@@ -160,10 +220,14 @@
                    (let [{:keys [childNodes id]} (js->clj node :keywordize-keys true)]
                      (when (seq childNodes)
                        ;; If we have children, toggle expanded state, else add to map
-                       (re-frame/dispatch [:ui.catalogue/toggle-node catid id]))))]
+                       (re-frame/dispatch [:ui.catalogue/toggle-node catid id]))))
+        grouping-info (reagent/atom nil)
+        on-info #(reset! grouping-info %)]
     (fn [_catid layers ordering id layer-props open-all?]
      [:div.tab-body {:id id}
-      [b/tree {:contents (layers->nodes layers ordering @sorting-info @expanded-states id layer-props open-all?)
+      ;; Rendered outside the tree so clicks in the dialog don't bubble to tree nodes
+      [grouping-info-card @grouping-info #(reset! grouping-info nil)]
+      [b/tree {:contents (layers->nodes layers ordering @sorting-info @expanded-states id layer-props open-all? on-info)
                :onNodeCollapse on-close
                :onNodeExpand on-open
                :onNodeClick on-click
@@ -442,14 +506,7 @@
        (when (seq metadata_summary)
          [:div
           [:h3 "About"]
-          [:p
-           {:ref
-            #(when %
-               (set! (.-innerHTML %) metadata_summary)
-               (let [hyperlinks (js/Array.prototype.slice.call (.getElementsByTagName % "a"))]
-                 (doseq [hyperlink hyperlinks]
-                   (when-not (.getAttribute hyperlink "target")
-                     (.setAttribute hyperlink "target" "_blank")))))}]])
+          [:p {:ref #(set-summary-html! % metadata_summary)}]])
 
        (when (seq constraints)
          [:div
@@ -489,20 +546,22 @@
             [:img.metadata-img {:src license-img}])
           [:a {:href license-link :target "_blank"} license-name]])
        
-       [:a
-        {:href     metadata_url
-         :target   "_blank"
-         :on-click #(re-frame/dispatch [:map.layer/metadata-click {:link metadata_url :layer layer}])}
-        "Click here for the full metadata record."]
+       (when (seq metadata_url)
+         [:a
+          {:href     metadata_url
+           :target   "_blank"
+           :on-click #(re-frame/dispatch [:map.layer/metadata-click {:link metadata_url :layer layer}])}
+          "Click here for the full metadata record."])
        
        (when (= category :habitat)
          [:p.download-instructions
           "Downloading implies acceptance of all citation and usage requirements."])])))
 
-(defn- download-menu [{:keys [title disabled? bbox] {:keys [download_format] :as layer} :layer}]
+(defn- download-menu
   "Download menu for layers.
    Layers with the WFS download format will have GeoTIFF, SHP, and CSV available, while WCS will only have GeoTIFF available.
    Assumption for now that WFS and WCS are the only download formats that need to be supported."
+  [{:keys [title disabled? bbox] {:keys [download_format] :as layer} :layer}]
   [b/popover {:position           b/BOTTOM
               :disabled           disabled?
               :popover-class-name "bp3-minimal"
@@ -557,7 +616,7 @@
 
 (defn info-card []
   (let [layer-info       @(re-frame/subscribe [:map.layer/info])
-        {:keys [metadata_url category download_format] :as layer} (:layer layer-info)
+        {:keys [download_format] :as layer} (:layer layer-info)
         title            (or (get-in layer-info [:layer :name]) "Layer Information")
         {:keys [region]} @(re-frame/subscribe [:map.layer.selection/info])]
     [b/dialogue {:title    title
@@ -666,22 +725,21 @@
 
 (defn region-control []
   (let [{:keys [selecting? region]} @(re-frame/subscribe [:map.layer.selection/info])
-        habitat-layers? (->>
-                         @(re-frame/subscribe [:map/layers])
-                         :visible-layers
-                         (filter #(= (:category %) :habitat))
+        downloadable-layers (->>
+                         @(re-frame/subscribe [:dbsubs.map/active-layers])
+                         (filter layer-downloadable?)
                          seq boolean)
         [tooltip icon dispatch]
         (cond
-          (not habitat-layers?) ["No habitat layers currently active" "widget" :map.layer.selection/enable]
-          selecting?            ["Cancel Selecting" "undo"   :map.layer.selection/disable]
-          region                ["Clear Selection"  "eraser" :map.layer.selection/clear]
-          :else                 ["Select Habitat Data"    "widget" :map.layer.selection/enable])]
+          (not downloadable-layers) ["No downloadable layers currently active" "widget" :map.layer.selection/enable]
+          selecting?            ["Cancel Selecting"            "undo"   :map.layer.selection/disable]
+          region                ["Clear Selection"             "eraser" :map.layer.selection/clear]
+          :else                 ["Select Data by Bounding Box" "widget" :map.layer.selection/enable])]
     [control-block-child
      {:on-click  #(re-frame/dispatch [dispatch])
       :tooltip   tooltip
       :icon      icon
-      :disabled? (not habitat-layers?)
+      :disabled? (not downloadable-layers)
       :id        "select-control"}]))
 
 ;;; FIXME: shares the events with the region-control, but has different effects
@@ -1360,7 +1418,7 @@
    {:id "print-control" :helperText "Export current map view as an image"}
    {:id "omnisearch-control" :helperText "Search all available layers in catalogue"}
    {:id "transect-control" :helperText "Draw a transect (habitat data) or take a measurement"}
-   {:id "select-control" :helperText "Select a region for download (habitat data)"}
+   {:id "select-control" :helperText "Select a region for download"}
    {:id "share-control" :helperText "Create a shareable URL for current map view"}
    {:id "reset-control" :helperText "Reset the application back to its initial state"}
    {:id "shortcuts-control" :helperText "View keyboard shortcuts"}

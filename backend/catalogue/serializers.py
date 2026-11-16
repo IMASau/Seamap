@@ -21,7 +21,7 @@ class OrganisationSerializer(serializers.ModelSerializer):
 class ClassificationSerializer(serializers.ModelSerializer):
     class Meta:
         model = models.DataClassification
-        fields = ('id', 'name', 'sort_key')
+        fields = ('id', 'name', 'sort_key', 'summary')
 
 
 class HabitatSerializer(serializers.ModelSerializer):

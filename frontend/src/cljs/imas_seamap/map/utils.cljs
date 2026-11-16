@@ -26,13 +26,27 @@
   (let [projection (get projections crs)]
     (-> coords clj->js projection.forward js->clj)))
 
-(defn bounds->projected [project-fn {:keys [north south east west] :as _bounds}]
-  (let [[x0 y0] (project-fn [west south])
-        [x1 y1] (project-fn [east north])]
-    {:west  x0
-     :south y0
-     :east  x1
-     :north y1}))
+(def ^:private bounds-edge-samples 64)
+
+(defn bounds->projected
+  "Projected bounding box enclosing the lat/lng bounds. Projecting just
+  two corners isn't enough for curved projections such as EPSG:3112
+  (Lambert conformal conic), where the region's extent lies along its
+  edges, so we sample each edge and take the extremes."
+  [project-fn {:keys [north south east west] :as _bounds}]
+  (let [n      bounds-edge-samples
+        lerp   (fn [a b i] (+ a (/ (* (- b a) i) n)))
+        points (for [i (range (inc n))
+                     point [[(lerp west east i) south]
+                            [(lerp west east i) north]
+                            [west (lerp south north i)]
+                            [east (lerp south north i)]]]
+                 point)
+        [xs ys] (apply map vector (map project-fn points))]
+    {:west  (apply min xs)
+     :south (apply min ys)
+     :east  (apply max xs)
+     :north (apply max ys)}))
 
 (defn bounds->str:wms
   "Prepare a string suitable for use in the BBOX parameter for *WMS* queries.
@@ -173,7 +187,7 @@
       ;; an issue where including the bbox, for the full region,
       ;; causes issues.  I don't think this was always the case, but
       ;; not investigating further)
-      (merge-in (when bounds {:query {:bbox (bounds->str:wfs bounds)}}))
+      (merge-in (when bounds {:query {:bbox (bounds->str:wfs 4326 bounds)}}))
       str))
 
 (defmethod download-link :wms [{:keys [server_url detail_layer layer_name bounding_box] :as _layer}
@@ -210,7 +224,11 @@
                        :compression "DEFLATE"
                        :format      (type->format-str download-type)
                        :coverageId (or detail_layer layer_name)})
-        (str (when bounds (str "&subset=Lat(" south "," north ")&subset=Long(" west "," east ")")))))) ; Add bounds params if provided. Can't be part of query dict because 'subset' param is used twice.
+        ;; Add bounds params if provided. Can't be part of query dict because 'subset' param is used twice.
+        (str (when bounds
+               (str "&subset=Lat(" south "," north ")"
+                    "&subset=Long(" west "," east ")"
+                    "&subsettingCRS=EPSG:4326"))))))
 
 (defmethod download-link :thredds-http
   [{:keys [server_url] :as _layer} _bounds _download-type _api-url-base _time]
@@ -315,15 +333,16 @@
 
 (defn hazard-layer-feature-info-response->display
   [response layer]
-  (let [title (:name layer)
-        units (get-in layer [:hazardlayer :human_readable_units])
-        doc   (gxml/loadXml response)
-        val   (.-innerHTML (first (gxml/selectNodes doc "/FeatureInfoResponse/Feature/FeatureInfo/value")))]
-    {:body
-     (render-to-string
-      [:div
-       [:h4 title]
-       [:p (str val " " units)]])}))
+  (let [title      (:name layer)
+        units      (get-in layer [:hazardlayer :human_readable_units])
+        doc        (gxml/loadXml response)
+        value-node (first (gxml/selectNodes doc "/FeatureInfoResponse/Feature/FeatureInfo/value"))] ; no Feature element when there's no data at the point
+    (when value-node
+      {:body
+       (render-to-string
+        [:div
+         [:h4 title]
+         [:p (str (.-innerHTML value-node) " " units)]])})))
 
 (defmethod feature-info-response->display "text/xml"
   [{:keys [response _info-format layers]}]
@@ -932,7 +951,7 @@
     (re-find search-re (layer-search-keywords categories layer))
     false))
 
-;;; Seamap is hosted under https, meaning the browser will block ajax
-;;; (ie, getfeatureinfo) requests to plain http URLs.  Servers still
-;;; using http need specil handling:
-(defn is-insecure? [url] (-> url string/lower-case (string/starts-with? "http:")))
+(defn layer-downloadable?
+  "Predicate for if a layer supports downloading"
+  [{:keys [download_format] :as _layer}]
+  (not (string/blank? download_format)))

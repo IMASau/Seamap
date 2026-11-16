@@ -252,13 +252,14 @@
                  :min-zoom 1
                  :max-zoom 15}  ; ISA-657 (see imas-seamap.interop.leaflet/crs-epsg3031)
 
-   ;; Feature flags. The current Antarctica layout has no region-select control
-   ;; and no SOK pills (its floating-pills only shows side-by-side views), but it
-   ;; does register the SOK handlers and has a Featured Maps tab.
+   ;; Feature flags. The current Antarctica layout has no SOK pills (its
+   ;; floating-pills only shows side-by-side views), but it does register the
+   ;; SOK handlers and has a Featured Maps tab. Region-select was added in ISA-724.
    :features    #{:feature/state-of-knowledge
                   :feature/featured-maps
                   :feature/floating-pills
                   :feature/transect-control
+                  :feature/region-select
                   :feature/settings
                   :feature/viewport-only
                   :feature/pinned-legends
@@ -274,10 +275,11 @@
                  :map-overlays   [:overlay/pinned-legends]
                  :controls       {:top-left  [:control/menu :control/settings :control/zoom
                                               [:control/print :control/omnisearch :control/transect
-                                               :control/share :control/reset]
+                                               :control/region :control/share :control/reset]
                                               [:control/shortcuts :control/help]]
                                   :top-right [:control/layers]}
-                 ;; No transect plot and no region select; transect relabelled
+                 ;; No transect plot; transect relabelled. (Region select has a
+                 ;; control but, as in the pre-framework layout, no hotkey.)
                  :hotkeys        [:zoom-in :zoom-out :pan-up :pan-down :pan-left :pan-right
                                   :drawer
                                   {:id :transect :label "Start/Clear Measurement"}
@@ -297,6 +299,7 @@
                                   {:id "print-control" :helperText "Export current map view as an image"}
                                   {:id "omnisearch-control" :helperText "Search all available layers in catalogue"}
                                   {:id "transect-control" :helperText "Take a measurement"}
+                                  {:id "select-control" :helperText "Select a region for download"}
                                   {:id "share-control" :helperText "Create a shareable URL for current map view"}
                                   {:id "reset-control" :helperText "Reset the application back to its initial state"}
                                   {:id "shortcuts-control" :helperText "View keyboard shortcuts"}

@@ -42,6 +42,8 @@ class NetCdfAttributes(NamedTuple):
     maxx: float
     maxy: float
     tooltip: Optional[str]
+    dataclassification_summary: Optional[str] # HTML for the data classification's info popup
+    metadata_summary: Optional[str] # HTML for the layer's info popup ("About")
     human_readable_units: str
     colour_palette: str
     variable_attributes: list[NetCdfVariableAttributes]
@@ -97,6 +99,10 @@ class Command(BaseCommand):
             category.display_name = category.name
             category.save()
         data_classification, _ = catalogue.models.DataClassification.objects.get_or_create(name=netcdf_attributes.data_classification)
+        # Only overwrite when present, so a summary entered in admin isn't cleared
+        if netcdf_attributes.dataclassification_summary and data_classification.summary != netcdf_attributes.dataclassification_summary:
+            data_classification.summary = netcdf_attributes.dataclassification_summary
+            data_classification.save()
         organisation, _ = catalogue.models.Organisation.objects.get_or_create(name="Climate Futures")
         hazard_layer: models.HazardLayer
         layer_fields = {
@@ -117,6 +123,8 @@ class Command(BaseCommand):
             "crs": "EPSG:4326",
             "download_format": "thredds-wcs",
         }
+        if netcdf_attributes.metadata_summary: # only overwrite when present, so a summary entered in admin isn't cleared
+            layer_fields["metadata_summary"] = netcdf_attributes.metadata_summary
         try:
             hazard_layer = models.HazardLayer.objects.get(name=catalog_ref_name)
             for field, value in layer_fields.items():
@@ -242,6 +250,8 @@ class Command(BaseCommand):
                     maxx=ds.attrs["maxx"],
                     maxy=ds.attrs["maxy"],
                     tooltip=ds.attrs.get("tooltip"), # tooltip not required
+                    dataclassification_summary=ds.attrs.get("dataclassification_summary"), # not required
+                    metadata_summary=ds.attrs.get("metadata_summary"), # not required
                     human_readable_units=ds.attrs["human_readable_units"],
                     colour_palette=ds.attrs["colour_palette"],
                     variable_attributes=netcdf_variable_attributes
@@ -260,9 +270,18 @@ class Command(BaseCommand):
             return
         self.validate_netcdf_names(catalog_ref_name, netcdf_names)
         dataset_ids: set[int] = set()
+        # Summaries are only written when present, so each file with one overwrites the
+        # last; track the distinct values and the last file with one (whose value is kept)
+        summary_fields = ("metadata_summary", "dataclassification_summary")
+        summary_values: dict[str, set[str]] = {field: set() for field in summary_fields}
+        summary_netcdf_names: dict[str, str] = {}
         for netcdf_name in netcdf_names:
             netcdf_url = f"{self.server_url}fileServer/data/{catalog_ref_name}/{netcdf_name}"
             netcdf_attributes = self.retrieve_netcdf_attributes(netcdf_url)
+            for field in summary_fields:
+                if value := getattr(netcdf_attributes, field):
+                    summary_values[field].add(value)
+                    summary_netcdf_names[field] = netcdf_name
             parsed = self.parse_netcdf_name(netcdf_name)
             cmip_name, scenario_name, season_name = parsed["cmip"], parsed["scenario"], parsed["season"]
             is_historical = scenario_name == "historical"
@@ -305,6 +324,9 @@ class Command(BaseCommand):
                     dataset_ids.add(dataset.id)
             for label, name in self.pending_created:
                 self.created[label].add(name)
+        for field in summary_fields:
+            if len(summary_values[field]) > 1:
+                self.warnings.add(f"Different {field} values found during import of \"{catalog_ref_name}\". Used the value in {summary_netcdf_names[field]}")
         # Only reached if every NetCDF file loaded, so a partial load never deletes datasets
         self.delete_stale_datasets(hazard_layer, dataset_ids)
 

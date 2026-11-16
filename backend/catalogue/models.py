@@ -32,6 +32,7 @@ class DataClassification(models.Model):
     for third-party layers)"""
     name = models.CharField(max_length = 200)
     sort_key = models.CharField(max_length=10, null=True, blank=True)
+    summary = HTMLField(null=True, blank=True)
 
     def __str__(self):
         return self.name
@@ -805,7 +806,7 @@ class BaseLayer(models.Model):
 class SaveState(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid4, editable=False)
     # Note: this was a CharField, but Django uses nvarchar for CharField, which can't support length > 4000
-    hashstate = models.TextField(max_length = 8000)
+    hashstate = models.TextField() # no max length; now nvarchar(max) on the server
     description = models.TextField(blank=True, null=True)
     time_created = models.DateTimeField(default=django.utils.timezone.now)
 

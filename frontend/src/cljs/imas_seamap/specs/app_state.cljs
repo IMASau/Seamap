@@ -32,7 +32,7 @@
 (s/def :map.layer/name string?)
 (s/def :map.layer/server_url string?)
 (s/def :map.layer/legend_url (s/nilable string?))
-(s/def :map.layer/layer_name string?)
+(s/def :map.layer/layer_name (s/nilable string?)) ; not all formats have a layer-name
 (s/def :map.layer/detail_layer (s/nilable string?))
 (s/def :map.layer/category :map.category/name)
 (s/def :map.layer.bounding_box/west  float?)
@@ -182,7 +182,7 @@
   (s/keys :req-un [:map.rich-layers.rich-layer.alternate-view/layer
                    :map.rich-layers.rich-layer.alternate-view/sort_key]))
 (s/def :map.rich-layers.rich-layer/alternate-views
-  (s/coll-of :map.rich-layers.rich-layer/alternate-views :kind vector?))
+  (s/coll-of :map.rich-layers.rich-layer/alternate-view :kind vector?))
 (s/def :map.rich-layers.rich-layer.timeline1/layer :map.layer/id)
 (s/def :map.rich-layers.rich-layer.timeline1/value number?)
 (s/def :map.rich-layers.rich-layer.timeline1/label string?)
@@ -337,7 +337,7 @@
 
 ;;; Site Configuration
 (s/def ::site-configuration
-  (s/map-of keyword? string?))
+  (s/map-of keyword? (s/nilable string?)))
 
 ;;; display
 (s/def :display.mouse-pos/x number?)
@@ -395,11 +395,11 @@
 
 (s/def :state-of-knowledge.boundaries/active-boundary-layer (s/nilable :map/layer))
 
-(s/def :state-of-knowledge.boundaries.amp/active-network map?)
-(s/def :state-of-knowledge.boundaries.amp/active-park map?)
-(s/def :state-of-knowledge.boundaries.amp/active-zone map?)
-(s/def :state-of-knowledge.boundaries.amp/active-zone-iucn map?)
-(s/def :state-of-knowledge.boundaries.amp/active-zone-id map?)
+(s/def :state-of-knowledge.boundaries.amp/active-network (s/nilable map?))
+(s/def :state-of-knowledge.boundaries.amp/active-park (s/nilable map?))
+(s/def :state-of-knowledge.boundaries.amp/active-zone (s/nilable map?))
+(s/def :state-of-knowledge.boundaries.amp/active-zone-iucn (s/nilable map?))
+(s/def :state-of-knowledge.boundaries.amp/active-zone-id (s/nilable map?))
 
 (s/def :state-of-knowledge.boundaries/amp
   (s/keys :req-un [:state-of-knowledge.boundaries.amp/active-network
@@ -408,22 +408,24 @@
                    :state-of-knowledge.boundaries.amp/active-zone-iucn
                    :state-of-knowledge.boundaries.amp/active-zone-id]))
 
-(s/def :state-of-knowledge.boundaries.imcra/active-provincial-bioregion map?)
-(s/def :state-of-knowledge.boundaries.imcra/active-mesoscale-bioregion map?)
+(s/def :state-of-knowledge.boundaries.imcra/active-provincial-bioregion (s/nilable map?))
+(s/def :state-of-knowledge.boundaries.imcra/active-mesoscale-bioregion (s/nilable map?))
 
 (s/def :state-of-knowledge.boundaries/imcra
   (s/keys :req-un [:state-of-knowledge.boundaries.imcra/active-provincial-bioregion
                    :state-of-knowledge.boundaries.imcra/active-mesoscale-bioregion]))
 
-(s/def :state-of-knowledge.boundaries.meow/active-realm map?)
-(s/def :state-of-knowledge.boundaries.meow/active-province map?)
-(s/def :state-of-knowledge.boundaries.meow/active-ecoregion map?)
+(s/def :state-of-knowledge.boundaries.meow/active-realm (s/nilable map?))
+(s/def :state-of-knowledge.boundaries.meow/active-province (s/nilable map?))
+(s/def :state-of-knowledge.boundaries.meow/active-ecoregion (s/nilable map?))
 
 (s/def :state-of-knowledge.boundaries/meow
   (s/keys :req-un [:state-of-knowledge.boundaries.meow/active-realm
                    :state-of-knowledge.boundaries.meow/active-province
                    :state-of-knowledge.boundaries.meow/active-ecoregion]))
 
+;;; TODO: each of the amp/imcra/meow boundaries don't currently
+;;; specify the :boundaries key they each have.
 (s/def :state-of-knowledge/boundaries
   (s/keys :req-un [:state-of-knowledge.boundaries/active-boundary
                    :state-of-knowledge.boundaries/active-boundary-layer
@@ -455,7 +457,7 @@
 (s/def :state-of-knowledge.statistics.bathymetry.result/mapped_percentage (s/nilable number?))
 (s/def :state-of-knowledge.statistics.bathymetry.result/total_percentage number?)
 (s/def :state-of-knowledge.statistics.bathymetry/result
-  (s/keys :req-un [:state-of-knowledge.statistics.bathymetry.result/category
+  (s/keys :req-un [:state-of-knowledge.statistics.bathymetry.result/resolution
                    :state-of-knowledge.statistics.bathymetry.result/rank
                    :state-of-knowledge.statistics.bathymetry.result/area
                    :state-of-knowledge.statistics.bathymetry.result/mapped_percentage
@@ -537,7 +539,8 @@
 (s/def :state-of-knowledge/open? boolean?)
 (s/def ::state-of-knowledge
   (s/keys :req-un [:state-of-knowledge/boundaries
-                   :state-of-knowledge/statistics]))
+                   :state-of-knowledge/statistics]
+          :opt-un [:state-of-knowledge/region-reports]))
 
 
 ;; story-maps

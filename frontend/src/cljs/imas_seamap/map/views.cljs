@@ -6,11 +6,10 @@
             [reagent.core :as reagent]
             [re-frame.core :as re-frame]
             [imas-seamap.blueprint :as b]
-            [imas-seamap.utils :refer [copy-text handler-dispatch create-shadow-dom-element format-number] :include-macros true]
+            [imas-seamap.utils :refer [create-shadow-dom-element format-number] :include-macros true]
             [imas-seamap.map.subs :as msubs]
-            [imas-seamap.map.utils :refer [bounds->geojson download-type->str map->bounds bounds->map]]
+            [imas-seamap.map.utils :refer [bounds->geojson map->bounds bounds->map]]
             [imas-seamap.interop.leaflet :as leaflet]
-            [goog.string :as gstring]
             ["esri-leaflet-renderers"]
             #_[debux.cs.core :refer [dbg] :include-macros true]))
 

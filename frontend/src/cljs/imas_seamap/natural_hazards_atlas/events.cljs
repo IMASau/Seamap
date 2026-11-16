@@ -631,17 +631,14 @@
         requests-1 ; requests for map 1
         (->>
          visible-layers-1
-         (remove #(mutils/is-insecure? (:server_url %)))
          (map (fn [{:keys [info_format_type] :as layer}] [:map/get-feature-info info_format_type [layer] request-id leaflet-props point]))) ; 1 request per layer (per map)
         visible-layers-2 (filter :server_url (nhatutils/displayed-layers-under-point (mutils/visible-layers (:map db)) layer-displayed-layers-lookup-2 point db))
         requests-2 ; requests for map 2
         (->>
          visible-layers-2
-         (remove #(mutils/is-insecure? (:server_url %)))
          (map (fn [{:keys [info_format_type] :as layer}] [:map/get-feature-info info_format_type [layer] request-id leaflet-props point :map-2]))) ; 1 request per layer (per map)
 
-        had-insecure? (some #(mutils/is-insecure? (:server_url %)) (concat visible-layers-1 visible-layers-2)) ; if any insecure layers on either map 1 or 2
-        will-request? (and (seq requests-1) (seq requests-2) (not had-insecure?)) ; will we request, or show "no data" popup?
+        will-request? (and (seq requests-1) (seq requests-2)) ; will we request, or show "no data" popup?
 
         ;; A map with no popup open still needs the waiting feature, as got-feature-info builds its feature from it
         assoc-waiting-feature
@@ -658,29 +655,21 @@
               :show?    false})))]
     (merge
      {:db
-      (cond-> db
-        had-insecure?
-        (-> ;; Fall-through case for "layers are visible, but they're http so we can't query them":
-         (utils/assoc-independent-map-state nil [:feature] {:status :feature-info/none-queryable :location point :show? true})
-         (utils/assoc-independent-map-state :map-2 [:feature] {:status :feature-info/none-queryable :location point :show? true}))
-        (not had-insecure?)
-        (->
-         (utils/assoc-independent-map-state
-          nil
-          [:feature-query]
-          {:request-id        request-id
-           :response-remain   (count requests-1)
-           :had-insecure?     had-insecure?
-           :responses         []})
-         (assoc-waiting-feature nil)
-         (utils/assoc-independent-map-state
-          :map-2
-          [:feature-query]
-          {:request-id        request-id
-           :response-remain   (count requests-2)
-           :had-insecure?     had-insecure?
-           :responses         []})
-         (assoc-waiting-feature :map-2)))}
+      (-> db
+       (utils/assoc-independent-map-state
+        nil
+        [:feature-query]
+        {:request-id        request-id
+         :response-remain   (count requests-1)
+         :responses         []})
+       (assoc-waiting-feature nil)
+       (utils/assoc-independent-map-state
+        :map-2
+        [:feature-query]
+        {:request-id        request-id
+         :response-remain   (count requests-2)
+         :responses         []})
+       (assoc-waiting-feature :map-2))}
       (when-not keep-popup? {:dispatch-later {:ms 300 :dispatch [:map.feature/show request-id]}})
       (when will-request? {:dispatch-n (concat requests-1 requests-2)})
       (when-not will-request? {:dispatch [:map/got-featureinfo request-id point nil nil nil []]})))) ; shows "no data" popup
