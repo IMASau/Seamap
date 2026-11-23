@@ -360,7 +360,7 @@
 ;; the layer search omnibar.
 (def ^:private show-supporting-layers? false)
 
-(defn- layer-catalogue [catid layer-props tma?]
+(defn- layer-catalogue [catid layer-props]
   (let [selected-tab @(re-frame/subscribe [:ui.catalogue/tab catid])
         selected-tab (if show-supporting-layers? selected-tab "hazards") ; saved/shared state may still reference the hidden tab
         select-tab   #(re-frame/dispatch [:ui.catalogue/select-tab catid %1])
@@ -372,13 +372,13 @@
       {:id    "hazards"
        :title "Hazards"
        :panel (reagent/as-element
-               [views/layer-catalogue-tree catid @(re-frame/subscribe [:map.layers/filtered-hazard-layers]) [:category :data_classification] "hazards" layer-props open-all? tma?])}]
+               [views/layer-catalogue-tree catid @(re-frame/subscribe [:map.layers/filtered-hazard-layers]) [:category :data_classification] "hazards" layer-props open-all?])}]
      (when show-supporting-layers?
        [b/tab
         {:id    "supporting-layers"
          :title "Supporting Layers"
          :panel (reagent/as-element
-                 [views/layer-catalogue-tree catid @(re-frame/subscribe [:map.layers/filtered-supporting-layers]) [:data_classification] "supporting-layers" layer-props open-all? tma?])}])]))
+                 [views/layer-catalogue-tree catid @(re-frame/subscribe [:map.layers/filtered-supporting-layers]) [:data_classification] "supporting-layers" layer-props open-all?])}])]))
 
 (defn- layers-search-omnibar
   "Wraps imas-seamap.views/layers-search-omnibar, excluding supporting layers from
@@ -388,7 +388,7 @@
     [views/layers-search-omnibar]
     [views/layers-search-omnibar (filterv :hazardlayer (:sorted-layers @(re-frame/subscribe [:map/layers])))]))
 
-(defn- left-drawer-catalogue [tma?]
+(defn- left-drawer-catalogue []
   (let [{:keys [active-layers visible-layers rich-layers-by-layer-id]} @(re-frame/subscribe [:map/layers])
         rich-layer-fn   #(get rich-layers-by-layer-id (:id %))
         loading-ids     @(re-frame/subscribe [::msubs/loading-layers])
@@ -405,8 +405,7 @@
        :error-fn       #(contains? error-ids (:id %))
        :expanded-fn    #(contains? expanded-ids (:id %))
        :opacity-fn     #(get layer-opacities (:id %) 100)
-       :rich-layer-fn  rich-layer-fn}
-      tma?]]))
+       :rich-layer-fn  rich-layer-fn}]]))
 
 (defn- left-drawer []
   (let [open? @(re-frame/subscribe [:left-drawer/open?])
@@ -437,7 +436,7 @@
         :class "catalogue"
         :title (reagent/as-element
                 [b/tooltip {:content "All available map layers"} "Catalogue"])
-        :panel (reagent/as-element [left-drawer-catalogue false])}]
+        :panel (reagent/as-element [left-drawer-catalogue])}]
 
       [b/tab
        {:id    "active-layers"
@@ -446,7 +445,7 @@
                  [:<> "Active Layers"
                   (when (seq active-layers)
                     [:div.notification-bubble (count active-layers)])]])
-        :panel (reagent/as-element [views/left-drawer-active-layers false])}]
+        :panel (reagent/as-element [views/left-drawer-active-layers])}]
       [b/tab
        {:id    "current-view"
         :title (reagent/as-element

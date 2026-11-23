@@ -3,6 +3,23 @@
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
 (ns imas-seamap.views
   (:require [clojure.string :as string]
+            [re-frame.core :as re-frame]
+            [reagent.core :as reagent]
+            [imas-seamap.blueprint :as b :refer [use-hotkeys]]
+            [imas-seamap.interop.react :refer [css-transition-group css-transition container-dimensions use-memo]]
+            [imas-seamap.map.views :refer [map-component]]
+            [imas-seamap.map.layer-views :refer [layer-card layer-catalogue-node legend-display]]
+            [imas-seamap.state-of-knowledge.views :refer [state-of-knowledge floating-state-of-knowledge-pill floating-boundaries-pill floating-zones-pill]]
+            [imas-seamap.story-maps.views :refer [featured-maps featured-map-drawer]]
+            [imas-seamap.plot.views :refer [transect-display-component]]
+            [imas-seamap.utils :refer [handler-fn handler-dispatch first-where append-query-params] :include-macros true]
+            [imas-seamap.components :as components]
+            [imas-seamap.map.subs :as msubs]
+            [imas-seamap.map.utils :refer [download-type->str layer-search-keywords]]
+            [imas-seamap.fx :refer [show-message]]
+            [imas-seamap.subs.features]  ; Phase 3: feature flag subscriptions
+            [imas-seamap.config.components :as components-registry]  ; Phase 4: component registry
+            [imas-seamap.dev.deployment-switcher :as dev-switcher]  ; Test harness
             [goog.string :as gstring]
             [goog.string.format]
             [imas-seamap.blueprint :as b :refer [use-hotkeys]]
@@ -147,7 +164,7 @@
 (defn- layers->nodes
   "group-ordering is the category keys to order by, eg [:organisation :data_category]"
   [layers [ordering & ordering-remainder :as group-ordering] sorting-info expanded-states id-base
-   layer-props open-all? tma? on-info]
+   layer-props open-all? on-info]
   (for [[val layer-subset] (sort-by (->sort-by sorting-info ordering) (group-by ordering layers))
         ;; sorting-info maps category key -> label -> [sort-key,id,display-name,summary].
         ;; We use the id for a stable node-id:
@@ -176,14 +193,13 @@
      :className  (-> ordering name (string/replace "_" "-"))
      :childNodes (concat
                   (if (seq ordering-remainder)
-                    (layers->nodes layer-subset (rest group-ordering) sorting-info expanded-states id-str layer-props open-all? tma? on-info)
+                    (layers->nodes layer-subset (rest group-ordering) sorting-info expanded-states id-str layer-props open-all? on-info)
                     (map-indexed
                      (fn [i layer]
                        (layer-catalogue-node
                         {:id          (str id-str "-" i)
                          :layer       layer
-                         :layer-props layer-props
-                         :tma?        tma?}))
+                         :layer-props layer-props}))
                      layer-subset))
                   
                   ;; Dummy element appended inside of category ordering content for achieving styling
@@ -191,7 +207,7 @@
                     [{:id (str id-str "-" (inc (count layer-subset)))
                       :className "tree-cap"}]))}))
 
-(defn layer-catalogue-tree [catid _layers _ordering _id _layer-props _open-all? _tma?]
+(defn layer-catalogue-tree [catid _layers _ordering _id _layer-props _open-all?]
   (let [expanded-states (re-frame/subscribe [:ui.catalogue/nodes catid])
         sorting-info (re-frame/subscribe [:sorting/info])
         on-open (fn [node]
@@ -207,11 +223,11 @@
                        (re-frame/dispatch [:ui.catalogue/toggle-node catid id]))))
         grouping-info (reagent/atom nil)
         on-info #(reset! grouping-info %)]
-    (fn [_catid layers ordering id layer-props open-all? tma?]
+    (fn [_catid layers ordering id layer-props open-all?]
      [:div.tab-body {:id id}
       ;; Rendered outside the tree so clicks in the dialog don't bubble to tree nodes
       [grouping-info-card @grouping-info #(reset! grouping-info nil)]
-      [b/tree {:contents (layers->nodes layers ordering @sorting-info @expanded-states id layer-props open-all? tma? on-info)
+      [b/tree {:contents (layers->nodes layers ordering @sorting-info @expanded-states id layer-props open-all? on-info)
                :onNodeCollapse on-close
                :onNodeExpand on-open
                :onNodeClick on-click
@@ -219,7 +235,7 @@
                                     (re-frame/dispatch [:map/update-preview-layer preview-layer]))
                :onNodeMouseLeave #(re-frame/dispatch [:map/update-preview-layer nil])}]])))
 
-(defn layer-catalogue [catid layers layer-props tma?]
+(defn layer-catalogue [catid layers layer-props]
   (let [selected-tab @(re-frame/subscribe [:ui.catalogue/tab catid])
         select-tab   #(re-frame/dispatch [:ui.catalogue/select-tab catid %1])
         open-all?    (>= (count @(re-frame/subscribe [:map.layers/filter])) 3)]
@@ -230,12 +246,12 @@
       {:id    "cat"
        :title "By Category"
        :panel (reagent/as-element
-               [layer-catalogue-tree catid layers [:category :data_classification] "cat" layer-props open-all? tma?])}]
+               [layer-catalogue-tree catid layers [:category :data_classification] "cat" layer-props open-all?])}]
      [b/tab
       {:id    "org"
        :title "By Organisation"
        :panel (reagent/as-element
-               [layer-catalogue-tree catid layers [:category :organisation :data_classification] "org" layer-props open-all? tma?])}]]))
+               [layer-catalogue-tree catid layers [:category :organisation :data_classification] "org" layer-props open-all?])}]]))
 
 (defn- viewport-only-toggle []
   (let [[icon text] (if @(re-frame/subscribe [:map/viewport-only?])
@@ -302,7 +318,7 @@
               200))))}])))
 
 (defn- active-layer-selection-list
-  [{:keys [layers visible-layers loading-fn error-fn expanded-fn opacity-fn rich-layer-fn tma?]}]
+  [{:keys [layers visible-layers loading-fn error-fn expanded-fn opacity-fn rich-layer-fn]}]
   [components/items-selection-list
    {:items
     (for [{:keys [id] :as layer} layers]
@@ -317,8 +333,7 @@
           :errors?   (error-fn layer)
           :expanded? (expanded-fn layer)
           :opacity   (opacity-fn layer)
-          :rich-layer (rich-layer-fn layer)}
-         :tma? tma?}]})
+          :rich-layer (rich-layer-fn layer)}}]})
     :disabled    false
     :data-path   [:map :active-layers]
     :has-handle  false
@@ -376,62 +391,70 @@
           {:title  main-msg
            :icon (reagent/as-element [b/spinner {:intent "success"}])}])])))
 
-(defn welcome-dialogue []
-  (let [open? @(re-frame/subscribe [:welcome-layer/open?])]
-    [b/dialogue
-     {:title
-      (reagent/as-element
-       [:<> "Welcome to" [:br] "Seamap Australia."])
-      :class    "welcome-splash"
-      :is-open  open?
-      :on-close #(re-frame/dispatch [:welcome-layer/close true])}
-     [:div.bp3-dialog-body
-      [:div.overview
-       "Seamap Australia is a nationally synthesised product of
-        seafloor habitat data collected from various stakeholders around
-        Australia. Source datasets were reclassified according to a
-        newly-developed national marine benthic habitat classification
-        scheme, and synthesised to produce a single standardised GIS
-        data layer of Australian benthic marine habitats."]
-      [b/button
-       {:text       "Get Started!"
-        :intent     b/INTENT-PRIMARY
-        :auto-focus true
-        :on-click   #(re-frame/dispatch [:welcome-layer/close true])}]]
-     [:div.bp3-dialog-footer
-      [:h3 "Citations"]
-      [:div.citation-section
-       [:p
-        "Please cite as "
-        [:span {:id "citation"} "Lucieer V, Walsh P, Flukes E, Butler C,Proctor R, Johnson C (2017). "
-         [:i "Seamap Australia - a national seafloor habitat classification scheme."]
-         " Institute for Marine and Antarctic Studies (IMAS), University of Tasmania (UTAS)."]]
-       [:div.citation-button
-        {:on-click
-         ;; this code will copy the citation as rich text (with the italics for the citation), instead of as plaintext like with 'copy-text'
-         ;; https://stackoverflow.com/a/34192073
-         #(do
-            (.removeAllRanges (js/window.getSelection))
-            (let [range (js/document.createRange ())]
-              (.selectNode range (js/document.getElementById "citation"))
-              (.addRange (js/window.getSelection) range)
-              (js/document.execCommand "copy")
-              (.removeAllRanges (js/window.getSelection))
-              (show-message
-               ["Citation copied to clipboard!"
-                {:intent b/INTENT-SUCCESS :icon "clipboard"}])))}
-        [components/custom-icon {:icon "export" :size "27px"}]
-        [:div "Copy Citation"]]]
-      [:h3 "Acknowledgements"]
-      [:p
-       "Seamap Australia would not have been possible without the
+(defn- seamap-australia-welcome-footer
+  "Citation and acknowledgements footer of the Seamap Australia welcome dialogue."
+  []
+  [:div.bp3-dialog-footer
+   [:h3 "Citations"]
+   [:div.citation-section
+    [:p
+     "Please cite as "
+     [:span {:id "citation"} "Lucieer V, Walsh P, Flukes E, Butler C,Proctor R, Johnson C (2017). "
+      [:i "Seamap Australia - a national seafloor habitat classification scheme."]
+      " Institute for Marine and Antarctic Studies (IMAS), University of Tasmania (UTAS)."]]
+    [:div.citation-button
+     {:on-click
+      ;; this code will copy the citation as rich text (with the italics for the citation), instead of as plaintext like with 'copy-text'
+      ;; https://stackoverflow.com/a/34192073
+      #(do
+         (.removeAllRanges (js/window.getSelection))
+         (let [range (js/document.createRange ())]
+           (.selectNode range (js/document.getElementById "citation"))
+           (.addRange (js/window.getSelection) range)
+           (js/document.execCommand "copy")
+           (.removeAllRanges (js/window.getSelection))
+           (show-message
+            ["Citation copied to clipboard!"
+             {:intent b/INTENT-SUCCESS :icon "clipboard"}])))}
+     [components/custom-icon {:icon "export" :size "27px"}]
+     [:div "Copy Citation"]]]
+   [:h3 "Acknowledgements"]
+   [:p
+    "Seamap Australia would not have been possible without the
         collaboration of its stakeholders, including (but not limited
         to): Parks Australia, The University of Queensland, The
         University of Western Australia, The University of Tasmania,
         James Cook University, Griffith University, Deakin University,
         CSIRO, IMOS, Geoscience Australia, Great Barrier Reef Marine
         Park Authority (GBRMPA), the National Environmental Science
-        Program (NESP), and all State Governments."]]]))
+        Program (NESP), and all State Governments."]])
+
+(defn welcome-dialogue
+  "Welcome dialogue driven by the deployment's [:branding :welcome]:
+   - :title        string or hiccup
+   - :content      content-registry key (see config/content.cljs) or hiccup
+   - :button-text  optional, default \"Get Started!\"
+   - :footer       optional registry key of a footer component
+   Renders nothing when the deployment has no :welcome config."
+  []
+  (let [open?   @(re-frame/subscribe [:welcome-layer/open?])
+        {:keys [title button-text footer] :or {button-text "Get Started!"} :as welcome} @(re-frame/subscribe [:branding/welcome])
+        content @(re-frame/subscribe [:branding/welcome-content])]
+    (when welcome
+      [b/dialogue
+       {:title    (reagent/as-element title)
+        :class    "welcome-splash"
+        :is-open  open?
+        :on-close #(re-frame/dispatch [:welcome-layer/close true])}
+       [:div.bp3-dialog-body
+        content
+        [b/button
+         {:text       button-text
+          :intent     b/INTENT-PRIMARY
+          :auto-focus true
+          :on-click   #(re-frame/dispatch [:welcome-layer/close true])}]]
+       (when footer
+         [(components-registry/resolve-component footer)])])))
 
 (defn outage-message-dialogue []
   (let [open? @(re-frame/subscribe [:display.outage-message/open?])
@@ -459,7 +482,8 @@
     :on-close   #(re-frame/dispatch [:ui/settings-overlay false])}
    [:div.bp3-dialog-body
     [autosave-application-state-toggle]
-    [viewport-only-toggle]
+    (when @(re-frame/subscribe [:feature/enabled? :feature/viewport-only])
+      [viewport-only-toggle])
     [pinned-legends-toggle]]])
 
 (defn- metadata-record [_props]
@@ -700,13 +724,17 @@
     :id       "print-control"
     :icon     "media"}])
 
-(defn transect-control []
+(defn transect-control
+  "Idle tooltip comes from [:branding :labels :transect-control] (\"Transect/Measure\"
+   on Seamap, \"Measure\" on TMA, which has no habitat transects)."
+  []
   (let [{:keys [drawing? query]} @(re-frame/subscribe [:transect/info])
+        idle-label (or @(re-frame/subscribe [:branding/label :transect-control]) "Transect/Measure")
         [tooltip icon dispatch]
         (cond
           drawing? ["Cancel Measurement" "undo"   :transect.draw/disable]
           query    ["Clear Measurement"  "eraser" :transect.draw/clear]
-          :else    ["Transect/Measure"   "edit"   :transect.draw/enable])]
+          :else    [idle-label           "edit"   :transect.draw/enable])]
     [control-block-child
      {:on-click #(re-frame/dispatch [dispatch])
       :tooltip  tooltip
@@ -730,6 +758,20 @@
       :tooltip   tooltip
       :icon      icon
       :disabled? (not downloadable-layers)
+      :id        "select-control"}]))
+
+;;; FIXME: shares the events with the region-control, but has different effects
+(defn data-in-region-control []
+  (let [{:keys [selecting? region]} @(re-frame/subscribe [:map.layer.selection/info])
+        [tooltip icon dispatch]
+        (cond
+          selecting?            ["Cancel Selecting"    "undo"   :map.layer.selection/disable]
+          region                ["Clear Selection"     "eraser" :map.layer.selection/clear]
+          :else                 ["Find Data in Region" "path-search" :map.layer.selection/enable])]
+    [control-block-child
+     {:on-click  #(re-frame/dispatch [dispatch])
+      :tooltip   tooltip
+      :icon      icon
       :id        "select-control"}]))
 
 (defn leaflet-control-button [{:keys [on-click tooltip icon id]}]
@@ -756,64 +798,115 @@
     :id       "settings-button"
     :icon     "cog"}])
 
-(defn zoom-control []
+(defn zoom-control
+  "Zoom in/out buttons, with the current zoom level between them unless
+   `:show-level?` is false."
+  [& [{:keys [show-level?] :or {show-level? true}}]]
   (let [{:keys [zoom]} @(re-frame/subscribe [:map/props])]
     [control-block
-   [control-block-child
-    {:on-click #(-> "leaflet-control-zoom-in" js/document.getElementsByClassName first .click)
-     :id       "zoom-in-control"
-     :icon     "plus"}]
-   [b/tooltip
-    {:content "Zoom Level"
-     :position b/RIGHT}
-    [:div.zoom-level zoom]]
-   [control-block-child
-    {:on-click #(-> "leaflet-control-zoom-out" js/document.getElementsByClassName first .click)
-     :id       "zoom-out-control"
-     :icon     "minus"}]]))
+     [control-block-child
+      {:on-click #(-> "leaflet-control-zoom-in" js/document.getElementsByClassName first .click)
+       :id       "zoom-in-control"
+       :icon     "plus"}]
+     (when show-level?
+       [b/tooltip
+        {:content "Zoom Level"
+         :position b/RIGHT}
+        [:div.zoom-level zoom]])
+     [control-block-child
+      {:on-click #(-> "leaflet-control-zoom-out" js/document.getElementsByClassName first .click)
+       :id       "zoom-out-control"
+       :icon     "minus"}]]))
 
-(defn custom-leaflet-controls []
-  [:div.custom-leaflet-controls.leaflet-top.leaflet-left.leaflet-touch
-   [menu-button]
-   [settings-button]
-   [zoom-control]
+(defn zoom-basic-control
+  "Zoom buttons without the level readout (TMA)."
+  []
+  [zoom-control {:show-level? false}])
 
-   [control-block
-    [print-control]
 
-    [control-block-child
-     {:on-click #(re-frame/dispatch [:layers-search-omnibar/open])
-      :tooltip  "Search All Layers"
-      :id       "omnisearch-control"
-      :icon     "search"}]
+(defn omnisearch-control []
+  [control-block-child
+   {:on-click #(re-frame/dispatch [:layers-search-omnibar/open])
+    :tooltip  "Search All Layers"
+    :id       "omnisearch-control"
+    :icon     "search"}])
 
-    [transect-control]
-    [region-control]
+(defn share-control []
+  [control-block-child
+   {:on-click #(re-frame/dispatch [:create-save-state])
+    :tooltip  "Create Shareable URL"
+    :id       "share-control"
+    :icon     "share"}])
 
-    [control-block-child
-     {:on-click #(re-frame/dispatch [:create-save-state])
-      :tooltip  "Create Shareable URL"
-      :id       "share-control"
-      :icon     "share"}]
-    
-    [control-block-child
-     {:on-click #(re-frame/dispatch [:re-boot])
-      :tooltip  "Reset Interface"
-      :id       "reset-control"
-      :icon     "undo"}]]
+(defn reset-control []
+  [control-block-child
+   {:on-click #(re-frame/dispatch [:re-boot])
+    :tooltip  "Reset Interface"
+    :id       "reset-control"
+    :icon     "undo"}])
 
-   [control-block
-    [control-block-child
-     {:on-click #(js/document.dispatchEvent (js/KeyboardEvent. "keydown" #js{:which 47 :keyCode 47 :shiftKey true :bubbles true})) ; https://github.com/palantir/blueprint/issues/1590
-      :tooltip  "Show Keyboard Shortcuts"
-      :id       "shortcuts-control"
-      :icon     "key-command"}]
+(defn shortcuts-control []
+  [control-block-child
+   {:on-click #(js/document.dispatchEvent (js/KeyboardEvent. "keydown" #js{:which 47 :keyCode 47 :shiftKey true :bubbles true})) ; https://github.com/palantir/blueprint/issues/1590
+    :tooltip  "Show Keyboard Shortcuts"
+    :id       "shortcuts-control"
+    :icon     "key-command"}])
 
-    [control-block-child
-     {:on-click #(re-frame/dispatch [:help-layer/toggle])
-      :tooltip  "Show Help Overlay"
-      :id       "overlay-control"
-      :icon     "help"}]]])
+(defn help-control []
+  [control-block-child
+   {:on-click #(re-frame/dispatch [:help-layer/toggle])
+    :tooltip  "Show Help Overlay"
+    :id       "overlay-control"
+    :icon     "help"}])
+
+(defn custom-leaflet-controls
+  "Hard-coded control bar, feature-gated. Still used by deployments that have not
+   moved to the config-driven layout; see `controls-slot` for the replacement."
+  []
+  (let [has-settings? @(re-frame/subscribe [:feature/enabled? :feature/settings])
+        has-region-select? @(re-frame/subscribe [:feature/enabled? :feature/region-select])
+        has-data-in-region? @(re-frame/subscribe [:feature/enabled? :feature/data-in-region])]
+    [:div.custom-leaflet-controls.leaflet-top.leaflet-left.leaflet-touch
+     [menu-button]
+     (when has-settings?
+       [settings-button])
+     [zoom-control]
+
+     [control-block
+      [print-control]
+      [omnisearch-control]
+      [transect-control]
+      (when has-region-select?
+        [region-control])
+      (when has-data-in-region?
+        [data-in-region-control])
+      [share-control]
+      [reset-control]]
+
+     [control-block
+      [shortcuts-control]
+      [help-control]]]))
+
+(defn- render-control
+  "A control entry is either a registered :control/* key, or a vector of entries
+   rendered together as a `control-block`."
+  [entry]
+  (if (vector? entry)
+    (into [control-block] (map render-control entry))
+    [(components-registry/resolve-component entry)]))
+
+(defn controls-slot
+  "Map controls from the deployment's `[:layout :controls]`, keyed by Leaflet
+   corner (:top-left, :top-right)."
+  [{:keys [top-left top-right]}]
+  [:<>
+   (when (seq top-left)
+     (into [:div.custom-leaflet-controls.leaflet-top.leaflet-left.leaflet-touch]
+           (map render-control top-left)))
+   (when (seq top-right)
+     (into [:div.custom-leaflet-controls.leaflet-top.leaflet-right.leaflet-touch
+            {:style {:font "12px/1.5 \"Helvetica Neue\", Arial, Helvetica, sans-serif"}}] ; font style for Leaflet map-component - needs to be inherited into custom controls
+           (map render-control top-right)))])
 
 (defmulti dynamic-pill-region-control #(get-in % [:region-control :controller-type]))
 
@@ -906,41 +999,71 @@
          {:id   #(get-in % [:layer :id])
           :text #(get-in % [:display_name])}}]]]]))
 
-(defn floating-pills []
-  (let [collapsed                (:collapsed @(re-frame/subscribe [:ui/sidebar]))
-        state-of-knowledge-open? @(re-frame/subscribe [:sok/open?])
-        valid-boundaries         @(re-frame/subscribe [:sok/valid-boundaries])
-        boundaries               @(re-frame/subscribe [:sok/boundaries])
-        active-boundary          @(re-frame/subscribe [:sok/active-boundary])
-        {dynamic-pills :filtered} @(re-frame/subscribe [:dynamic-pills])
-        open-pill                @(re-frame/subscribe [:ui/open-pill])
-        rich-layers-side-by-side-views @(re-frame/subscribe [:map/rich-layers-side-by-side-views])]
-    [:div
-     {:class (str "floating-pills" (when collapsed " collapsed"))}
 
-     [floating-state-of-knowledge-pill
-      {:expanded?       (= open-pill "state-of-knowledge")
-       :boundaries      boundaries
-       :active-boundary active-boundary}]
-     
-     (when (and state-of-knowledge-open? active-boundary)
-       [floating-boundaries-pill
-        (merge
-         valid-boundaries
-         {:expanded?       (= open-pill "boundaries")
-          :active-boundary active-boundary})])
-     
-     (when (and state-of-knowledge-open? (= (:id active-boundary) "amp"))
-       [floating-zones-pill
-        (merge
-         valid-boundaries
-         {:expanded? (= open-pill "zones")})])
-     (for [{:keys [id] :as dp} dynamic-pills]
-       ^{:key (str id)}
-       [dynamic-pill dp])
-     (for [{:keys [id] :as rich-layer} rich-layers-side-by-side-views]
-       ^{:key (str id)}
-       [side-by-side-views-pill rich-layer])]))
+;;; Floating pills. Each pill is self-contained (subscribes to what it needs and
+;;; decides its own visibility) so a deployment can list any subset of them under
+;;; [:layout :floating-pills] without the container knowing about SOK etc.
+
+(defn state-of-knowledge-pill []
+  (let [boundaries      @(re-frame/subscribe [:sok/boundaries])
+        active-boundary @(re-frame/subscribe [:sok/active-boundary])
+        open-pill       @(re-frame/subscribe [:ui/open-pill])]
+    [floating-state-of-knowledge-pill
+     {:expanded?       (= open-pill "state-of-knowledge")
+      :boundaries      boundaries
+      :active-boundary active-boundary}]))
+
+(defn boundaries-pill
+  "Shown while the State of Knowledge panel is open with a boundary selected."
+  []
+  (let [state-of-knowledge-open? @(re-frame/subscribe [:sok/open?])
+        valid-boundaries         @(re-frame/subscribe [:sok/valid-boundaries])
+        active-boundary          @(re-frame/subscribe [:sok/active-boundary])
+        open-pill                @(re-frame/subscribe [:ui/open-pill])]
+    (when (and state-of-knowledge-open? active-boundary)
+      [floating-boundaries-pill
+       (merge
+        valid-boundaries
+        {:expanded?       (= open-pill "boundaries")
+         :active-boundary active-boundary})])))
+
+(defn zones-pill
+  "Shown while the State of Knowledge panel is open on an AMP boundary."
+  []
+  (let [state-of-knowledge-open? @(re-frame/subscribe [:sok/open?])
+        valid-boundaries         @(re-frame/subscribe [:sok/valid-boundaries])
+        active-boundary          @(re-frame/subscribe [:sok/active-boundary])
+        open-pill                @(re-frame/subscribe [:ui/open-pill])]
+    (when (and state-of-knowledge-open? (= (:id active-boundary) "amp"))
+      [floating-zones-pill
+       (merge
+        valid-boundaries
+        {:expanded? (= open-pill "zones")})])))
+
+(defn dynamic-pills
+  "One pill per dynamic pill that has active layers."
+  []
+  (let [{dynamic-pills :filtered} @(re-frame/subscribe [:dynamic-pills])]
+    (into [:<>]
+          (for [{:keys [id] :as dp} dynamic-pills]
+            ^{:key (str id)}
+            [dynamic-pill dp]))))
+
+(defn side-by-side-views-pills
+  "One pill per active rich layer that offers side-by-side views."
+  []
+  (let [rich-layers-side-by-side-views @(re-frame/subscribe [:map/rich-layers-side-by-side-views])]
+    (into [:<>]
+          (for [{:keys [id] :as rich-layer} rich-layers-side-by-side-views]
+            ^{:key (str id)}
+            [side-by-side-views-pill rich-layer]))))
+
+(defn floating-pills-slot
+  "The floating-pills bar, populated from the deployment's [:layout :floating-pills]."
+  [pills]
+  (let [collapsed (:collapsed @(re-frame/subscribe [:ui/sidebar]))]
+    (into [:div {:class (str "floating-pills" (when collapsed " collapsed"))}]
+          (map (fn [k] [(components-registry/resolve-component k)]) pills))))
 
 (defn layers-search-omnibar
   "Optionally takes the layers to search; defaults to all catalogue layers."
@@ -966,7 +1089,7 @@
                         data_classification]))
        :keywords    #(layer-search-keywords categories %)}}]))
 
-(defn left-drawer-catalogue [tma?]
+(defn left-drawer-catalogue []
   (let [{:keys [filtered-layers active-layers visible-layers rich-layers-by-layer-id]} @(re-frame/subscribe [:map/layers])
         rich-layer-fn   #(get rich-layers-by-layer-id (:id %))
         loading-ids     @(re-frame/subscribe [::msubs/loading-layers])
@@ -985,10 +1108,9 @@
        :error-fn       #(contains? error-ids (:id %))
        :expanded-fn    #(contains? expanded-ids (:id %))
        :opacity-fn     #(get layer-opacities (:id %) 100)
-       :rich-layer-fn  rich-layer-fn}
-      tma?]]))
+       :rich-layer-fn  rich-layer-fn}]]))
 
-(defn left-drawer-active-layers [tma?]
+(defn left-drawer-active-layers []
   (let [{:keys [active-layers visible-layers rich-layers-by-layer-id]} @(re-frame/subscribe [:map/layers])
         rich-layer-fn   #(get rich-layers-by-layer-id (:id %))
         loading-ids     @(re-frame/subscribe [::msubs/loading-layers])
@@ -1002,68 +1124,88 @@
       :error-fn       #(contains? error-ids (:id %))
       :expanded-fn    #(contains? expanded-ids (:id %))
       :opacity-fn     #(get layer-opacities (:id %) 100)
-      :rich-layer-fn  rich-layer-fn
-      :tma?           tma?}]))
+      :rich-layer-fn  rich-layer-fn}]))
 
-(defn left-drawer []
-  (let [open? @(re-frame/subscribe [:left-drawer/open?])
+
+(defn- active-layers-tab-title []
+  (let [{:keys [active-layers]} @(re-frame/subscribe [:map/layers])]
+    [:<> "Active Layers"
+     (when (seq active-layers)
+       [:div.notification-bubble (count active-layers)])]))
+
+(defn- resolve-tab
+  "A tab entry under [:layout :left-drawer :tabs] is either a tab-definition map,
+   or a keyword naming a registered one: a bare keyword looks up :tab/<name>, a
+   namespaced keyword is looked up as-is (so deployments can register their own)."
+  [entry]
+  (cond
+    (map? entry)        entry
+    (namespace entry)   (components-registry/resolve-component entry)
+    :else               (components-registry/resolve-component (keyword "tab" (name entry)))))
+
+(defn- drawer-tab
+  "Hiccup for one Blueprint tab. Called as a function, not a component: Blueprint's
+   Tabs only recognises Tab elements that are its direct children.
+
+   Tab definition keys: :id, :title (a string, or a function returning hiccup; it
+   is called here rather than mounted as a component so that Blueprint's tooltip
+   wraps plain content in its hover target), :tooltip, :component (registry key of
+   the panel), optional :class."
+  [{:keys [id class title tooltip component]}]
+  ^{:key id}
+  [b/tab
+   {:id    id
+    :class class
+    :title (reagent/as-element
+            [b/tooltip {:content tooltip}
+             (if (fn? title) (title) title)])
+    :panel (reagent/as-element [(components-registry/resolve-component component)])}])
+
+(defn left-drawer
+  "Left drawer, configured by the deployment's [:layout :left-drawer]:
+   - :tabs          ordered tab entries (see `resolve-tab`); nil for a single panel
+   - :component     the single panel to show when there are no tabs
+   - :collapsible?  default true; false keeps the drawer open with no close button
+   - :close-button? default true; false hides the chevron in the header (TMA), the
+                    menu control still toggles the drawer"
+  [{:keys [tabs component collapsible? close-button?] :or {collapsible? true close-button? true}}]
+  (let [open? (or (not collapsible?) @(re-frame/subscribe [:left-drawer/open?]))
         tab   @(re-frame/subscribe [:left-drawer/tab])
-        {:keys [active-layers]} @(re-frame/subscribe [:map/layers])]
+        logo @(re-frame/subscribe [:branding/logo])
+        brand-url @(re-frame/subscribe [:branding/url])
+        drawer-class @(re-frame/subscribe [:branding/drawer-class])]
     [components/drawer
      {:title
       [:<>
        [:div
-        [:a {:href "https://seamapaustralia.org/"}
-         [:img {:src "img/Seamap2_V2_RGB.png"}]]]
-       [b/button
-        {:icon     "double-chevron-left"
-         :minimal  true
-         :on-click #(re-frame/dispatch [:left-drawer/close])}]]
+        [:a {:href brand-url}
+         [:img {:src (:src logo) :alt (:alt logo)}]]]
+       (when (and collapsible? close-button?)
+         [b/button
+          {:icon     "double-chevron-left"
+           :minimal  true
+           :on-click #(re-frame/dispatch [:left-drawer/close])}])]
       :position    "left"
       :size        "368px"
       :isOpen      open?
-      :onClose     #(re-frame/dispatch [:left-drawer/close])
-      :className   "left-drawer seamap-drawer"
+      :onClose     #(when collapsible? (re-frame/dispatch [:left-drawer/close]))
+      :className   (str "left-drawer " drawer-class)
       :isCloseButtonShown false
       :hasBackdrop false}
-     [b/tabs
-      {:id              "left-drawer-tabs"
-       :class           "left-drawer-tabs"
-       :selected-tab-id tab
-       :on-change       #(re-frame/dispatch [:left-drawer/tab %1])
-       :render-active-tab-panel-only true} ; doing this re-renders ellipsized text on tab switch, fixing ISA-359
+     (if (seq tabs)
+       (into [b/tabs
+              {:id              "left-drawer-tabs"
+               :class           "left-drawer-tabs"
+               :selected-tab-id tab
+               :on-change       #(re-frame/dispatch [:left-drawer/tab %1])
+               :render-active-tab-panel-only true}] ; doing this re-renders ellipsized text on tab switch, fixing ISA-359
+             (map (comp drawer-tab resolve-tab) tabs))
+       (when component
+         [(components-registry/resolve-component component)]))]))
 
-      [b/tab
-       {:id    "catalogue"
-        :class "catalogue"
-        :title (reagent/as-element
-                [b/tooltip {:content "All available map layers"} "Catalogue"])
-        :panel (reagent/as-element [left-drawer-catalogue false])}]
 
-      [b/tab
-       {:id    "active-layers"
-        :title (reagent/as-element
-                [b/tooltip {:content "Currently active layers"}
-                 [:<> "Active Layers"
-                  (when (seq active-layers)
-                    [:div.notification-bubble (count active-layers)])]])
-        :panel (reagent/as-element [left-drawer-active-layers false])}]
-
-      [b/tab
-       {:id    "featured-maps"
-        :title (reagent/as-element
-                [b/tooltip {:content "Guided walkthrough of featured maps"} "Featured Maps"])
-        :panel (reagent/as-element [featured-maps])}]]]))
-
-(defmulti right-drawer :type)
-
-(defmethod right-drawer :state-of-knowledge []
-  [state-of-knowledge])
-
-(defmethod right-drawer :story-map []
-  [featured-map-drawer])
-
-(defmethod right-drawer :dynamic-pill
+(defn dynamic-pill-drawer
+  "Right drawer showing a dynamic pill's linked page in an iframe."
   [{{:keys [dynamic-pill-id]} :params}]
   (let [{dynamic-pills :mapped} @(re-frame/subscribe [:dynamic-pills])
         {:keys [text icon url displayed-layers region-control displayed-rich-layer-filters active-layers-metadata] :as dynamic-pill} (get dynamic-pills dynamic-pill-id)
@@ -1088,8 +1230,33 @@
       :hasBackdrop false}
      (when (and (seq displayed-layers) url) [:iframe {:src url}])]))
 
+(defmulti right-drawer
+  "Hard-coded right drawer dispatch. Still used by deployments that have not moved
+   to the config-driven layout; see `right-drawer-slot` for the replacement."
+  :type)
+
+(defmethod right-drawer :state-of-knowledge []
+  [state-of-knowledge])
+
+(defmethod right-drawer :story-map []
+  [featured-map-drawer])
+
+(defmethod right-drawer :dynamic-pill [sidebar]
+  [dynamic-pill-drawer sidebar])
+
 (defmethod right-drawer :default []
   nil)
+
+(defn right-drawer-slot
+  "Right drawer from the deployment's [:layout :right-drawer], a map of sidebar
+   type to the registry key of the component that renders it. The component is
+   passed the sidebar map ({:type ... :params ...})."
+  [slots]
+  (let [{:keys [type] :as sidebar} @(re-frame/subscribe [:ui/right-sidebar])]
+    (when type
+      (if-let [component-key (get slots type)]
+        [(components-registry/resolve-component component-key) sidebar]
+        (js/console.warn "No [:layout :right-drawer] entry for sidebar type" (str type))))))
 
 (defn layer-preview [_preview-layer-url]
   (let [previous-url (reagent/atom nil) ; keeps track of previous url for the purposes of tracking its changes
@@ -1195,59 +1362,92 @@
                  :fill     true
                  :on-click #(scroll-by 200)}])])))})))
 
+
+(defn pinned-legends
+  "Both pinned-legend panels (main layers on the left, side-by-side views on the
+   right). Each panel hides itself unless pinned legends are enabled."
+  []
+  (let [legends              (re-frame/subscribe [:map.layer/visible-layers-legends])
+        side-by-side-legends (re-frame/subscribe [:map.layer/visible-side-by-side-layers-legends])]
+    (fn []
+      [:<>
+       [map-legends {:legends legends}]
+       [map-legends {:legends side-by-side-legends :position :right}]])))
+
+(def hotkey-definitions
+  "Keyboard shortcuts by id. A deployment lists the ids it wants under
+   [:layout :hotkeys], optionally as {:id ... :label ...} to relabel one."
+  {:zoom-in   {:label "Zoom In"                   :combo "plus"      :event [:map/zoom-in]}
+   :zoom-out  {:label "Zoom Out"                  :combo "-"         :event [:map/zoom-out]}
+   :pan-up    {:label "Pan Up"                    :combo "up"        :event [:map/pan-direction :up]}
+   :pan-down  {:label "Pan Down"                  :combo "down"      :event [:map/pan-direction :down]}
+   :pan-left  {:label "Pan Left"                  :combo "left"      :event [:map/pan-direction :left]}
+   :pan-right {:label "Pan Right"                 :combo "right"     :event [:map/pan-direction :right]}
+   :plot      {:label "Toggle Transect Panel"     :combo "p"         :event [:transect.plot/toggle-visibility]}
+   :drawer    {:label "Toggle Left Drawer"        :combo "a"         :event [:left-drawer/toggle]}
+   :transect  {:label "Start/Clear Transect"      :combo "t"         :event [:transect.draw/toggle]}
+   :region    {:label "Start/Clear Region Select" :combo "r"         :event [:map.layer.selection/toggle]}
+   :cancel    {:label "Cancel"                    :combo "esc"       :event [:ui.drawing/cancel]}
+   :search    {:label "Layer Power Search"        :combo "s"         :event [:layers-search-omnibar/toggle]}
+   :reset     {:label "Reset"                     :combo "shift + r" :event [:re-boot]}
+   :share     {:label "Create Shareable URL"      :combo "c"         :event [:create-save-state]}
+   :help      {:label "Show Help Overlay"         :combo "h"         :event [:help-layer/toggle]}})
+
+(def default-hotkeys
+  "Seamap Australia's shortcut set, used when a deployment's layout has no :hotkeys."
+  [:zoom-in :zoom-out :pan-up :pan-down :pan-left :pan-right
+   :plot :drawer :transect :region :cancel :search :reset :share :help])
+
+(defn build-hotkeys
+  "Blueprint hotkey configs for the given entries (ids or {:id :label} maps).
+   See note on `use-hotkeys' for rationale invoking `clj->js' here."
+  [entries]
+  (clj->js
+   (for [entry entries
+         :let [{:keys [id label]} (if (map? entry) entry {:id entry})
+               {:keys [combo event] default-label :label} (get hotkey-definitions id)]]
+     (do
+       (when-not combo (js/console.error "Unknown hotkey id" (str id)))
+       {:label     (or label default-label)
+        :combo     combo
+        :global    true
+        :group     "Keyboard Shortcuts"
+        :onKeyDown #(re-frame/dispatch event)}))))
+
 (def hotkeys-combos
-  (let [keydown-wrapper
-        (fn [m keydown-v]
-          (assoc m :global    true
-                 :group "Keyboard Shortcuts"
-                 :onKeyDown #(re-frame/dispatch keydown-v)))]
-    ;; See note on `use-hotkeys' for rationale invoking `clj->js' here:
-    (clj->js
-     [(keydown-wrapper
-       {:label "Zoom In"                :combo "plus"}
-       [:map/zoom-in])
-      (keydown-wrapper
-       {:label "Zoom Out"               :combo "-"}
-       [:map/zoom-out])
-      (keydown-wrapper
-       {:label "Pan Up"                 :combo "up"}
-       [:map/pan-direction :up])
-      (keydown-wrapper
-       {:label "Pan Down"               :combo "down"}
-       [:map/pan-direction :down])
-      (keydown-wrapper
-       {:label "Pan Left"               :combo "left"}
-       [:map/pan-direction :left])
-      (keydown-wrapper
-       {:label "Pan Right"              :combo "right"}
-       [:map/pan-direction :right])
-      (keydown-wrapper
-       {:label "Toggle Transect Panel"  :combo "p"}
-       [:transect.plot/toggle-visibility])
-      (keydown-wrapper
-       {:label "Toggle Left Drawer"     :combo "a"}
-       [:left-drawer/toggle])
-      (keydown-wrapper
-       {:label "Start/Clear Transect"   :combo "t"}
-       [:transect.draw/toggle])
-      (keydown-wrapper
-       {:label "Start/Clear Region Select" :combo "r"}
-       [:map.layer.selection/toggle])
-      (keydown-wrapper
-       {:label "Cancel"                 :combo "esc"}
-       [:ui.drawing/cancel])
-      (keydown-wrapper
-       {:label "Layer Power Search"     :combo "s"}
-       [:layers-search-omnibar/toggle])
-      (keydown-wrapper
-       {:label "Reset"                  :combo "shift + r"}
-       [:re-boot])
-      (keydown-wrapper
-       {:label "Create Shareable URL"   :combo "c"}
-       [:create-save-state])
-      (keydown-wrapper
-       {:label "Show Help Overlay"      :combo "h"}
-       [:help-layer/toggle])])))
+  "Seamap Australia's hotkeys, for deployments still on their own layout."
+  (build-hotkeys default-hotkeys))
+
+(def default-helper-overlay
+  "Help-overlay annotations for Seamap Australia, used when a deployment's layout
+   has no :helper-overlay. Entries whose element is not on the page are skipped."
+  ;; TODO: Update helper-overlay for new Seamap version (or remove?)
+  [{:selector       ".SelectionListItem:first-child .layer-card .layer-header"
+    :helperPosition "bottom"
+    :helperText     "Toggle layer visibility, view info and metadata, show legend, adjust transparency, choose from download options (habitat data)"
+    :padding        0}
+   {:id "state-of-knowledge-pill"
+    :helperText "Select a management region to view summaries of the current state of research knowledge for the area"}
+   {:selector       ".leaflet-control-layers-toggle"
+    :helperText     "Select from available basemaps"
+    :helperPosition "left"}
+   {:id "layer-search" :helperText "Freetext search for a specific layer by name or keywords"}
+   {:id "settings-button" :helperText "Select from user-configurable settings"}
+   {:id "print-control" :helperText "Export current map view as an image"}
+   {:id "omnisearch-control" :helperText "Search all available layers in catalogue"}
+   {:id "transect-control" :helperText "Draw a transect (habitat data) or take a measurement"}
+   {:id "select-control" :helperText "Select a region for download"}
+   {:id "share-control" :helperText "Create a shareable URL for current map view"}
+   {:id "reset-control" :helperText "Reset the application back to its initial state"}
+   {:id "shortcuts-control" :helperText "View keyboard shortcuts"}
+   {:id "overlay-control" :helperText "You are here!"}
+   {:selector       ".bp3-tab-panel.catalogue>.bp3-tabs>.bp3-tab-list"
+    :helperText     "Filter layers by category or responsible organisation"
+    :helperPosition "bottom"
+    :padding        0}
+   {:id "plot-footer"
+    :helperText "Draw a transect to show a depth profile of habitat data"
+    :helperPosition "top"}])
 
 (defn layers-control
   "Leaflet layer selection control component.
@@ -1284,8 +1484,18 @@
                  name]]])
             grouped-base-layers)]]]))))
 
+
+(defn- render-slot
+  "Render each registry key in `component-keys` as a component."
+  [component-keys]
+  (into [:<>] (map (fn [k] [(components-registry/resolve-component k)]) component-keys)))
+
 (defn layout-app []
-  (let [hot-keys (use-memo (fn [] hotkeys-combos))
+  (let [layout             @(re-frame/subscribe [:layout/config])
+        hotkey-config      (:hotkeys layout)
+        ;; Memoised on the config value: a fresh hotkeys array every render would
+        ;; make Blueprint's useHotkeys re-register and re-render in a loop.
+        hot-keys           (use-memo (fn [] (build-hotkeys (or hotkey-config default-hotkeys))) #js [hotkey-config])
         ;; We don't need the results of this, just need to ensure it's called!
         _ #_{:keys [handle-keydown handle-keyup]} (use-hotkeys hot-keys)
         is-printing?       @(re-frame/subscribe [:map.print/is-printing?])
@@ -1293,57 +1503,102 @@
         plot-open?         @(re-frame/subscribe [:transect.plot/show?])
         right-drawer-open? (seq @(re-frame/subscribe [:ui/right-sidebar]))
         loading?           @(re-frame/subscribe [:app/loading?])
-        legends            (re-frame/subscribe [:map.layer/visible-layers-legends])
-        side-by-side-legends (re-frame/subscribe [:map.layer/visible-side-by-side-layers-legends])]
-    [:div#main-wrapper.seamap ;{:on-key-down handle-keydown :on-key-up handle-keyup}
-     {:class (str (when catalogue-open? " catalogue-open") (when right-drawer-open? " right-drawer-open") (when loading? " loading") (when plot-open? " plot-open") (when is-printing? " map-printing"))}
+
+        ;; Configuration-driven layout (Phase 4)
+        css-class          @(re-frame/subscribe [:branding/css-class])
+        has-settings?      @(re-frame/subscribe [:feature/enabled? :feature/settings])
+        has-layer-preview? @(re-frame/subscribe [:feature/enabled? :feature/layer-preview])]
+    [:div#main-wrapper
+     {:class (str css-class
+                  (when catalogue-open? " catalogue-open")
+                  (when right-drawer-open? " right-drawer-open")
+                  (when loading? " loading")
+                  (when plot-open? " plot-open")
+                  (when is-printing? " map-printing"))}
      [:div#content-wrapper
       [map-component]
-      [plot-component]
-      [map-legends {:legends legends}]
-      [map-legends {:legends side-by-side-legends :position :right}]]
+      [render-slot (:footer layout)]
+      [render-slot (:map-overlays layout)]]
      
-     ;; TODO: Update helper-overlay for new Seamap version (or remove?)
-     [helper-overlay
-      {:selector       ".SelectionListItem:first-child .layer-card .layer-header"
-       :helperPosition "bottom"
-       :helperText     "Toggle layer visibility, view info and metadata, show legend, adjust transparency, choose from download options (habitat data)"
-       :padding        0}
-      {:id "state-of-knowledge-pill"
-       :helperText "Select a management region to view summaries of the current state of research knowledge for the area"}
-      {:selector       ".leaflet-control-layers-toggle"
-       :helperText     "Select from available basemaps"
-       :helperPosition "left"}
-      {:id "layer-search" :helperText "Freetext search for a specific layer by name or keywords"}
-      {:id "settings-button" :helperText "Select from user-configurable settings"}
-      {:id "print-control" :helperText "Export current map view as an image"}
-      {:id "omnisearch-control" :helperText "Search all available layers in catalogue"}
-      {:id "transect-control" :helperText "Draw a transect (habitat data) or take a measurement"}
-      {:id "select-control" :helperText "Select a region for download"}
-      {:id "share-control" :helperText "Create a shareable URL for current map view"}
-      {:id "reset-control" :helperText "Reset the application back to its initial state"}
-      {:id "shortcuts-control" :helperText "View keyboard shortcuts"}
-      {:id "overlay-control" :helperText "You are here!"}
-      {:selector       ".bp3-tab-panel.catalogue>.bp3-tabs>.bp3-tab-list"
-       :helperText     "Filter layers by category or responsible organisation"
-       :helperPosition "bottom"
-       :padding        0}
-      {:id "plot-footer"
-       :helperText "Draw a transect to show a depth profile of habitat data"
-       :helperPosition "top"}]
+     (into [helper-overlay] (or (:helper-overlay layout) default-helper-overlay))
      [welcome-dialogue]
      [outage-message-dialogue]
-     [settings-overlay]
+     (when has-settings?
+       [settings-overlay])
      [info-card]
      [download-component]
      [loading-display]
-     [left-drawer]
-     [right-drawer @(re-frame/subscribe [:ui/right-sidebar])]
+     [left-drawer (:left-drawer layout)]
+     [right-drawer-slot (:right-drawer layout)]
      [layers-search-omnibar]
-     [custom-leaflet-controls]
-     [:div.custom-leaflet-controls.leaflet-top.leaflet-right.leaflet-touch
-      {:style {:font "12px/1.5 \"Helvetica Neue\", Arial, Helvetica, sans-serif"}} ; font style for Leaflet map-component - needs to be inherited into custom controls
-      [layers-control]]
-     [floating-pills]
-     [layer-preview @(re-frame/subscribe [:ui/preview-layer-url])]]))
+     [controls-slot (:controls layout)]
+     (when (seq (:floating-pills layout))
+       [floating-pills-slot (:floating-pills layout)])
+     (when has-layer-preview?
+       [layer-preview @(re-frame/subscribe [:ui/preview-layer-url])])
 
+     ;; Test harness: Deployment switcher (only shows in dev mode)
+     [dev-switcher/switcher-panel]]))
+
+;;; =============================================================================
+;;; Component Registration (Phase 4: Populate component registry)
+;;; =============================================================================
+
+;; Register components from this namespace into the component registry
+;; This happens once when the namespace loads, avoiding circular dependencies
+(components-registry/register-components!
+ {;; Footer (below the map)
+  :footer/plot              plot-component
+
+  ;; Map overlays (over the map, not Leaflet controls)
+  :overlay/pinned-legends   pinned-legends
+
+  ;; Left drawer tab definitions (see `resolve-tab`) and their panels
+  :tab/catalogue            {:id "catalogue" :class "catalogue" :title "Catalogue"
+                             :tooltip "All available map layers" :component :drawer/catalogue}
+  :tab/active-layers        {:id "active-layers" :title active-layers-tab-title
+                             :tooltip "Currently active layers" :component :drawer/active-layers}
+  :tab/featured-maps        {:id "featured-maps" :title "Featured Maps"
+                             :tooltip "Guided walkthrough of featured maps" :component :drawer/featured-maps}
+  :drawer/catalogue         left-drawer-catalogue
+  :drawer/active-layers     left-drawer-active-layers
+  :drawer/featured-maps     featured-maps
+
+  ;; Right drawer panels (receive the sidebar map)
+  :sok/panel                state-of-knowledge
+  :featured-map/drawer      featured-map-drawer
+  :dynamic-pill/drawer      dynamic-pill-drawer
+
+  ;; Map controls; a vector of these in config is a control-block
+  :control/menu             menu-button
+  :control/settings         settings-button
+  :control/zoom             zoom-control
+  :control/zoom-basic       zoom-basic-control
+  :control/print            print-control
+  :control/omnisearch       omnisearch-control
+  :control/transect         transect-control
+  :control/region           region-control
+  :control/data-in-region   data-in-region-control
+  :control/share            share-control
+  :control/reset            reset-control
+  :control/shortcuts        shortcuts-control
+  :control/help             help-control
+  :control/layers           layers-control
+
+  ;; Floating pills
+  :pill/state-of-knowledge  state-of-knowledge-pill
+  :pill/boundaries          boundaries-pill
+  :pill/zones               zones-pill
+  :pill/dynamic             dynamic-pills
+  :pill/side-by-side-views  side-by-side-views-pills
+
+  ;; Overlays
+  :overlay/welcome          welcome-dialogue
+  :welcome-footer/seamap-australia seamap-australia-welcome-footer
+  :overlay/outage           outage-message-dialogue
+  :overlay/settings         settings-overlay
+  :overlay/info-card        info-card
+  :overlay/loading          loading-display
+  :overlay/helper           helper-overlay
+  :overlay/layer-preview    layer-preview
+  :overlay/omnibar          layers-search-omnibar})

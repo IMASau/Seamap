@@ -438,7 +438,10 @@
                                                            [:map.layer/displayed-layers-lookup map-id]
                                                            [:map.layer/displayed-layers-lookup]))
         {:keys [active-base-layer]} @(re-frame/subscribe [:map/base-layers])
-        boundary-filter             @(re-frame/subscribe [:sok/boundary-layer-filter])]
+        ;; Only subscribe to boundary-filter if state-of-knowledge feature is enabled
+        has-sok?                    @(re-frame/subscribe [:feature/enabled? :feature/state-of-knowledge])
+        boundary-filter             (when has-sok?
+                                      @(re-frame/subscribe [:sok/boundary-layer-filter]))]
     [:<>
      (map-indexed
       (fn [i layer]
@@ -472,24 +475,45 @@
                   :cql-filter      (cql-filter-fn layer)}]]))]))
       visible-layers)]))
 
+(defn time-dimension-slider
+  "Leaflet TimeDimension control, shown while a time-series layer is active.
+
+   Only mounted when :feature/time-dimension is enabled, because the :map.time/*
+   subscriptions it needs are only registered by those deployments."
+  []
+  (when @(re-frame/subscribe [:map.time/show-time-slider?])
+    [:f> leaflet/time-dimension-control
+     {:time-dimension
+      {:ref #(re-frame/dispatch [:map.time/time-dimension-ref %])
+       :defaultTime @(re-frame/subscribe [:map.time/current-time])}
+      :auto-play false
+      :playerOptions
+      {:buffer 10
+       :transitionTime 500
+       :startOver true}}]))
+
 (defn map-component []
-  (let [{:keys [center zoom bounds]}                @(re-frame/subscribe [:map/props])
+  (let [{:keys [center zoom bounds crs min-zoom max-zoom]} @(re-frame/subscribe [:map/props])
+        time-dimension?                             @(re-frame/subscribe [:feature/enabled? :feature/time-dimension])
         feature-info                                @(re-frame/subscribe [:map.feature/info])
         {:keys [query mouse-loc] :as transect-info} @(re-frame/subscribe [:transect/info])
         {:keys [region] :as region-info}            @(re-frame/subscribe [:map.layer.selection/info])]
     [leaflet/map-container
      (merge
       {:id                   "map"
-       :crs                  leaflet/crs-epsg3857
+       :crs                  (if crs
+                               (leaflet/crs-from-keyword crs)
+                               leaflet/crs-epsg3857)
        :preferCanvas         true
        :use-fly-to           false
        :center               center
        :zoom                 zoom
        :zoomControl          true
-       :minZoom              2
+       :minZoom              (or min-zoom 2)
        :keyboard             false ; handled externally
        :close-popup-on-click false ; We'll handle that ourselves
        :ref                  #(when % (re-frame/dispatch [:map/update-leaflet-map %]))} ; obtain a reference to the leaflet map in re-frame state, so we can call leaflet map methods from anywhere in the app
+      (when max-zoom {:maxZoom max-zoom}) ; e.g. Antarctica's polar CRS only defines resolutions up to 15 (ISA-657)
       (when (seq bounds) {:bounds (map->bounds bounds)}))
     
      [basemap-layers]
@@ -520,6 +544,9 @@
        :enableUserInput  false}]
      [leaflet/scale-factor-control {:position "bottomright"}]
      [leaflet/scale-control {:position "bottomright"}]
+
+     (when time-dimension?
+       [time-dimension-slider])
     
      [distance-tooltip]
     

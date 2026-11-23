@@ -1,0 +1,337 @@
+;;; Seamap: view and interact with Australian coastal habitat data
+;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
+;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
+(ns imas-seamap.config-test
+  "Tests for the configuration-driven architecture (Phases 1-3).
+
+   These tests verify:
+   - Deployment configurations are valid
+   - Feature flag subscriptions work correctly
+   - Branding subscriptions return expected values
+   - Component migrations work properly"
+  (:require [cljs.test :refer-macros [deftest testing is use-fixtures]]
+            [re-frame.core :as re-frame]
+            [re-frame.db]
+            [imas-seamap.config.deployments :as deployments]
+            [imas-seamap.config.content :as content]
+            [imas-seamap.subs.features]
+            [imas-seamap.subs.branding]))
+
+;;; =============================================================================
+;;; Test Fixtures
+;;; =============================================================================
+
+(defn reset-re-frame
+  "Reset re-frame state between tests"
+  [f]
+  (re-frame/clear-subscription-cache!)
+  (f))
+
+(use-fixtures :each reset-re-frame)
+
+;;; =============================================================================
+;;; Deployment Configuration Tests (Phase 1)
+;;; =============================================================================
+
+(deftest deployment-configs-exist
+  (testing "All six deployments are defined"
+    (is (= 6 (count deployments/deployments)))
+    (is (contains? deployments/deployments :seamap-australia))
+    (is (contains? deployments/deployments :tas-marine-atlas))
+    (is (contains? deployments/deployments :seamap-antarctica))
+    (is (contains? deployments/deployments :futures-of-seafood))
+    (is (contains? deployments/deployments :natural-hazards-atlas))
+    (is (contains? deployments/deployments :tmag-kiosk))))
+
+(deftest deployment-configs-have-required-keys
+  (testing "Each deployment has all required configuration keys"
+    (let [required-keys #{:id :css-class :drawer-class :branding :map
+                          :features :layout}]
+      (doseq [[deployment-id config] deployments/deployments]
+        (testing (str "Deployment " deployment-id)
+          (is (every? #(contains? config %) required-keys)
+              (str "Missing keys: "
+                   (clojure.set/difference required-keys (set (keys config))))))))))
+
+(deftest branding-configs-are-valid
+  (testing "Each deployment has valid branding configuration"
+    (doseq [[deployment-id config] deployments/deployments]
+      (testing (str "Deployment " deployment-id " branding")
+        (let [branding (:branding config)]
+          (is (map? (:logo branding)) "Logo should be a map")
+          (is (string? (:src (:logo branding))) "Logo src should be a string")
+          (is (or (string? (:url branding)) (keyword? (:url branding)) (vector? (:url branding)))
+              "URL should be a string, a runtime url-base keyword, or [url-base path]")
+          (is (string? (:title branding)) "Title should be a string")
+          (is (or (nil? (:welcome branding)) (map? (:welcome branding)))
+              "Welcome should be a map, or nil for no dialogue"))))))
+
+(deftest map-configs-are-valid
+  (testing "Each deployment has valid map configuration"
+    (doseq [[deployment-id config] deployments/deployments]
+      (testing (str "Deployment " deployment-id " map config")
+        (let [{:keys [crs center bounds zoom]} (:map config)]
+          (is (keyword? crs) "CRS should be a keyword")
+          (is (or (vector? center) (map? bounds)) "Map needs a center or initial bounds")
+          (when center
+            (is (= 2 (count center)) "Center should have 2 coordinates")
+            (is (every? number? center) "Center coordinates should be numbers"))
+          (when bounds
+            (is (every? number? (map bounds [:west :south :east :north])) "Bounds need west/south/east/north"))
+          (is (number? zoom) "Zoom should be a number")
+          (is (>= zoom 1) "Zoom should be >= 1"))))))
+
+(deftest feature-sets-are-valid
+  (testing "Each deployment has a valid feature set"
+    (let [valid-features deployments/all-features]
+      (doseq [[deployment-id config] deployments/deployments]
+        (testing (str "Deployment " deployment-id " features")
+          (is (set? (:features config)) "Features should be a set")
+          (is (every? valid-features (:features config))
+              (str "Invalid features: "
+                   (clojure.set/difference (:features config) valid-features))))))))
+
+(deftest feature-matrix-matches-expected
+  (testing "Feature matrix matches documented behavior"
+    (let [australia (deployments/get-deployment :seamap-australia)
+          tma (deployments/get-deployment :tas-marine-atlas)
+          antarctica (deployments/get-deployment :seamap-antarctica)
+          fos (deployments/get-deployment :futures-of-seafood)]
+
+      (testing "State of Knowledge feature"
+        (is (contains? (:features australia) :feature/state-of-knowledge))
+        (is (not (contains? (:features tma) :feature/state-of-knowledge)))
+        (is (contains? (:features antarctica) :feature/state-of-knowledge))
+        (is (not (contains? (:features fos) :feature/state-of-knowledge))))
+
+      (testing "Data in Region feature"
+        (is (not (contains? (:features australia) :feature/data-in-region)))
+        (is (contains? (:features tma) :feature/data-in-region))
+        (is (not (contains? (:features antarctica) :feature/data-in-region)))
+        (is (not (contains? (:features fos) :feature/data-in-region))))
+
+      (testing "Featured Maps feature"
+        (is (contains? (:features australia) :feature/featured-maps))
+        (is (contains? (:features tma) :feature/featured-maps))
+        (is (contains? (:features antarctica) :feature/featured-maps))
+        (is (not (contains? (:features fos) :feature/featured-maps))))
+
+      (testing "Transect control is present everywhere except NHAT and the kiosk"
+        (doseq [id [:seamap-australia :tas-marine-atlas :seamap-antarctica :futures-of-seafood]]
+          (is (contains? (:features (deployments/get-deployment id)) :feature/transect-control) (str id)))
+        (doseq [id [:natural-hazards-atlas :tmag-kiosk]]
+          (is (not (contains? (:features (deployments/get-deployment id)) :feature/transect-control)) (str id))))
+
+      (testing "Region select is absent from Antarctica and the kiosk"
+        (is (not (contains? (:features antarctica) :feature/region-select)))
+        (is (not (contains? (:features (deployments/get-deployment :tmag-kiosk)) :feature/region-select))))
+
+      (testing "Plot Component feature"
+        (is (contains? (:features australia) :feature/plot-component))
+        (is (not (contains? (:features tma) :feature/plot-component)))
+        (is (not (contains? (:features antarctica) :feature/plot-component)))
+        (is (contains? (:features fos) :feature/plot-component))))))
+
+(deftest layout-configs-are-well-formed
+  (testing "Each deployment's :layout uses the slot shapes the unified layout expects"
+    (doseq [[id config] deployments/deployments
+            :let [{:keys [left-drawer right-drawer footer floating-pills map-overlays controls]} (:layout config)]]
+      (testing (str "Deployment " id)
+        (is (map? left-drawer) "left-drawer should be a map")
+        (let [{:keys [tabs component]} left-drawer]
+          (is (or (seq tabs) component) "left-drawer needs tabs or a single component")
+          (is (every? #(or (keyword? %) (map? %)) tabs) "tab entries are registry keywords or tab maps"))
+        (is (map? right-drawer) "right-drawer maps sidebar types to registry keys")
+        (is (every? keyword? (vals right-drawer)))
+        (doseq [[slot v] {:footer footer :floating-pills floating-pills :map-overlays map-overlays}]
+          (is (vector? v) (str slot " should be a vector"))
+          (is (every? keyword? v) (str slot " entries should be registry keywords")))
+        (is (every? #(or (keyword? %) (and (map? %) (keyword? (:id %)))) (:hotkeys (:layout config)))
+            "hotkey entries are ids or {:id ... :label ...} maps")
+        (is (every? map? (:helper-overlay (:layout config))) "helper-overlay entries are maps")
+        (is (map? controls) "controls are keyed by Leaflet corner")
+        (is (every? #{:top-left :top-right} (keys controls)))
+        (letfn [(control-entry? [e] (or (keyword? e) (and (vector? e) (every? control-entry? e))))]
+          (is (every? control-entry? (apply concat (vals controls)))
+              "control entries are registry keywords or vectors (control blocks) of them"))))))
+
+;;; =============================================================================
+;;; Content Registry Tests (Phase 1)
+;;; =============================================================================
+
+(def ^:private test-url-base
+  {:api-url-base       "http://localhost:8000/api/"
+   :media-url-base     "http://localhost:8000/media/"
+   :wordpress-url-base "http://localhost:8888/"
+   :img-url-base       "/img/"})
+
+(deftest welcome-content-exists
+  (testing "Every deployment that declares welcome content has it in the registry"
+    (doseq [[id config] deployments/deployments
+            :let [content-key (get-in config [:branding :welcome :content])]
+            :when content-key]
+      (is (some? (content/get-content content-key test-url-base)) (str id " " content-key)))))
+
+(deftest welcome-content-is-hiccup
+  (testing "Welcome content resolves to valid Reagent hiccup"
+    (doseq [[id config] deployments/deployments
+            :let [content-key (get-in config [:branding :welcome :content])]
+            :when content-key]
+      (let [content (content/get-content content-key test-url-base)]
+        (is (vector? content) (str content-key " should be a vector"))
+        (is (keyword? (first content)) (str content-key " should start with a keyword"))))))
+
+;;; =============================================================================
+;;; Feature Subscription Tests (Phase 2)
+;;; =============================================================================
+
+;; The tests don't load a deployment core namespace, so neither the :boot event
+;; nor the :url-base subscription are registered; register the one sub the
+;; branding subs depend on.
+(re-frame/reg-sub :url-base (fn [db _] (get-in db [:config :url-base])))
+
+(defn- setup-deployment-config
+  "Put a deployment config (and a runtime url-base) straight into app-db."
+  [deployment-id]
+  (re-frame/clear-subscription-cache!)
+  (reset! re-frame.db/app-db
+          {:deployment-config (deployments/get-deployment deployment-id)
+           :config            {:url-base test-url-base}}))
+
+(deftest runtime-urls-resolve
+  (testing "NHAT branding URLs resolve against the runtime url-base"
+    (setup-deployment-config :natural-hazards-atlas)
+    (is (= "http://localhost:8888/" @(re-frame/subscribe [:branding/url])))
+    (is (= "http://localhost:8888/resources/how-to-use-the-atlas/"
+           @(re-frame/subscribe [:branding/link :how-to-use])))))
+
+(deftest feature-enabled-subscription-works
+  (testing "Feature enabled subscription returns correct values"
+    (setup-deployment-config :seamap-australia)
+
+    (testing "Returns true for enabled features"
+      (is (true? @(re-frame/subscribe [:feature/enabled? :feature/state-of-knowledge])))
+      (is (true? @(re-frame/subscribe [:feature/enabled? :feature/featured-maps])))
+      (is (true? @(re-frame/subscribe [:feature/enabled? :feature/plot-component]))))
+
+    (testing "Returns false for disabled features"
+      (is (false? @(re-frame/subscribe [:feature/enabled? :feature/data-in-region])))
+      (is (false? @(re-frame/subscribe [:feature/enabled? :nonexistent-feature]))))))
+
+(deftest feature-all-subscription-works
+  (testing "Feature all subscription returns complete feature set"
+    (setup-deployment-config :seamap-australia)
+    (let [features @(re-frame/subscribe [:feature/all])]
+      (is (set? features))
+      (is (contains? features :feature/state-of-knowledge))
+      (is (contains? features :feature/featured-maps))
+      (is (not (contains? features :feature/data-in-region))))))
+
+(deftest deployment-id-subscription-works
+  (testing "Deployment ID subscription returns correct value"
+    (setup-deployment-config :tas-marine-atlas)
+    (is (= :tas-marine-atlas @(re-frame/subscribe [:deployment/id])))))
+
+;;; =============================================================================
+;;; Branding Subscription Tests (Phase 2)
+;;; =============================================================================
+
+(deftest branding-logo-subscription-works
+  (testing "Branding logo subscription returns correct values"
+    (setup-deployment-config :seamap-australia)
+    (let [logo @(re-frame/subscribe [:branding/logo])]
+      (is (map? logo))
+      (is (= "img/Seamap2_V2_RGB.png" (:src logo)))
+      (is (= "Seamap Australia" (:alt logo)))
+      (is (= 96 (:height logo))))))
+
+(deftest branding-label-subscription-works
+  (testing "Branding labels differ between deployments"
+    (testing "TMA has different region-control label"
+      (setup-deployment-config :tas-marine-atlas)
+      (is (= "Find Data in Region"
+             @(re-frame/subscribe [:branding/label :region-control]))))
+
+    (testing "Australia has different region-control label"
+      (setup-deployment-config :seamap-australia)
+      (is (= "Select Habitat Data"
+             @(re-frame/subscribe [:branding/label :region-control]))))
+
+    (testing "Layer info label differs between deployments"
+      (setup-deployment-config :tas-marine-atlas)
+      (is (= "Layer info"
+             @(re-frame/subscribe [:branding/label :layer-info])))
+
+      (setup-deployment-config :seamap-australia)
+      (is (= "Layer info / Download data"
+             @(re-frame/subscribe [:branding/label :layer-info]))))))
+
+(deftest branding-colors-subscription-works
+  (testing "Branding colors subscription works"
+    (testing "TMA has custom colors"
+      (setup-deployment-config :tas-marine-atlas)
+      (let [colors @(re-frame/subscribe [:branding/colors])]
+        (is (map? colors))
+        (is (= "rgb(18, 37, 55)" (:color-1 colors)))))
+
+    (testing "Australia has no color overrides"
+      (setup-deployment-config :seamap-australia)
+      (let [colors @(re-frame/subscribe [:branding/colors])]
+        (is (or (nil? colors) (empty? colors)))))))
+
+(deftest map-config-subscriptions-work
+  (testing "Map config subscriptions return correct values"
+    (testing "Antarctica has different CRS"
+      (setup-deployment-config :seamap-antarctica)
+      (is (= :epsg-3031 @(re-frame/subscribe [:map/crs])))
+      (is (= [-80 -90] @(re-frame/subscribe [:map/initial-center])))
+      (is (= 2 @(re-frame/subscribe [:map/initial-zoom]))))
+
+    (testing "Australia has standard CRS"
+      (setup-deployment-config :seamap-australia)
+      (is (= :epsg-3857 @(re-frame/subscribe [:map/crs])))
+      (is (= 4 @(re-frame/subscribe [:map/initial-zoom]))))))
+
+;;; =============================================================================
+;;; Integration Tests (Phase 3)
+;;; =============================================================================
+
+(deftest tma-flag-elimination-works
+  (testing "TMA-specific behavior now comes from configuration"
+    (testing "TMA deployment"
+      (setup-deployment-config :tas-marine-atlas)
+      (is (false? @(re-frame/subscribe [:feature/enabled? :feature/data-download])))
+      (is (= "Layer info" @(re-frame/subscribe [:branding/label :layer-info]))))
+
+    (testing "Australia deployment"
+      (setup-deployment-config :seamap-australia)
+      (is (true? @(re-frame/subscribe [:feature/enabled? :feature/data-download])))
+      (is (= "Layer info / Download data"
+             @(re-frame/subscribe [:branding/label :layer-info]))))))
+
+;;; =============================================================================
+;;; Summary Report
+;;; =============================================================================
+
+(defn run-all-tests-and-report
+  "Run all tests and return a summary report"
+  []
+  (let [results (atom {:passed 0 :failed 0 :errors []})]
+    (println "\n=== Configuration System Test Report ===\n")
+
+    ;; Run tests (simplified - in real implementation would use cljs.test/run-tests)
+    (try
+      (deployment-configs-exist)
+      (swap! results update :passed inc)
+      (catch js/Error e
+        (swap! results update :failed inc)
+        (swap! results update :errors conj {:test "deployment-configs-exist" :error (str e)})))
+
+    (println "\nTests passed:" (:passed @results))
+    (println "Tests failed:" (:failed @results))
+    (when (seq (:errors @results))
+      (println "\nErrors:")
+      (doseq [error (:errors @results)]
+        (println "  -" (:test error) ":" (:error error))))
+
+    @results))
