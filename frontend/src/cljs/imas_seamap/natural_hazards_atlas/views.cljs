@@ -358,7 +358,7 @@
 ;; Supporting layers are hidden until the client finalises the list. Set to true to
 ;; restore the "Supporting Layers" catalogue tab and include supporting layers in
 ;; the layer search omnibar.
-(def ^:private show-supporting-layers? false)
+(def ^:private show-supporting-layers? true)
 
 (defn- layer-catalogue [catid layer-props tma?]
   (let [selected-tab @(re-frame/subscribe [:ui.catalogue/tab catid])
