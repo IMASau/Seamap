@@ -44,7 +44,7 @@
                    :map.layer.bounding_box/south
                    :map.layer.bounding_box/east
                    :map.layer.bounding_box/north]))
-(s/def :map.layer/metadata_url string?)
+(s/def :map.layer/metadata_url (s/nilable string?)) ; optional in Django (blank=True, null=True)
 (s/def :map.layer/server_type keyword?)
 (s/def :map.layer/info_format_type integer?)
 (s/def :map.layer/keywords (s/nilable string?))
