@@ -1,7 +1,8 @@
 ;;; Seamap: view and interact with Australian coastal habitat data
 ;;; Copyright (c) 2017, Institute of Marine & Antarctic Studies.  Written by Condense Pty Ltd.
 ;;; Released under the Affero General Public Licence (AGPL) v3.  See LICENSE file for details.
-(ns imas-seamap.natural-hazards-atlas.db)
+(ns imas-seamap.natural-hazards-atlas.db
+  (:require [imas-seamap.db :as seamap-db]))
 
 (def default-db
   {:initialised     false               ; Flag to prevent early updates
@@ -31,6 +32,11 @@
                      :controls        {:transect false
                                        :download nil}}
    :site-configuration nil
+   ;; NHAT doesn't use State of Knowledge (its boot flow never loads that data), but
+   ;; the shared :seamap/app-state spec requires this key, and the dev-mode spec
+   ;; check warns on every event without it. Reuse Seamap's empty default (all nil /
+   ;; [] / false) so the shape stays in sync with the spec.
+   :state-of-knowledge (:state-of-knowledge seamap-db/default-db)
    :story-maps      {:featured-maps []
                      :featured-map  nil
                      :open?         false}
