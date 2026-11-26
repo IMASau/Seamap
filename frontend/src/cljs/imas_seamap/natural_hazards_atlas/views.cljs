@@ -355,10 +355,9 @@
              :description "Select a hazard layer to configure hazard parameters."
              :icon        "info-sign"}]])))))
 
-;; Supporting layers are hidden until the client finalises the list. Set to true to
-;; restore the "Supporting Layers" catalogue tab and include supporting layers in
-;; the layer search omnibar.
-(def ^:private show-supporting-layers? false)
+;; Controls the "Supporting Layers" catalogue tab and whether supporting layers are
+;; included in the layer search omnibar. Set to false to hide them again.
+(def ^:private show-supporting-layers? true)
 
 (defn- layer-catalogue [catid layer-props tma?]
   (let [selected-tab @(re-frame/subscribe [:ui.catalogue/tab catid])
